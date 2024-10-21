@@ -10,6 +10,9 @@ import { performerDocument } from "../../domain/entities/performer";
 
 export interface IperformerRepository {
 
-    loginPerformer(email: string, password: string): Promise<asPerformer | null>;
+    loginPerformer(email: string, password: string): Promise<asPerformer | null|string>;
     getPerformerDetails(id: mongoose.Types.ObjectId): Promise<performerDocument | null>;
+ 
+    videoUploadDB(bandName:string,mobileNumber:string,description:string,user_id:mongoose.Types.ObjectId,s3Location:any): Promise<TempPerformerDocument | null>;
 }
+

@@ -14,8 +14,9 @@ const port = process.env.PORT || 5001;
 
 
 app.use('/',userRoutes)
-app.use('/',adminRoutes)
 app.use('/',performerRoutes)
+app.use('/',adminRoutes)
+
 
 
 app.listen(port, () => {

@@ -94,10 +94,11 @@ export class userUseCase implements IuserUseCase {
   };
 
   
-  loginUser = async (email: string, password: string): Promise<User | null> => {
+  loginUser = async (email: string, password: string): Promise<User | null |string> => {
     try {
   
       return await this.repository.loginUser(email, password);
+      
     } catch (error) {
       throw error;
     }

@@ -16,14 +16,10 @@ export interface IperformerUseCase {
   
   jwt(payload: asPerformer): Promise<string | null>;
 
-  addTempPerformer(
-    bandName: string,
-    place: string,
-    videoUrl: string,
-    category: string,
-    description: string,
-    userId: string
-  ): Promise<TempPerformerDocument>;
-  loginPerformer(email: string, password: string): Promise<asPerformer| null>;
+
+  loginPerformer(email: string, password: string): Promise<asPerformer| null|string>;
   getPerformerDetails(id: mongoose.Types.ObjectId): Promise<performerDocument | null>;
+  videoUpload(bandName:string,mobileNumber:string,description:string,user_id:mongoose.Types.ObjectId,video:any): Promise<TempPerformerDocument | null>;
 }
+
+

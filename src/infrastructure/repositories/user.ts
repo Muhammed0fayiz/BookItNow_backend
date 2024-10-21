@@ -94,15 +94,17 @@ export class userRepository implements IuserRepository {
     }
   };
 
-  loginUser = async (email: string, password: string): Promise<User | null> => {
+  loginUser = async (email: string, password: string): Promise<User | null | string> => {
     try {
       const user = await UserModel.findOne({ email: email });
 
-      if (!user || user.isblocked) {
+      if (!user) {
         // Return null if the user doesn't exist or is blocked
         return null;
       }
-
+        else if(user.isblocked){
+          return "User Is Blocked"
+        }
       const isMatch = await bcrypt.compare(password, user.password); // Compare hashed passwords
 
       if (!isMatch) {

@@ -25,7 +25,7 @@ export interface IuserUseCase {
     username: string
   ): Promise<OtpUser | null>;
   checkOtp(user: checkOtp): Promise<User | null>;
-  loginUser(email: string, password: string): Promise<User | null>;
+  loginUser(email: string, password: string): Promise<User | null | string>;
 
   
 

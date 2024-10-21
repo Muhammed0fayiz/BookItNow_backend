@@ -24,7 +24,7 @@ export interface IuserRepository {
 
   checkOtp(user: checkOtp): Promise<User | null>;
   tempUserExist(email: string): Promise<OtpUser | null>;
-  loginUser(email: string, password: string): Promise<User | null>;
+  loginUser(email: string, password: string): Promise<User | null | string> ;
 
   // getUserDetails(id: any): Promise<UserDocuments | null>;
   getUserDetails(id: mongoose.Types.ObjectId): Promise<UserDocuments | null>;

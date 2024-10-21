@@ -80,6 +80,11 @@ export class UserController {
       );
 
       if (loginUser) {
+        if (typeof loginUser === 'string') {
+         return res.status(ResponseStatus.Forbidden).json({ message: loginUser });
+        }
+       
+        
         //pass vand email check
         const token = await this._useCase.jwt(loginUser as User);
         console.log(token);

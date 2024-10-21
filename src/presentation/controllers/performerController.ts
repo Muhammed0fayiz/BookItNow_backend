@@ -1,3 +1,4 @@
+import { loginpefomer } from './../../../../frontend/src/datas/logindatas';
 import { Response, Request, NextFunction } from "express";
 import { isValidEmail } from "../../shared/utils/validEmail";
 import { ResponseStatus } from "../../constants/responseStatus";
@@ -27,31 +28,18 @@ export class performerController {
     next: NextFunction
   ) => {
     try {
-      console.log(req.body, "body is ok");
-      const { bandName, place, videoUrl, category, description, user_id } =
-        req.body;
+      console.log(req.body, "body is tempok");
+      console.log(req.file, "file one");
+      const { bandName, mobileNumber, description, user_id } = req.body;
 
-      // if (!bandName || !place || !videoUrl || !category || !description || !user_id) {
-      //   return res.status(400).json({ message: 'All fields are required' });
-      // }
-      console.log(req.body, "body is ok");
-      const newTempPerformer = new TempPerformerModel({
-        bandName,
-        place,
-        videoUrl,
-        category,
-        description,
-        user_id,
-      });
-      console.log(newTempPerformer, "is ok va");
+const video = req.file;
+const response  = await this._useCase.videoUpload(bandName,mobileNumber,description,user_id,video);
+if(response){
 
-      const savedTempPerformer = await newTempPerformer.save();
-      res
-        .status(201)
-        .json({
-          message: "Temp Performer added successfully",
-          performer: savedTempPerformer,
-        });
+  return res.status(ResponseStatus.Accepted).json({ response });
+}
+
+
     } catch (error) {
       next(error);
     }
@@ -60,7 +48,7 @@ export class performerController {
 
   performerLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log('prrrldsofd')
+
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -90,6 +78,9 @@ export class performerController {
       );
   
       if (loginPerformer) {
+        if(typeof loginPerformer==='string'){
+          return res.status(ResponseStatus.Forbidden).json({ message: loginpefomer });
+        }
         const token = await this._useCase.jwt(loginPerformer as  asPerformer);
         res.status(ResponseStatus.Accepted).json({ token: token });
       } else {

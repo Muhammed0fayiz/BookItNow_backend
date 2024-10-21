@@ -1,7 +1,5 @@
 import { User, UserDocument } from "../../domain/entities/user";
 
-
-
 import {
   TempPerformerDocument,
   TempPerformer,
@@ -14,7 +12,6 @@ import { Performer } from "../../domain/entities/performer";
 import nodemailer from "nodemailer";
 import { UserModel } from "../../infrastructure/models/userModel";
 
-
 export class adminUseCase implements IadminUseCase {
   private _repository: IadminRepository;
 
@@ -25,13 +22,13 @@ export class adminUseCase implements IadminUseCase {
     try {
       // Fetch rejected performer data
       const tempPerformer = await this._repository.rejectedPermission(id);
-      
+
       if (tempPerformer) {
         const user = await UserModel.findById(tempPerformer.user_id);
-  
+
         if (user) {
-          console.log('Rejected user is', user);
-  
+          console.log("Rejected user is", user);
+
           // Send rejection email
           try {
             const rejectionMessage = await this.sendRejectionEmail(user.email);
@@ -41,7 +38,7 @@ export class adminUseCase implements IadminUseCase {
           }
         }
       }
-      
+
       return tempPerformer;
     } catch (error) {
       throw error;
@@ -51,9 +48,6 @@ export class adminUseCase implements IadminUseCase {
     try {
       console.log("getaall pterform");
       return await this._repository.getAllPerformer();
-
-
-
     } catch (error) {
       throw error;
     }
@@ -61,15 +55,15 @@ export class adminUseCase implements IadminUseCase {
   grantedPermission = async (id: string): Promise<Performer> => {
     // Fetch performer data or handle logic here
     console.log("gran use");
-  
+
     const performer = await this._repository.grantedPermission(id);
-  
+
     if (performer) {
       const user = await UserModel.findById(performer.userId); // Declare user here
-  
+
       if (user) {
-        console.log('user is', user);  // Now the 'user' variable is accessible
-  
+        console.log("user is", user); // Now the 'user' variable is accessible
+
         // Send congratulatory email
         try {
           const successMessage = await this.sendCongratulatoryEmail(user.email);
@@ -79,18 +73,15 @@ export class adminUseCase implements IadminUseCase {
         }
       }
     }
-  
+
     return performer as unknown as Performer;
   };
-  
 
-
-  
   getUserDetails(id: string): unknown {
     throw new Error("Method not implemented.");
   }
 
-  getTempPerformer = async (): Promise<TempPerformerDocument[] | null> => {
+  getTempPerformer = async (): Promise<any[] | null> => {
     try {
       return await this._repository.getTempPerformer();
     } catch (error) {
@@ -140,7 +131,7 @@ export class adminUseCase implements IadminUseCase {
               pass: process.env.EMAIL_PASSWORD,
             },
           });
-  
+
           const mailOptions = {
             from: process.env.EMAIL_ADDRESS, // Ensure the sender email is set
             to: email,
@@ -153,7 +144,7 @@ export class adminUseCase implements IadminUseCase {
               </div>
             `,
           };
-  
+
           transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
               reject(error);
@@ -164,7 +155,7 @@ export class adminUseCase implements IadminUseCase {
           });
         });
       };
-  
+
       const mailSent = await sendEmail(email);
       return mailSent;
     } catch (error) {
@@ -185,7 +176,7 @@ export class adminUseCase implements IadminUseCase {
               pass: process.env.EMAIL_PASSWORD,
             },
           });
-  
+
           const mailOptions = {
             from: process.env.EMAIL_ADDRESS, // Ensure the sender email is set
             to: email,
@@ -198,7 +189,7 @@ export class adminUseCase implements IadminUseCase {
               </div>
             `,
           };
-  
+
           transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
               reject(error);
@@ -209,7 +200,7 @@ export class adminUseCase implements IadminUseCase {
           });
         });
       };
-  
+
       const mailSent = await sendEmail(email);
       return mailSent;
     } catch (error) {
