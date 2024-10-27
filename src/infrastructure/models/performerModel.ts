@@ -7,6 +7,9 @@ export interface PerformerDocuments extends Document {
   mobileNumber:string;
   rating: number;
   description: string;
+  profileImage?: string;
+  totalReviews?:number;
+  walletBalance?:number;
 }
 
 // Performer schema definition
@@ -15,7 +18,10 @@ const PerformerSchema: Schema<PerformerDocuments> = new Schema({
   bandName: { type: String, required: true },
   mobileNumber: { type: String, required: true },
   rating: { type: Number, required: true, default: 0 },  // Default rating is 0
-  description: { type: String, required: true }
+  description: { type: String, required: true },
+  profileImage: { type: String, default: 'http://i.pravatar.cc/250?img=58' },
+  totalReviews:{type:String,default:0},
+  walletBalance:{type:String,default:0}
 }, { timestamps: false });  // Disable both createdAt and updatedAt
 
 // Create and export Performer model

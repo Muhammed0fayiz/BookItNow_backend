@@ -110,7 +110,7 @@ if(response){
 
         // Fetch performer details using userId
         const response = await this._useCase.getPerformerDetails(objectId);
-        
+     
         if (response) {
             return res
                 .status(ResponseStatus.Accepted)

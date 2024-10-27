@@ -18,7 +18,7 @@ const useCase = new performerUseCase(repository);
 
 const controller = new performerController(useCase);
 
-router.get("/getPerfomer/:id", controller.getPerformerDetails.bind(controller));
+router.get("/getPerformer/:id", controller.getPerformerDetails.bind(controller));
 router.post(
   "/tempPerformer",
   upload.single("video"),

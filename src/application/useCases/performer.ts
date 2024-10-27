@@ -83,7 +83,7 @@ export class performerUseCase implements IperformerUseCase {
   ): Promise<TempPerformerDocument | null> => {
     try {
       console.log(
-        "use casssssssssssssssssssssssssssssssssssssssssssssssssss",
+       
         bandName,
         mobileNumber,
         description,
