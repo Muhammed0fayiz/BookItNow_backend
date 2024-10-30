@@ -83,8 +83,10 @@ export class userRepository implements IuserRepository {
   };
   getUserDetails = async (id: any): Promise<UserDocuments | null> => {
     try {
+      console.log(id,'id in google')
 
       const user = await UserModel.findById(id).lean().exec();
+      console.log('uer',user,'und')
      
       if (!user) throw new Error("User not found");
       return user ? user : null;

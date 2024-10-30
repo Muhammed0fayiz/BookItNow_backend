@@ -16,6 +16,7 @@ const uploadS3Video = async (file: any) => {
   console.log("s3", process.env.S3_ACCESS_KEY );
 console.log("s3", process.env.S3_SECRET_ACCESS_KEY );
 console.log("s3", process.env.COURSE_BUCKET_NAME);
+console.log("s3", file);
   const params = {
     Bucket: process.env.COURSE_BUCKET_NAME,
     Key: Date.now().toString() + "-" + file.originalname,

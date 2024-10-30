@@ -12,6 +12,7 @@ import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
 import { IperformerUseCase } from "../../application/interfaces/IperformerUseCase";
 import { asPerformer } from "../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
+import { PerformerDocuments, PerformerModel } from '../../infrastructure/models/performerModel';
 
 export class performerController {
   private _useCase: IperformerUseCase;
@@ -110,7 +111,7 @@ if(response){
 
         // Fetch performer details using userId
         const response = await this._useCase.getPerformerDetails(objectId);
-     
+         
         if (response) {
             return res
                 .status(ResponseStatus.Accepted)
@@ -124,6 +125,57 @@ if(response){
         next(error); // Pass the error to the next middleware
     }
 };
+
+
+updatePerformerProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    console.log('hello');
+    const id = req.params.id;
+    console.log('hello', id);
+    const { bandName, mobileNumber, place } = req.body;
+    console.log(req.body, 'id');
+
+    // Handle profile image update
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
+    console.log('Updating user profile:', image);
+
+    const updateData: { 
+      bandName?: string; 
+      mobileNumber?: string; 
+      place?: string; 
+      profileImage?: string | null 
+    } = {};
+
+    // Only add properties if they're provided
+    if (bandName) updateData.bandName = bandName;
+    if (mobileNumber) updateData.mobileNumber = mobileNumber;
+    if (place) updateData.place = place;
+    if (image) updateData.profileImage = image;
+
+    // Perform the update operation
+    const updatedPerformer = await PerformerModel.updateOne(
+      { userId: id },
+      { $set: updateData }
+    );
+
+    console.log(updatedPerformer, 'id');
+    if (updatedPerformer.modifiedCount > 0) {
+      res.status(200).json({ message: 'Profile updated successfully', updatedPerformer });
+    } else {
+      res.status(404).json({ message: 'User not found or no changes made' });
+    }
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+
+    if (error instanceof Error) {
+      res.status(500).json({ message: 'Error updating profile', error: error.message });
+    } else {
+      res.status(500).json({ message: 'An unknown error occurred' });
+    }
+  }
+};
+//  const uploadEvents=async
 
   
 }

@@ -62,6 +62,7 @@ export class performerRepository implements IperformerRepository {
             const performer = await PerformerModel.findOne({ userId }).lean().exec();
           
             if (!performer) throw new Error("Performer not found");
+          
             return performer;
         } catch (error) {
             console.error("Error occurred while finding performer:", error);

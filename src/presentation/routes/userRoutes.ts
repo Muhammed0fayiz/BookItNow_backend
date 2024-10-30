@@ -7,6 +7,7 @@ import authenticateJWT from "../../shared/middlewares/authentication";
 import multer from "multer";
 import path from "path";
 import mongoose from "mongoose";
+import passport from "passport";
 
 const router = Router();
 
@@ -42,6 +43,26 @@ router.put(
   upload.single("profilePic"), // Ensure to use multer for file upload
   controller.updateUserProfile.bind(controller) // Bind the controller method
 );
+
+router.get("/auth/google", (req, res, next) => {
+  console.log("Google OAuth initiated");
+  passport.authenticate("google", { scope: ["profile", "email"] })(
+    req,
+    res,
+    next
+  );
+});
+
+// Route to handle Google authentication callback
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:3000/login",
+  }),
+  controller.googleCallback.bind(controller)
+);
+
+
 
 router.put("/changePassword/:id", controller.changePassword.bind(controller));
 

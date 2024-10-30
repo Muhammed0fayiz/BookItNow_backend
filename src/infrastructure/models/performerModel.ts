@@ -1,28 +1,27 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
-// Interface for Performer document
 export interface PerformerDocuments extends Document {
-  userId: Types.ObjectId;  // Reference to the User model
+  userId: Types.ObjectId;
   bandName: string;
-  mobileNumber:string;
+  mobileNumber: string;
   rating: number;
   description: string;
   profileImage?: string;
-  totalReviews?:number;
-  walletBalance?:number;
+  totalReviews?: number;
+  walletBalance?: number;
+  place?:string;
 }
 
-// Performer schema definition
 const PerformerSchema: Schema<PerformerDocuments> = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },  // Refers to the 'User' model
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   bandName: { type: String, required: true },
   mobileNumber: { type: String, required: true },
-  rating: { type: Number, required: true, default: 0 },  // Default rating is 0
+  rating: { type: Number, required: true, default: 0 },
   description: { type: String, required: true },
   profileImage: { type: String, default: 'http://i.pravatar.cc/250?img=58' },
-  totalReviews:{type:String,default:0},
-  walletBalance:{type:String,default:0}
-}, { timestamps: false });  // Disable both createdAt and updatedAt
+  totalReviews: { type: Number, default: 0 },
+  walletBalance: { type: Number, default: 0 },
+  place:{type:String,default:'India'}
+}, { timestamps: false});
 
-// Create and export Performer model
 export const PerformerModel = mongoose.model<PerformerDocuments>('Performer', PerformerSchema);

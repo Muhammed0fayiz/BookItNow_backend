@@ -236,6 +236,37 @@ changePassword = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 
+async googleCallback(req: Request, res: Response, next: NextFunction) {
+  try {
+    console.log('Google callback is working');
+    
+    if (req.user) {
+      let user = req.user
+      const token = await this._useCase.jwt(user as User);
+      const userData = encodeURIComponent(JSON.stringify(req.user));
+      const tokenData = encodeURIComponent(JSON.stringify(token));
+      // console.log('userData',userData)
+      console.log('tokenData',tokenData)
+      
+
+      res
+      .cookie("userToken", tokenData,  {httpOnly: false,
+        secure: true,
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000})
+
+
+      res.redirect(`http://localhost:3000/auth`);
+      
+
+    } else {
+      res.redirect("http://localhost:3000/auth");
+    }
+  } catch (error) {
+    console.error("Error during Google callback:", error);
+    res.redirect("http://localhost:3000/error");
+  }
+}
 
  
 updateUserProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -82,6 +82,7 @@ export class performerUseCase implements IperformerUseCase {
     video: any
   ): Promise<TempPerformerDocument | null> => {
     try {
+      console.log('helllllllllll')
       console.log(
        
         bandName,
