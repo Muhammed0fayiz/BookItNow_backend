@@ -54,7 +54,12 @@ router.put(
   controller.updatePerformerProfile.bind(controller) // Bind the controller method
 );
 
-// router.post('/uploadEvents/:id',
-//   uploads.single('eventsImage'),controller.uploadEvents.bind(controller))
+router.post('/uploadEvents/:id',
+ controller.uploadEvents.bind(controller))
+
+
+
+ router.get('/getPerformerEvents/:id', controller.getPerformerEvents.bind(controller))
+router.post('/deleteEvent/:id',controller.deleteEvent.bind(controller))
 
 export default router;

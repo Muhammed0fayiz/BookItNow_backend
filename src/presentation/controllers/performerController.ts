@@ -1,3 +1,4 @@
+
 import { loginpefomer } from './../../../../frontend/src/datas/logindatas';
 import { Response, Request, NextFunction } from "express";
 import { isValidEmail } from "../../shared/utils/validEmail";
@@ -13,6 +14,7 @@ import { IperformerUseCase } from "../../application/interfaces/IperformerUseCas
 import { asPerformer } from "../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
 import { PerformerDocuments, PerformerModel } from '../../infrastructure/models/performerModel';
+import { EventDocument } from '../../infrastructure/models/eventsModel';
 
 export class performerController {
   private _useCase: IperformerUseCase;
@@ -175,7 +177,103 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
     }
   }
 };
-//  const uploadEvents=async
+
+
+uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<Response<any> | void> => {
+  try {
+    const id = req.params.id
+
+    if (!req.body) {
+      return res.status(400).json({ message: "No event data provided." });
+    }
+
+    const event = {
+      imageUrl: req.body.imageUrl ? req.body.imageUrl.trim() : null,
+      title: req.body.title ? req.body.title.trim() : null,
+      category: req.body.category ? req.body.category.trim() : null,
+      userId: new Types.ObjectId(id), // Convert userId to ObjectId
+      price: req.body.price ? parseFloat(req.body.price) : null, // Convert price to number
+      teamLeader: req.body.teamLeader ? req.body.teamLeader.trim() : null,
+      teamLeaderNumber: req.body.teamLeaderNumber ? parseInt(req.body.teamLeaderNumber, 10) : null, // Convert teamLeaderNumber to number
+      description: req.body.description ? req.body.description.trim() : null,
+    };
+
+    // Check for required fields
+    if (!event.imageUrl || !event.title || !event.category || !event.userId || !event.price || !event.teamLeader || !event.teamLeaderNumber || !event.description) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Basic validation checks
+    if (event.title.length < 3) {
+      return res.status(400).json({ message: "Title must be at least 3 characters long." });
+    }
+    if (isNaN(event.price)) {
+      return res.status(400).json({ message: "Price must be a valid number." });
+    }
+    if (!/^\d{10}$/.test(event.teamLeaderNumber.toString())) {
+      return res.status(400).json({ message: "Team leader number must be a valid 10-digit number." });
+    }
+    if (event.description.length < 10) {
+      return res.status(400).json({ message: "Description must be at least 10 characters long." });
+    }
+
+    // Upload event details
+    const uploadedEvent = await this._useCase.uploadEvents(event);
+    if (uploadedEvent) {
+      return res.status(201).json({ message: "Event uploaded successfully", event: uploadedEvent });
+    } else {
+      return res.status(400).json({ message: "Failed to upload event." });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+getPerformerEvents = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const id = req.params.id;
+    console.log('Request received for performer events');
+    
+    const events = await this._useCase.getPerformerEvents(id);
+
+    console.log('Retrieved events:', events);
+    res.status(200).json(events);
+    return events;
+  } catch (error) {
+    next(error);
+    return null;
+  }
+};
+
+deleteEvent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = req.params.id;
+    
+    if (!id) {
+      res.status(400).json({ message: 'Event ID is required' });
+      return 
+    }
+
+    const deletedEvent = await this._useCase.deleteEvent(id);
+
+    if (deletedEvent) {
+      res.status(200).json({ message: 'Event deleted successfully' });
+      return
+    } else {
+     res.status(404).json({ message: 'Event not found' });
+     return 
+    }
+
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    return
+  }
+};
+
+
+
 
   
 }

@@ -14,12 +14,31 @@ import { asPerformer } from "../../domain/entities/asPerformer";
 import jwt from "jsonwebtoken";
 import { uploadS3Video } from "../../infrastructure/s3/S3Video";
 import mongoose, { Types } from "mongoose";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
   }
+  deleteEvent(id: string): Promise<EventDocument | null> {
+    try {
+     return this._repository.deleteEvent(id)
+    } catch (error) {
+      throw error
+    }
+  }
+  getPerformerEvents=async(id: string): Promise<EventDocument[] | null> =>{
+    try {
+     const performerEvents= await this._repository.getPerformerEvents(id)
+   console.log('per',performerEvents)
+     return performerEvents
+    } catch (error) {
+      throw error
+    }
+  }
+ 
+ 
 
   // resendOtp(email: string): Promise<OtpUser> {
   //   throw new Error("Method not implemented.");
@@ -114,4 +133,28 @@ export class performerUseCase implements IperformerUseCase {
       return null;
     }
   };
+
+
+  uploadEvents = async (event: { 
+    id:string;
+    imageUrl: string; 
+    title: string; 
+    category: string; 
+    userId: Types.ObjectId; 
+    price: number; 
+    teamLeader: string; 
+    teamLeaderNumber: number; 
+    description: string; 
+  }): Promise<EventDocument | null> => {
+    try {
+      // Ensure that this._repository.uploadedEvent accepts the event data
+      const uploadedEvent = await this._repository.uploadedEvent(event);
+  
+      // Return the uploaded event document or null if not successful
+      return uploadedEvent ? uploadedEvent : null;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
 }
