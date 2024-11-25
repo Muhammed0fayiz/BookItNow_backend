@@ -10,9 +10,12 @@ import { TempPerformer } from "../../domain/entities/tempPerformer";
 import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
 import { IadminUseCase } from "../../application/interfaces/IadminUseCase";
 import mongoose from "mongoose";
+import { AdminModel } from "../../infrastructure/models/adminModel";
 
+import bcrypt from "bcrypt";
 export class adminController {
   private _useCase: IadminUseCase;
+ 
     
 
   constructor(private useCase: IadminUseCase) {
@@ -221,11 +224,10 @@ export class adminController {
 
  
 
-  adminLogin = async (req: Request, res: Response, next: NextFunction) => {
+adminLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
   
-      // Check if email and password are provided
       if (!email || !password) {
         return res.status(400).json({
           success: false,
@@ -233,13 +235,28 @@ export class adminController {
         });
       }
   
-      // Validate email and password with environment variables
-      if (email === process.env.Admin_Email && password === process.env.Admin_password) {
-        req.session.admin = { email }; // Store admin details in session
-        return res.status(200).json({ success: true, message: 'Login successful' });
-      } else {
+      const admin = await AdminModel.findOne({ email });
+  
+      if (!admin) {
         return res.status(401).json({ success: false, message: 'Invalid credentials' });
       }
+  
+      const isPasswordCorrect = await bcrypt.compare(password, admin.password);
+  
+      if (!isPasswordCorrect) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+  
+      req.session.admin = { email: admin.email }; 
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        admin: {
+          email: admin.email,
+          walletAmount: admin.walletAmount,
+        },
+      });
     } catch (error) {
       console.error('Error during admin login:', error);
       return res.status(500).json({ success: false, message: 'Server error' });
@@ -316,5 +333,86 @@ export class adminController {
     }
   };
   
+  getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const allEvents = await this._useCase.getAllEvents();
+
+      if (!allEvents || allEvents.length === 0) {
+        // No events found
+        return res.status(204).json(null);
+      }
+
+      res.status(200).json(allEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      next(error); // Pass the error to the next middleware
+    }
+  };
+  toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try { 
+      const { id } = req.params;
+  console.log('hwll',id)
+      // Validate id
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ message: 'Invalid or missing ID parameter' });
+      }
   
+      const changedEvent = await this._useCase.toggleBlockStatus(id);
+  console.log('changed',changedEvent,'change event')
+      // If the toggle operation did not affect any records
+      if (!changedEvent) {
+        return res.status(404).json({ message: 'Event not found or update failed' });
+      }
+  
+      // Success response
+      res.status(200).json({
+        message: 'Block status toggled successfully',
+        data: changedEvent,
+      });
+    } catch (error) {
+      // Error handling
+      console.error('Error toggling block status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+
+  loginpost = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+    
+    console.log('fay')
+      const hashedPassword = await bcrypt.hash('123', 10);
+  
+      // Insert a single admin document with hashed password
+      await AdminModel.insertMany([
+        {
+          email: 'admin@gmail.com',
+          password: hashedPassword,
+        },
+      ]);
+  
+      res.status(201).json({ message: 'Admin inserted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getAdminDetails = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this._useCase.getAdminDetails();
+      console.log('response', response);
+      return res.status(200).json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      console.error('Error fetching admin details:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch admin details. Please try again later.',
+      });
+    }
+  };
+  
+
 }

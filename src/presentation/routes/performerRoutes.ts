@@ -58,8 +58,12 @@ router.post('/uploadEvents/:id',
  controller.uploadEvents.bind(controller))
 
 
+ router.put('/editEvents/:id/:eid', controller.editEvents.bind(controller));
+
+
 
  router.get('/getPerformerEvents/:id', controller.getPerformerEvents.bind(controller))
 router.post('/deleteEvent/:id',controller.deleteEvent.bind(controller))
+router.put('/blockUnblockEvents/:id', controller.toggleBlockStatus.bind(controller));
 
 export default router;

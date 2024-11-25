@@ -11,6 +11,10 @@ import { Types } from "mongoose";
 import { Performer } from "../../domain/entities/performer";
 import nodemailer from "nodemailer";
 import { UserModel } from "../../infrastructure/models/userModel";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../infrastructure/models/adminModel";
+import bcrypt from "bcrypt";
+import { AdminDetails } from "../../domain/entities/adminDetails";
 
 export class adminUseCase implements IadminUseCase {
   private _repository: IadminRepository;
@@ -18,6 +22,12 @@ export class adminUseCase implements IadminUseCase {
   constructor(private repository: IadminRepository) {
     this._repository = repository;
   }
+
+  adminWallet=async(): Promise<AdminDocument []| null>=> {
+    const adminWallet=await this._repository.adminWallet()
+    return adminWallet
+  }
+
   rejectedPermission = async (id: string): Promise<TempPerformer> => {
     try {
       // Fetch rejected performer data
@@ -208,4 +218,32 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
+   
+  getAllEvents=async(): Promise<EventDocument[]| null> =>{
+    try {
+       return this._repository.getAllEvents()
+    } catch (error) {
+      throw error
+    }
+    }
+
+
+    toggleBlockStatus=async(id: string): Promise<EventDocument | null>=> {
+     try {
+      return this._repository.toggleBlockStatus(id)
+     } catch (error) {
+      throw error
+      
+     }
+    }
+    getAdminDetails=async(): Promise<AdminDetails>=> {
+      try {
+       const adminDetail= await this._repository.getAdminDetails()
+
+     
+       return adminDetail
+      } catch (error) {
+        throw error
+      }
+    }
 }

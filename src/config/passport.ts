@@ -114,7 +114,7 @@ const passportConfig = () => {
               email: profile._json.email,
               password: 'password', // Set the hashed password here
               isblocked: false,
-              isVerified: true,
+              isVerified: false,
               profileImage: profile._json.picture || null,
             });
             console.log("new user", newUser);

@@ -9,6 +9,9 @@ import {
 import { UserDocuments } from "../../infrastructure/models/userModel";
 import { Performer } from "../../domain/entities/performer";
 import mongoose, { Types } from "mongoose";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../infrastructure/models/adminModel";
+import { AdminDetails } from "../../domain/entities/adminDetails";
 
 
 Performer
@@ -40,5 +43,8 @@ export interface IadminUseCase {
     isPerfomerBlock: boolean
   ): Promise<User>; // Include isverified
   getAllPerformer():Promise<Performer[]|null>
-  
+  getAllEvents(): Promise<EventDocument[]| null>;
+  toggleBlockStatus(id:string):Promise<EventDocument|null>
+  adminWallet():Promise<AdminDocument[]|null>
+  getAdminDetails():Promise<AdminDetails>
 }

@@ -9,6 +9,7 @@ export interface UserDocuments extends Document {
   isPerformerBlocked: boolean;
   waitingPermission: boolean;
   // role: 'user' | 'performer' | 'admin';  
+  walletBalance?: number;
   createdAt?: Date; 
   updatedAt?: Date; 
   profileImage?: string;
@@ -21,6 +22,7 @@ const UserSchema: Schema<UserDocuments> = new Schema({
   isVerified: { type: Boolean, default: false },
   isblocked: { type: Boolean, default: false },
   isPerformerBlocked: { type: Boolean, default: false },
+  walletBalance: { type: Number, default: 0 },
   waitingPermission: { type: Boolean, default: false },
   // role: { type: String, enum: ['user', 'performer', 'admin'], default: 'user' },  // New field for role
   profileImage: { type: String, default: 'http://i.pravatar.cc/250?img=58' },

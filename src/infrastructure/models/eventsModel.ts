@@ -13,6 +13,8 @@ export interface EventDocument extends Document {
   imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
+  isblocked: boolean;
+  isperformerblockedevents: boolean;
 }
 
 const EventSchema: Schema<EventDocument> = new Schema({
@@ -26,6 +28,8 @@ const EventSchema: Schema<EventDocument> = new Schema({
   rating: { type: Number, default: 0 },
   description: { type: String, required: true },
   imageUrl: { type: String, required: true },
+  isblocked: { type: Boolean, default: false },
+  isperformerblockedevents: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export const EventModel = mongoose.model<EventDocument>('Event', EventSchema);

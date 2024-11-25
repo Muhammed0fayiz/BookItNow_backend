@@ -274,6 +274,79 @@ deleteEvent = async (req: Request, res: Response, next: NextFunction): Promise<v
 
 
 
+editEvents = async (req: Request, res: Response, next: NextFunction): Promise<Response<any> | void> => {
+  try {
+    const userId = req.params.id;
+    const eventId = req.params.eid;
 
-  
+    if (!req.body) {
+      return res.status(400).json({ message: "No event data provided." });
+    }
+
+    const event: {
+      imageUrl?: string;
+      title: string;
+      category: string;
+      userId: Types.ObjectId;
+      price: number;
+      teamLeader: string;
+      teamLeaderNumber: number;
+      description: string;
+    } = {
+      imageUrl: req.body.imageUrl ? req.body.imageUrl.trim() : undefined,
+      title: req.body.title ? req.body.title.trim() : "",
+      category: req.body.category ? req.body.category.trim() : "",
+      userId: new Types.ObjectId(userId),
+      price: req.body.price ? parseFloat(req.body.price) : 0,
+      teamLeader: req.body.teamLeader ? req.body.teamLeader.trim() : "",
+      teamLeaderNumber: req.body.teamLeaderNumber ? parseInt(req.body.teamLeaderNumber, 10) : 0,
+      description: req.body.description ? req.body.description.trim() : "",
+    };
+
+    // Check for required fields that must have non-empty values
+    if (!event.title || !event.category || !event.price || !event.teamLeader || !event.teamLeaderNumber || !event.description) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Call the use case with eventId and eventData
+    const updatedEvent = await this._useCase.editEvents(eventId, event);
+    if (updatedEvent) {
+      return res.status(200).json({ message: "Event updated successfully", event: updatedEvent });
+    } else {
+      return res.status(404).json({ message: "Event not found." });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try { 
+    console.log('manu varma')
+    const { id } = req.params;
+
+    // Validate id
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ message: 'Invalid or missing ID parameter' });
+    }
+
+    const changedEvent = await this._useCase.toggleBlockStatus(id);
+console.log('changed',changedEvent,'change event')
+    // If the toggle operation did not affect any records
+    if (!changedEvent) {
+      return res.status(404).json({ message: 'Event not found or update failed' });
+    }
+
+    // Success response
+    res.status(200).json({
+      message: 'Block status toggled successfully',
+      data: changedEvent,
+    });
+  } catch (error) {
+    // Error handling
+    console.error('Error toggling block status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 }

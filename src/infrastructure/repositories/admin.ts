@@ -15,7 +15,16 @@ import { tempUserModel } from "../models/tempUser";
 import { Types } from "mongoose";
 import { Performer } from "../../domain/entities/performer";
 import { PerformerModel } from "../models/performerModel";
+import { EventDocument, EventModel } from "../models/eventsModel";
+import { AdminDocument, AdminModel } from "../models/adminModel";
+import { AdminDetails } from "../../domain/entities/adminDetails";
 export class adminRepository implements IadminRepository {
+  adminWallet(): Promise<AdminDocument[] | null> {
+    throw new Error("Method not implemented.");
+  }
+
+
+
   rejectedPermission = async (id: string): Promise<TempPerformer> => {
     try {
       // Find the performer by ID and delete
@@ -198,4 +207,82 @@ export class adminRepository implements IadminRepository {
       return []; // Return an empty array in case of an error
     }
   };
+  getAllEvents = async (): Promise<EventDocument[] | null> => {
+    try {
+      const allEvents = await EventModel.find();
+      return allEvents;
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      return null;
+    }
+  };
+ toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
+    try {
+      const event = await EventModel.findById(id);
+      if (!event) return null;
+      event.isblocked = !event.isblocked;
+      const updatedEvent = await event.save();
+      return updatedEvent;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  getAdminDetails = async (): Promise<AdminDetails> => {
+    try {
+      console.log('Fetching admin details...');
+      
+      // Fetch admin data
+      const admin = await AdminModel.findOne(); // Assuming there's only one admin record
+  
+      let walletAmount = 0; // Default value
+      let walletTransactionHistory: Record<string, number> = {}; // Default empty history
+  
+      if (admin) {
+        walletAmount = admin.walletAmount; // Access wallet amount
+        walletTransactionHistory = admin.transactions; // Directly use transactions
+      }
+  
+      // Fetch performers and users
+      const performers = await PerformerModel.find().populate('userId', 'createdAt');
+      const users = await UserModel.find();
+  
+      // Calculate performer registration history by day
+      const performerRegistrationHistory: Record<string, number> = {};
+      performers.forEach((performer) => {
+        if (performer.userId && (performer.userId as any).createdAt) {
+          const createdAt = (performer.userId as any).createdAt;
+          // Extract year, month, and day from the createdAt date
+          const day = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
+          performerRegistrationHistory[day] = (performerRegistrationHistory[day] || 0) + 1;
+        }
+      });
+
+      // Calculate user registration history by day
+      const userRegistrationHistory: Record<string, number> = {};
+      users.forEach(({ createdAt }) => {
+        if (createdAt) {
+          // Extract year, month, and day from the createdAt date
+          const day = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
+          userRegistrationHistory[day] = (userRegistrationHistory[day] || 0) + 1;
+        }
+      });
+  
+      // Return the data with the fetched values
+      return {
+        walletAmount: walletAmount,
+        walletTransactionHistory: walletTransactionHistory,
+        totalUsers: users.length,
+        totalPerformers: performers.length, // Total number of performers
+        userRegistrationHistory: userRegistrationHistory,
+        performerRegistrationHistory: performerRegistrationHistory, // Daily performer registrations
+      };
+    } catch (error) {
+      console.error('Error fetching admin details:', error);
+      throw error;
+    }
+  };
+  
+  
+  
 }

@@ -65,5 +65,13 @@ router.get(
 
 
 router.put("/changePassword/:id", controller.changePassword.bind(controller));
+router.get('/getAllEvents/:id',controller.getAllEvents.bind(controller))
+router.get('/getperformers/:id', controller.getAllPerformers.bind(controller));
+
+router.post('/events/book', controller.bookEvent.bind(controller));
+router.get('/upcomingevents/:id', controller.upcomingEvents.bind(controller));
+router.post('/cancelevent/:id', controller.cancelEventByUser.bind(controller));
+router.get('/getWalletHistory/:id', controller.walletHistory.bind(controller));
+
 
 export default router;

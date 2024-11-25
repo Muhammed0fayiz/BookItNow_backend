@@ -10,6 +10,9 @@ import {
   TempPerformer,
 
 } from "../../domain/entities/tempPerformer";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../infrastructure/models/adminModel";
+import { AdminDetails } from "../../domain/entities/adminDetails";
 export interface IadminRepository {
 
   getAllUser(): Promise<UserDocument[]>;
@@ -29,4 +32,8 @@ export interface IadminRepository {
   grantedPermission(id:string): Promise<Performer>; // Ensure this method takes an argument
   rejectedPermission(id:string): Promise<TempPerformer>;
   getAllPerformer():Promise<Performer[]|null>
+  getAllEvents(): Promise<EventDocument[]| null>;
+  toggleBlockStatus(id:string):Promise<EventDocument|null>
+  adminWallet():Promise<AdminDocument[]|null>
+  getAdminDetails():Promise<AdminDetails>
 }

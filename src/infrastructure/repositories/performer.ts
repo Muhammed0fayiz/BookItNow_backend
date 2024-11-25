@@ -19,6 +19,7 @@ import { Types } from "mongoose";
 import { performerDocument } from "../../domain/entities/performer";
 import { EventDocument, EventModel } from '../models/eventsModel';
 export class performerRepository implements IperformerRepository {
+ 
   deleteEvent=async(id: string): Promise<EventDocument | null>=> {
     try {
      const deleteEvent=await EventModel.findByIdAndDelete(id)
@@ -31,18 +32,19 @@ export class performerRepository implements IperformerRepository {
   getPerformerEvents=async(id: string): Promise<EventDocument[] | null>=> {
     try {
       const performerAllEvents=await EventModel.find({userId:id})
+    
       return performerAllEvents
     } catch (error) {
       throw error
     }
   }
- // Function to upload an event to the database
+
 uploadedEvent = async (event: {
-  imageUrl: string; // changed from 'any' to 'string' for type safety
-  id: string; // optional: consider using Types.ObjectId if it's an ObjectId
+  imageUrl: string;
+  id: string; 
   title: string;
   category: string;
-  userId: Types.ObjectId; // should match the type defined in EventDocument
+  userId: Types.ObjectId; 
   price: number;
   teamLeader: string;
   teamLeaderNumber: string;
@@ -51,7 +53,7 @@ uploadedEvent = async (event: {
   try {
     // Insert the event into the database
     const events = await EventModel.insertMany([event]);
-    console.log('env',events)
+    console.log(events)
     
     // Return the first inserted event (if exists)
     return events.length > 0 ? events[0] : null;
@@ -70,7 +72,7 @@ uploadedEvent = async (event: {
       const performer = await UserModel.findOne({ email: email });
       console.log('performer is ok', performer);
   
-      // Check if the performer exists, is blocked, or is not verified
+
       if (!performer) {
         return null; // Performer not found
       } else if (performer.isPerformerBlocked) {
@@ -85,7 +87,7 @@ uploadedEvent = async (event: {
         return null; // Passwords do not match
       }
   
-      // Return performer details if login is successful
+  
       return {
         username: performer.username,
         email: performer.email,
@@ -95,7 +97,7 @@ uploadedEvent = async (event: {
         isPerformerBlocked: performer.isPerformerBlocked,
       };
     } catch (error) {
-      throw error; // Rethrow any caught errors
+      throw error;
     }
   };
   
@@ -114,7 +116,7 @@ uploadedEvent = async (event: {
             return null;
         }
     }
-  //    videoUploadDB = async (val: any, location: string): Promise<TempPerformerDocument | null> => {
+ 
   //     try {
   //         console.log("values", val);
   //         console.log("location", location);
@@ -144,9 +146,10 @@ uploadedEvent = async (event: {
 
   videoUploadDB=async(bandName: string, mobileNumber: string, description: string, user_id: mongoose.Types.ObjectId,  s3Location: any): Promise<TempPerformerDocument | null> =>{
     try {
-         console.log('sssssssss',mobileNumber,description,user_id,s3Location)
+         console.log('sssssssss',mobileNumber,description,user_id,s3Location,'user id',user_id)
               console.log("location", s3Location);
-      
+              const user = await UserModel.findByIdAndUpdate(user_id, { waitingPermission: true });
+     
               // Create a new TempPerformer document
               const newTempPerformer = new TempPerformerModel({
                   bandName: bandName,
@@ -156,12 +159,11 @@ uploadedEvent = async (event: {
                   user_id: user_id
               });
 
-              console.log('new yearrrrrrrrrrrrrrrrrrr',newTempPerformer)
       
               // Save the document to the database
               const savedTempPerformer = await newTempPerformer.save();
 
-              console.log('saveddddddddddddddddddddddddddddddddddddddddddddddddddd',savedTempPerformer)
+          
       
               return savedTempPerformer;
           } catch (error) {
@@ -169,4 +171,33 @@ uploadedEvent = async (event: {
               return null;
           }
   }
+
+
+editEvents=async(eventId: string, event: { imageUrl?: string; title: string; category: string; userId: Types.ObjectId; price: number; teamLeader: string; teamLeaderNumber: number; description: string; }): Promise<EventDocument | null>=> {
+  try {
+    // Use $set to only update the provided fields
+    const updatedEvent = await EventModel.findByIdAndUpdate(
+      eventId,
+      { $set: event},
+      { new: true } // Return the updated document
+    );
+
+    return updatedEvent;
+  } catch (error) {
+    console.error("Error updating event:", error);
+    throw error;
+  }
+}
+ toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
+    try {
+      const event = await EventModel.findById(id);
+      if (!event) return null;
+      event.isperformerblockedevents = !event.isperformerblockedevents;
+      const updatedEvent = await event.save();
+      return updatedEvent;
+    } catch (error) {
+      throw error;
+    }
+  };
+
 }

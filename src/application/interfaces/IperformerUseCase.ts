@@ -1,3 +1,4 @@
+import { IEvent } from './../../domain/entities/iEvents';
 import { EventDocument } from './../../infrastructure/models/eventsModel';
 import { performerDocument } from './../../domain/entities/performer';
 import { getNameOfJSDocTypedef } from "typescript";
@@ -26,8 +27,22 @@ export interface IperformerUseCase {
   videoUpload(bandName:string,mobileNumber:string,description:string,user_id:mongoose.Types.ObjectId,video:any): Promise<TempPerformerDocument | null>;
   getPerformerEvents(id:string): Promise<EventDocument[]| null>;
   deleteEvent(id:string):Promise<EventDocument|null>
+  editEvents(
+    eventId: string,
+    event: {
+      imageUrl?: string; // optional field to allow keeping the existing image
+      title: string;
+      category: string;
+      userId: Types.ObjectId;
+      price: number;
+      teamLeader: string;
+      teamLeaderNumber: number;
+      description: string;
+    }
+  ): Promise<EventDocument | null>;
+  
 
-
+  toggleBlockStatus(id:string):Promise<EventDocument|null>
 }
 
 

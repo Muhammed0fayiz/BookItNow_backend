@@ -22,6 +22,6 @@ const PerformerSchema: Schema<PerformerDocuments> = new Schema({
   totalReviews: { type: Number, default: 0 },
   walletBalance: { type: Number, default: 0 },
   place:{type:String,default:'India'}
-}, { timestamps: false});
+}, { timestamps: true});
 
 export const PerformerModel = mongoose.model<PerformerDocuments>('Performer', PerformerSchema);

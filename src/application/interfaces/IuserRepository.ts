@@ -1,9 +1,14 @@
+import { UpcomingEventDocument } from './../../domain/entities/upcomingevent';
 import { TempPerformerDocument } from "./../../infrastructure/models/tempPerformer";
 import { OtpUser } from "./../../domain/entities/otpUser";
 import { User, UserDocument } from "../../domain/entities/user";
 import { checkOtp } from "../../domain/entities/checkOtp";
 import { UserDocuments } from "../../infrastructure/models/userModel";
 import mongoose from "mongoose";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { Performer } from "../../domain/entities/performer";
+import { BookingDocument } from "../../infrastructure/models/bookingEvents";
+import { WalletDocument } from '../../infrastructure/models/walletHistory';
 
 
 export interface IuserRepository {
@@ -30,5 +35,16 @@ export interface IuserRepository {
   getUserDetails(id: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
   resendOtp(email:string,otp:string):Promise<User|null>
   updateUserPassword(id: mongoose.Types.ObjectId,newPassword:string):Promise<UserDocuments | null>
- 
+
+  getAllEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[]| null>;
+  getAllPerformer(id: mongoose.Types.ObjectId):Promise<Performer[]|null>
+  userBookEvent(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string,
+    userId: string
+  ): Promise<BookingDocument | null>;
+  getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+  cancelEvent(objectId: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
+  walletHistory(objectId: mongoose.Types.ObjectId):Promise<WalletDocument[]|null>
 }

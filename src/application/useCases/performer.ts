@@ -14,7 +14,7 @@ import { asPerformer } from "../../domain/entities/asPerformer";
 import jwt from "jsonwebtoken";
 import { uploadS3Video } from "../../infrastructure/s3/S3Video";
 import mongoose, { Types } from "mongoose";
-import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { EventDocument, EventModel } from "../../infrastructure/models/eventsModel";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
@@ -101,7 +101,7 @@ export class performerUseCase implements IperformerUseCase {
     video: any
   ): Promise<TempPerformerDocument | null> => {
     try {
-      console.log('helllllllllll')
+  
       console.log(
        
         bandName,
@@ -147,6 +147,7 @@ export class performerUseCase implements IperformerUseCase {
     description: string; 
   }): Promise<EventDocument | null> => {
     try {
+     
       // Ensure that this._repository.uploadedEvent accepts the event data
       const uploadedEvent = await this._repository.uploadedEvent(event);
   
@@ -156,5 +157,34 @@ export class performerUseCase implements IperformerUseCase {
       throw error;
     }
   };
-  
+
+// Define the function to edit events with specified parameter types and return type
+
+// Use Case: Adjust to call editEvent in the repository
+editEvents = async (eventId: string, event: {
+  imageUrl: string;
+  title: string;
+  category: string;
+  userId: Types.ObjectId;
+  price: number;
+  teamLeader: string;
+  teamLeaderNumber: number;
+  description: string;
+}): Promise<EventDocument | null> => {
+  try {
+    const updatedEvent = await this._repository.editEvents(eventId, event);
+    return updatedEvent;
+  } catch (error) {
+    throw error;
+  }
+};
+
+toggleBlockStatus=async(id: string): Promise<EventDocument | null>=> {
+  try {
+   return this._repository.toggleBlockStatus(id)
+  } catch (error) {
+   throw error
+   
+  }
+ }
 }

@@ -1,3 +1,4 @@
+import { UpcomingEventDocument } from './../../domain/entities/upcomingevent';
 import { Response } from "express";
 import { User, UserDocument } from "../../domain/entities/user";
 import { IuserRepository } from "../interfaces/IuserRepository";
@@ -17,6 +18,11 @@ import {
 import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
 import { tempUserModel } from "../../infrastructure/models/tempUser";
 import mongoose, { Types } from "mongoose";
+import { EventDocument } from "../../infrastructure/models/eventsModel";
+import { Performer } from "../../domain/entities/performer";
+import { BookingDocument } from "../../infrastructure/models/bookingEvents";
+import { WalletDocument } from '../../infrastructure/models/walletHistory';
+
 
 export class userUseCase implements IuserUseCase {
   private _repository: IuserRepository;
@@ -24,6 +30,42 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+  walletHistory=async(objectId: mongoose.Types.ObjectId): Promise<WalletDocument[] | null>=> {
+    try {
+      
+      const walletHistory=this._repository.walletHistory(objectId)
+      return walletHistory;
+    } catch (error) {
+      throw error
+    }
+  }
+  getAllPerformer=async(id: mongoose.Types.ObjectId): Promise<Performer[] | null> =>{
+    try {
+      console.log("getaall pterform");
+      return await this._repository.getAllPerformer(id);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  cancelEvent=async(id: mongoose.Types.ObjectId): Promise<BookingDocument | null>=> {
+   try {
+    return await this._repository.cancelEvent(id)
+   } catch (error) {
+    throw error
+   }
+  }
+ 
+  getAllEvents=async(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>=> {
+    try {
+      
+      return this._repository.getAllEvents(id)
+    } catch (error) {
+      throw error
+    }
+  }
+ 
+  
   changePassword = async (id: mongoose.Types.ObjectId, oldPassword: string, newPassword: string): Promise<UserDocuments | null> => {
     try {
        
@@ -243,4 +285,24 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
+
+  userBookEvent=async(formData: Record<string, any>, eventId: string, performerId: string, userId: string): Promise<BookingDocument | null>=> {
+    try {
+      console.log('use')
+      const bookEvent=this._repository.userBookEvent(formData,eventId,performerId,userId)
+      return bookEvent
+    } catch (error) {
+      throw error
+    }
+  }
+
+ 
+  getAllUpcomingEvents=async(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument []| null> =>{
+    try {
+      const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
+      return upcomingEvents;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
