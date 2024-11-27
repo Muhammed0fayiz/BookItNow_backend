@@ -65,5 +65,10 @@ router.post('/uploadEvents/:id',
  router.get('/getPerformerEvents/:id', controller.getPerformerEvents.bind(controller))
 router.post('/deleteEvent/:id',controller.deleteEvent.bind(controller))
 router.put('/blockUnblockEvents/:id', controller.toggleBlockStatus.bind(controller));
+router.get('/upcomingevents/:id', controller.upcomingEvents.bind(controller));
+router.post('/cancelevent/:id', controller.cancelEventByUser.bind(controller));
+router.post('/updateSlotStatus/:id', controller.updateSlotStatus.bind(controller));
+
+router.get('/getslot/:id',controller.getslotDetails.bind(controller));
 
 export default router;

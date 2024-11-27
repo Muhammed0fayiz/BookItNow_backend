@@ -323,7 +323,7 @@ editEvents = async (req: Request, res: Response, next: NextFunction): Promise<Re
 
 toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
   try { 
-    console.log('manu varma')
+
     const { id } = req.params;
 
     // Validate id
@@ -349,4 +349,124 @@ console.log('changed',changedEvent,'change event')
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    
+    const userId = req.params.id;
+    const userObjectId = new mongoose.Types.ObjectId(userId); 
+    
+    const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
+    console.log('manushan',upcomingEvents,'id')
+    if (upcomingEvents) {
+      return res.status(200).json({ success: true, events: upcomingEvents });
+    }
+
+    return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+  } catch (error) {
+    next(error);
+  }
+};
+cancelEventByUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+ 
+
+      const id = req.params.id;
+      const eventObjectId = new mongoose.Types.ObjectId(id); 
+      if (!eventObjectId) {
+          return res.status(400).json({
+              success: false,
+              message: "Event ID is required."
+          });
+      }
+
+      const canceledEvent = await this._useCase.cancelEvent(eventObjectId);
+
+      if (canceledEvent) {
+          return res.status(200).json({
+              success: true,
+              message: "Event canceled successfully.",
+              data: canceledEvent
+          });
+      } else {
+          return res.status(404).json({
+              success: false,
+              message: "Event not found or could not be canceled."
+          });
+      }
+  } catch (error) {
+      return next(error);
+  }
+};
+
+updateSlotStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log("Update Slot Status Called");
+
+
+    const id = req.params.id;
+    const objectid = new mongoose.Types.ObjectId(id);
+
+  
+    const date = req.body.date; 
+
+   
+    if (!date) {
+      return res.status(400).json({ message: "Date is required" });
+    }
+
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+   
+    const updatedSlot = await this._useCase.updateslot(objectid, parsedDate);
+
+   
+    return res.status(200).json({ message: "Slot updated successfully", data: updatedSlot });
+  } catch (error) {
+   
+    next(error);
+  }
+};
+getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
+  try {  
+    console.log('Fetching slot details')
+   
+    const id = req.params.id;
+    console.log('id',id,'id')
+    const objectid = new mongoose.Types.ObjectId(id);
+
+    const slotDetails = await this._useCase.slotDetails(objectid);
+
+    if (!slotDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'No slot details found for this performer'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: slotDetails
+    });
+  } catch (error) {
+    console.error('Error in getslotDetails:', error);
+    
+    // If it's a mongoose cast error (invalid ID)
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid performer ID'
+      });
+    }
+
+    // For other errors
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}
 }

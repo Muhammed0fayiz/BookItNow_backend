@@ -1,3 +1,4 @@
+import { SlotDocuments } from './../../infrastructure/models/slotModel';
 import { IEvent } from './../../domain/entities/iEvents';
 import { EventDocument } from './../../infrastructure/models/eventsModel';
 import { performerDocument } from './../../domain/entities/performer';
@@ -12,6 +13,9 @@ import {
 import { UserDocuments } from "../../infrastructure/models/userModel";
 import { asPerformer } from "../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
+import { UpcomingEventDocument } from '../../domain/entities/upcomingevent';
+import { BookingDocument } from '../../infrastructure/models/bookingEvents';
+import { SlotMangement } from '../../domain/entities/slot';
 
 
 
@@ -43,6 +47,10 @@ export interface IperformerUseCase {
   
 
   toggleBlockStatus(id:string):Promise<EventDocument|null>
+  getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+  cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
+  updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null>;
+  slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
 }
 
 

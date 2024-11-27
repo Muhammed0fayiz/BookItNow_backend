@@ -1,4 +1,4 @@
-import { UpcomingEventDocument } from './../../domain/entities/upcomingevent';
+import { UpcomingEventDocument } from "./../../domain/entities/upcomingevent";
 import { Response } from "express";
 import { User, UserDocument } from "../../domain/entities/user";
 import { IuserRepository } from "../interfaces/IuserRepository";
@@ -9,7 +9,10 @@ import nodemailer from "nodemailer";
 
 import { OtpUser } from "../../domain/entities/otpUser";
 
-import { UserDocuments, UserModel } from "../../infrastructure/models/userModel";
+import {
+  UserDocuments,
+  UserModel,
+} from "../../infrastructure/models/userModel";
 import { checkOtp } from "../../domain/entities/checkOtp";
 import {
   TempPerformerDocument,
@@ -21,8 +24,7 @@ import mongoose, { Types } from "mongoose";
 import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { Performer } from "../../domain/entities/performer";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
-import { WalletDocument } from '../../infrastructure/models/walletHistory';
-
+import { WalletDocument } from "../../infrastructure/models/walletHistory";
 
 export class userUseCase implements IuserUseCase {
   private _repository: IuserRepository;
@@ -30,16 +32,19 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
-  walletHistory=async(objectId: mongoose.Types.ObjectId): Promise<WalletDocument[] | null>=> {
+  walletHistory = async (
+    objectId: mongoose.Types.ObjectId
+  ): Promise<WalletDocument[] | null> => {
     try {
-      
-      const walletHistory=this._repository.walletHistory(objectId)
+      const walletHistory = this._repository.walletHistory(objectId);
       return walletHistory;
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
-  getAllPerformer=async(id: mongoose.Types.ObjectId): Promise<Performer[] | null> =>{
+  };
+  getAllPerformer = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<Performer[] | null> => {
     try {
       console.log("getaall pterform");
       return await this._repository.getAllPerformer(id);
@@ -48,70 +53,66 @@ export class userUseCase implements IuserUseCase {
     }
   };
 
-  cancelEvent=async(id: mongoose.Types.ObjectId): Promise<BookingDocument | null>=> {
-   try {
-    return await this._repository.cancelEvent(id)
-   } catch (error) {
-    throw error
-   }
-  }
- 
-  getAllEvents=async(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>=> {
+  cancelEvent = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<BookingDocument | null> => {
     try {
-      
-      return this._repository.getAllEvents(id)
+      return await this._repository.cancelEvent(id);
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
- 
-  
-  changePassword = async (id: mongoose.Types.ObjectId, oldPassword: string, newPassword: string): Promise<UserDocuments | null> => {
+  };
+
+  getAllEvents = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<EventDocument[] | null> => {
     try {
-       
-        const user = await this._repository.getUserDetails(id);
-        if (!user) {
-            throw new Error("User not found");
-        }
-
-     
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
-        if (!isMatch) {
-         
-            throw new Error("Old password is incorrect");
-            
-        }
-
-       
-        const hashedNewPassword = await this.bcrypt(newPassword);
-
-        user.password = hashedNewPassword; 
-        const updatedUser = await this._repository.updateUserPassword(id,newPassword);
-
-        return updatedUser; // Return the updated user document
+      return this._repository.getAllEvents(id);
     } catch (error) {
-        console.error("Error changing password :", error);
-        throw error; // Re-throw the error for further handling
+      throw error;
     }
-};
+  };
 
-
-
- 
-  
-
-
-  
-  resendOtp = async (email: string,otp:string): Promise<User | null> => {
+  changePassword = async (
+    id: mongoose.Types.ObjectId,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<UserDocuments | null> => {
     try {
+      const user = await this._repository.getUserDetails(id);
+      if (!user) {
+        throw new Error("User not found");
+      }
 
-      console.log(email,otp,'otp sent')
-     
-      const otpUser = await this._repository.resendOtp(email,otp);
-  
-      if(otpUser){
-        this.sendmail(email,otp)
-        console.log('otp user',otpUser)
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        throw new Error("Old password is incorrect");
+      }
+
+      const hashedNewPassword = await this.bcrypt(newPassword);
+
+      user.password = hashedNewPassword;
+      const updatedUser = await this._repository.updateUserPassword(
+        id,
+        newPassword
+      );
+
+      return updatedUser; // Return the updated user document
+    } catch (error) {
+      console.error("Error changing password :", error);
+      throw error; // Re-throw the error for further handling
+    }
+  };
+
+  resendOtp = async (email: string, otp: string): Promise<User | null> => {
+    try {
+      console.log(email, otp, "otp sent");
+
+      const otpUser = await this._repository.resendOtp(email, otp);
+
+      if (otpUser) {
+        this.sendmail(email, otp);
+        console.log("otp user", otpUser);
       }
       return otpUser ? otpUser : null;
     } catch (error) {
@@ -124,9 +125,6 @@ export class userUseCase implements IuserUseCase {
     try {
       const response = await this._repository.getUserDetails(id);
 
-      
-  
-
       return response ? response : null;
     } catch (error) {
       console.error("error occured");
@@ -135,12 +133,12 @@ export class userUseCase implements IuserUseCase {
     }
   };
 
-  
-  loginUser = async (email: string, password: string): Promise<User | null |string> => {
+  loginUser = async (
+    email: string,
+    password: string
+  ): Promise<User | null | string> => {
     try {
-  
       return await this.repository.loginUser(email, password);
-      
     } catch (error) {
       throw error;
     }
@@ -250,7 +248,12 @@ export class userUseCase implements IuserUseCase {
     try {
       // Create the JWT with the user ID included in the payload
       const token = jwt.sign(
-        { id: payload._id, username: payload.username, email: payload.email,role:'user'},
+        {
+          id: payload._id,
+          username: payload.username,
+          email: payload.email,
+          role: "user",
+        },
         "loginsecrit",
         { expiresIn: "2h" }
       );
@@ -286,23 +289,34 @@ export class userUseCase implements IuserUseCase {
     }
   };
 
-  userBookEvent=async(formData: Record<string, any>, eventId: string, performerId: string, userId: string): Promise<BookingDocument | null>=> {
+  userBookEvent = async (
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string,
+    userId: string
+  ): Promise<BookingDocument | null> => {
     try {
-      console.log('use')
-      const bookEvent=this._repository.userBookEvent(formData,eventId,performerId,userId)
-      return bookEvent
+      console.log("use");
+      const bookEvent = this._repository.userBookEvent(
+        formData,
+        eventId,
+        performerId,
+        userId
+      );
+      return bookEvent;
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
- 
-  getAllUpcomingEvents=async(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument []| null> =>{
+  getAllUpcomingEvents = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<UpcomingEventDocument[] | null> => {
     try {
       const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
       return upcomingEvents;
     } catch (error) {
       throw error;
     }
-  }
+  };
 }

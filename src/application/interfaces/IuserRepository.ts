@@ -9,6 +9,7 @@ import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { Performer } from "../../domain/entities/performer";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { WalletDocument } from '../../infrastructure/models/walletHistory';
+import { SlotDocuments } from '../../infrastructure/models/slotModel';
 
 
 export interface IuserRepository {
@@ -47,4 +48,5 @@ export interface IuserRepository {
   getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
   cancelEvent(objectId: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
   walletHistory(objectId: mongoose.Types.ObjectId):Promise<WalletDocument[]|null>
+ 
 }

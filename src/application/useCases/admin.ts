@@ -246,4 +246,5 @@ export class adminUseCase implements IadminUseCase {
         throw error
       }
     }
+  
 }

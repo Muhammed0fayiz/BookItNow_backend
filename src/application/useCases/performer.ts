@@ -15,11 +15,32 @@ import jwt from "jsonwebtoken";
 import { uploadS3Video } from "../../infrastructure/s3/S3Video";
 import mongoose, { Types } from "mongoose";
 import { EventDocument, EventModel } from "../../infrastructure/models/eventsModel";
+import { UpcomingEventDocument } from "../../domain/entities/upcomingevent";
+import { BookingDocument } from "../../infrastructure/models/bookingEvents";
+import { SlotDocuments } from "../../infrastructure/models/slotModel";
+import { SlotMangement } from "../../domain/entities/slot";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
+  }
+  slotDetails=async(id: mongoose.Types.ObjectId): Promise<SlotMangement | null> =>{
+   try {
+     const slotDetails=await this._repository.slotDetails(id)
+     console.log('slot',slotDetails)
+     return slotDetails
+   } catch (error) {
+    throw error
+   }
+  }
+  updateslot=async(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null> =>{
+
+   try {
+    return await this._repository.updateslot(id,date)
+   } catch (error) {
+    throw error
+   }
   }
   deleteEvent(id: string): Promise<EventDocument | null> {
     try {
@@ -187,4 +208,24 @@ toggleBlockStatus=async(id: string): Promise<EventDocument | null>=> {
    
   }
  }
+ getAllUpcomingEvents = async (
+  id: mongoose.Types.ObjectId
+): Promise<UpcomingEventDocument[] | null> => {
+  try {
+    const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
+    return upcomingEvents;
+  } catch (error) {
+    throw error;
+  }
+};
+cancelEvent = async (
+  id: mongoose.Types.ObjectId
+): Promise<BookingDocument | null> => {
+  try {
+    return await this._repository.cancelEvent(id);
+  } catch (error) {
+    throw error;
+  }
+};
+
 }
