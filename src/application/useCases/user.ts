@@ -25,12 +25,29 @@ import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { Performer } from "../../domain/entities/performer";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { WalletDocument } from "../../infrastructure/models/walletHistory";
+import { SlotModel } from "../../infrastructure/models/slotModel";
 
 export class userUseCase implements IuserUseCase {
   private _repository: IuserRepository;
 
   constructor(private repository: IuserRepository) {
     this._repository = repository;
+  }
+  availableDate(formData: Record<string, any>, eventId: string, performerId: string): Promise<boolean> {
+    try {
+
+      console.log('formdddddddddd',formData,'ee',performerId)
+     
+      const bookEvent = this._repository.availableDate(
+         formData,
+         eventId,
+         performerId,
+
+       );
+       return bookEvent;
+     } catch (error) {
+       throw error;
+     }
   }
   walletHistory = async (
     objectId: mongoose.Types.ObjectId
@@ -46,7 +63,7 @@ export class userUseCase implements IuserUseCase {
     id: mongoose.Types.ObjectId
   ): Promise<Performer[] | null> => {
     try {
-      console.log("getaall pterform");
+     
       return await this._repository.getAllPerformer(id);
     } catch (error) {
       throw error;
@@ -167,7 +184,7 @@ export class userUseCase implements IuserUseCase {
     password: string
   ): Promise<OtpUser | null> => {
     try {
-      console.log("otp is otp user", otp);
+     
       const insertedOtpUser = await this._repository.OtpUser(
         email,
         otp,
@@ -296,8 +313,8 @@ export class userUseCase implements IuserUseCase {
     userId: string
   ): Promise<BookingDocument | null> => {
     try {
-      console.log("use");
-      const bookEvent = this._repository.userBookEvent(
+     
+     const bookEvent = this._repository.userBookEvent(
         formData,
         eventId,
         performerId,
@@ -315,6 +332,16 @@ export class userUseCase implements IuserUseCase {
     try {
       const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
       return upcomingEvents;
+    } catch (error) {
+      throw error;
+    }
+  };
+  getAlleventHistory = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<UpcomingEventDocument[] | null> => {
+    try {
+      const eventHistory = await this._repository.getAlleventHistory(id);
+      return eventHistory;
     } catch (error) {
       throw error;
     }

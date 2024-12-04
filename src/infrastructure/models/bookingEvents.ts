@@ -10,6 +10,7 @@ export interface BookingDocument extends Document {
   time: string;
   place: string;
   date: Date;
+  isRated:boolean;
   bookingStatus: string; // New field for booking status
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ const BookingSchema: Schema<BookingDocument> = new Schema({
   time: { type: String, required: true },
   place: { type: String, required: true },
   date: { type: Date, required: true },
+  isRated: { type: Boolean, default: false },
   bookingStatus: { type: String, default: "booking", required: true } 
 }, { timestamps: true });
 

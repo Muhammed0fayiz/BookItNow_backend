@@ -31,8 +31,7 @@ export class performerController {
     next: NextFunction
   ) => {
     try {
-      console.log(req.body, "body is tempok");
-      console.log(req.file, "file one");
+  
       const { bandName, mobileNumber, description, user_id } = req.body;
 
 const video = req.file;
@@ -131,16 +130,16 @@ if(response){
 
 updatePerformerProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('hello');
+
     const id = req.params.id;
-    console.log('hello', id);
+
     const { bandName, mobileNumber, place } = req.body;
-    console.log(req.body, 'id');
+
 
     // Handle profile image update
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-    console.log('Updating user profile:', image);
+  
 
     const updateData: { 
       bandName?: string; 
@@ -161,7 +160,7 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
       { $set: updateData }
     );
 
-    console.log(updatedPerformer, 'id');
+
     if (updatedPerformer.modifiedCount > 0) {
       res.status(200).json({ message: 'Profile updated successfully', updatedPerformer });
     } else {
@@ -233,11 +232,11 @@ uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<
 getPerformerEvents = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
     const id = req.params.id;
-    console.log('Request received for performer events');
+
     
     const events = await this._useCase.getPerformerEvents(id);
 
-    console.log('Retrieved events:', events);
+
     res.status(200).json(events);
     return events;
   } catch (error) {
@@ -332,7 +331,7 @@ toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const changedEvent = await this._useCase.toggleBlockStatus(id);
-console.log('changed',changedEvent,'change event')
+
     // If the toggle operation did not affect any records
     if (!changedEvent) {
       return res.status(404).json({ message: 'Event not found or update failed' });
@@ -356,7 +355,7 @@ upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
     const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-    console.log('manushan',upcomingEvents,'id')
+
     if (upcomingEvents) {
       return res.status(200).json({ success: true, events: upcomingEvents });
     }
@@ -400,7 +399,7 @@ cancelEventByUser = async (req: Request, res: Response, next: NextFunction) => {
 
 updateSlotStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log("Update Slot Status Called");
+
 
 
     const id = req.params.id;
@@ -421,7 +420,14 @@ updateSlotStatus = async (req: Request, res: Response, next: NextFunction) => {
 
    
     const updatedSlot = await this._useCase.updateslot(objectid, parsedDate);
-
+    if (updatedSlot){
+      if (typeof updatedSlot === "string") {
+        return res
+          .status(403)
+          .json({ message: updatedSlot });
+      }
+     
+    }
    
     return res.status(200).json({ message: "Slot updated successfully", data: updatedSlot });
   } catch (error) {
@@ -430,30 +436,34 @@ updateSlotStatus = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
-  try {  
-    console.log('Fetching slot details')
-   
+  try {
+
+
     const id = req.params.id;
-    console.log('id',id,'id')
+ 
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid performer ID format'
+      });
+    }
+
     const objectid = new mongoose.Types.ObjectId(id);
 
     const slotDetails = await this._useCase.slotDetails(objectid);
+    console.log('slot',slotDetails)
+    console.log(`[getslotDetails]: Slot Details - ${JSON.stringify(slotDetails)}`);
 
-    if (!slotDetails) {
-      return res.status(404).json({
-        success: false,
-        message: 'No slot details found for this performer'
-      });
-    }
 
     return res.status(200).json({
       success: true,
       data: slotDetails
     });
   } catch (error) {
-    console.error('Error in getslotDetails:', error);
-    
-    // If it's a mongoose cast error (invalid ID)
+    console.error(`[getslotDetails]: Error - ${error}`);
+
     if (error instanceof mongoose.Error.CastError) {
       return res.status(400).json({
         success: false,
@@ -461,12 +471,12 @@ getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // For other errors
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-}
+};
+
 }

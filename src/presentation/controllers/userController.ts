@@ -13,6 +13,9 @@ import {
   UserDocuments,
   UserModel,
 } from "../../infrastructure/models/userModel";
+import { PerformerModel } from "../../infrastructure/models/performerModel";
+import { MessageModel } from "../../infrastructure/models/messageModel";
+import { BookingModel } from "../../infrastructure/models/bookingEvents";
 
 export class UserController {
   private _useCase: IuserUseCase;
@@ -23,7 +26,7 @@ export class UserController {
 
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log(req.params.id, "is here params");
+
       const id = req.params.id;
 
       // Check if the ID is a valid ObjectId
@@ -52,7 +55,7 @@ export class UserController {
 
   userLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("uer login");
+   
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -89,7 +92,7 @@ export class UserController {
 
         //pass vand email check
         const token = await this._useCase.jwt(loginUser as User);
-        console.log(token);
+    
         res.status(ResponseStatus.Accepted).json({ token: token });
       } else {
         return res
@@ -211,7 +214,7 @@ export class UserController {
 
   changePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("controller");
+   
       const id = new mongoose.Types.ObjectId(req.params.id);
       const { currentPassword, newPassword } = req.body;
 
@@ -244,7 +247,7 @@ export class UserController {
 
   async googleCallback(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log("Google callback is working");
+ 
 
       if (req.user) {
         let user = req.user;
@@ -252,7 +255,7 @@ export class UserController {
         const userData = encodeURIComponent(JSON.stringify(req.user));
         const tokenData = encodeURIComponent(JSON.stringify(token));
         // console.log('userData',userData)
-        console.log("tokenData", tokenData);
+   
 
         res.cookie("userToken", tokenData, {
           httpOnly: false,
@@ -278,12 +281,12 @@ export class UserController {
   ): Promise<void> => {
     try {
       const { username } = req.body;
-      console.log("usernam", username);
+ 
       const userId = new mongoose.Types.ObjectId(req.params.id);
-      console.log("userid", userId);
+ 
       const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-      console.log("Updating user profile:", username, image);
+   
 
       const updateData: { username: string; profileImage?: string | null } = {
         username,
@@ -364,9 +367,9 @@ export class UserController {
   
   bookEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log('con')
+
       const { formData, eventId, performerId, userId } = req.body;
-      console.log('fayia',formData)
+     
   
       if (!formData || typeof formData !== 'object') {
         return res.status(400).json({ error: 'Invalid form data' });
@@ -382,6 +385,10 @@ export class UserController {
       }
   
       const bookingResult = await this._useCase.userBookEvent(formData, eventId, performerId, userId);
+
+
+      console.log('booking result',bookingResult,'boo')
+      
       res.status(200).json({ message: 'Event booked successfully', data: bookingResult });
     } catch (error) {
       console.error('Error booking event:', error);
@@ -395,7 +402,7 @@ export class UserController {
       const userObjectId = new mongoose.Types.ObjectId(userId); 
       
       const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-      console.log('manushan',upcomingEvents,'id')
+     
       if (upcomingEvents) {
         return res.status(200).json({ success: true, events: upcomingEvents });
       }
@@ -448,5 +455,98 @@ walletHistory = async (req: Request, res: Response, next: NextFunction) => {
     next(error); 
   }
 };
+sendMessage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
 
+    const { userid, performerid } = req.params;
+    const { message } = req.body;
+
+  
+
+    const performer = await PerformerModel.findOne({ userId: performerid });
+    if (!performer) {
+      return res.status(404).json({ error: 'Performer not found' });
+    }
+
+    const performerOriginalId = performer._id;
+
+    
+    const newMessage = await MessageModel.create({
+      roomId: performerOriginalId,
+      senderId: userid,
+      message,
+      timestamp: new Date(),
+    });
+
+    res.status(201).json({ message: 'Message sent successfully', data: newMessage });
+  } catch (error) {
+    console.error('Error in sendMessage:', error);
+    next(error);
+  }
+}
+availableDate = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { formData, eventId, performerId } = req.body;
+          console.log(formData,'is',eventId,'is',performerId)
+    if (!formData || typeof formData !== 'object') {
+      return res.status(400).json({ error: 'Invalid form data' });
+    }
+    if (!eventId || typeof eventId !== 'string') {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+    if (!performerId || typeof performerId !== 'string') {
+      return res.status(400).json({ error: 'Invalid performer ID' });
+    }
+  
+
+    const availableDates = await this._useCase.availableDate(formData, eventId, performerId);
+
+    console.log('Available dates:', availableDates);
+
+    res.status(200).json({ message: 'Available dates retrieved successfully', data: availableDates });
+  } catch (error) {
+    console.error('Error retrieving available dates:', error);
+    next(error);
+  }
+};
+eventHistory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('hellllllllll')
+    const userId = req.params.id;
+    const userObjectId = new mongoose.Types.ObjectId(userId); 
+    
+    const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
+   
+    if (eventHistory) {
+      console.log('arm',eventHistory)
+      return res.status(200).json({ success: true, events: eventHistory });
+    }
+
+    return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+  } catch (error) {
+    next(error);
+  }
+};
+pdateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id; // Retrieve the booking ID from the request params
+    const newDate = new Date('2024-11-01'); // Create a Date object for 1/11/2024
+
+    // Find the document by ID and update its date field
+    const updatedBooking = await BookingModel.findByIdAndUpdate(
+      id,
+      { date: newDate },
+      { new: true } // Return the updated document
+    );
+console.log('us',updatedBooking)
+    if (!updatedBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.status(200).json({ message: 'Booking date updated successfully', booking: updatedBooking });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 }

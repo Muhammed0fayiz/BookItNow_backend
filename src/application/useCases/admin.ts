@@ -37,12 +37,12 @@ export class adminUseCase implements IadminUseCase {
         const user = await UserModel.findById(tempPerformer.user_id);
 
         if (user) {
-          console.log("Rejected user is", user);
+    
 
           // Send rejection email
           try {
             const rejectionMessage = await this.sendRejectionEmail(user.email);
-            console.log(rejectionMessage);
+         
           } catch (error) {
             console.error("Error sending rejection email:", error);
           }
@@ -56,7 +56,7 @@ export class adminUseCase implements IadminUseCase {
   };
   getAllPerformer = async (): Promise<Performer[] | null> => {
     try {
-      console.log("getaall pterform");
+    
       return await this._repository.getAllPerformer();
     } catch (error) {
       throw error;
@@ -72,12 +72,12 @@ export class adminUseCase implements IadminUseCase {
       const user = await UserModel.findById(performer.userId); // Declare user here
 
       if (user) {
-        console.log("user is", user); // Now the 'user' variable is accessible
+  
 
         // Send congratulatory email
         try {
           const successMessage = await this.sendCongratulatoryEmail(user.email);
-          console.log(successMessage);
+       
         } catch (error) {
           console.error("Error sending congratulatory email:", error);
         }

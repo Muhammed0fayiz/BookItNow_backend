@@ -13,7 +13,7 @@ import { SlotDocuments } from "../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../domain/entities/slot";
 
 export interface IperformerRepository {
-  updateslot(id: Types.ObjectId, date: Date): SlotDocuments | PromiseLike<SlotDocuments | null> | null;
+  // updateslot(id: Types.ObjectId, date: Date): SlotDocuments | PromiseLike<SlotDocuments | null> | null;
    
 
     loginPerformer(email: string, password: string): Promise<asPerformer | null|string>;
@@ -41,5 +41,6 @@ export interface IperformerRepository {
       getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
       cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
       slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
+      updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null | string>;
 }
 

@@ -48,5 +48,11 @@ export interface IuserRepository {
   getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
   cancelEvent(objectId: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
   walletHistory(objectId: mongoose.Types.ObjectId):Promise<WalletDocument[]|null>
+  availableDate(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string,
  
+  ): Promise<boolean>;
+  getAlleventHistory(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
 }

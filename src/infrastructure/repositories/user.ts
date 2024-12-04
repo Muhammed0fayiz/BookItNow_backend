@@ -1,3 +1,4 @@
+import { UpcomingEvent } from './../../domain/entities/performerupcomingevent';
 
 import { UpcomingEventDocument } from "./../../domain/entities/upcomingevent";
 import { TempPerformerDocument } from "./../models/tempPerformer";
@@ -20,9 +21,108 @@ import { Performer } from "../../domain/entities/performer";
 import { BookingDocument, BookingModel } from "../models/bookingEvents";
 import { AdminModel } from "../models/adminModel";
 import { WalletDocument, WalletModel } from "../models/walletHistory";
+import { SlotModel } from "../models/slotModel";
 
 export class userRepository implements IuserRepository {
 
+  availableDate = async (
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string
+  ): Promise<boolean> => {
+    try {
+   
+      // Find performer by userId
+      const performer = await PerformerModel.findOne({ userId: performerId });
+      if (!performer) {
+        throw new Error("Performer not found");
+      }
+  
+  
+      // Check for existing booking on the same date
+      const existingBooking = await BookingModel.findOne({
+        performerId: performer._id,
+        date: formData.date,
+      });
+   
+      if (existingBooking) {
+     
+        return false;
+      }
+  
+  
+  
+      const slotDocument = await SlotModel.findOne({ performerId: performer._id });
+  
+  
+      if (slotDocument && Array.isArray(slotDocument.dates)) {
+
+        const inputDate = new Date(formData.date).setHours(0, 0, 0, 0); 
+  
+   
+        const isDateExist = slotDocument.dates.some((date) => {
+          const slotDate = new Date(date).setHours(0, 0, 0, 0); 
+          return slotDate === inputDate; 
+        });
+  
+        console.log('hello check');
+        console.log(formData.date, 'id');
+        if (isDateExist) {
+          console.log('true', existingBooking, 'hari');
+          return false;
+        }
+      }
+  
+   
+      return true;
+    } catch (error) {
+      console.error("Error checking availability:", error);
+      throw error;
+    }
+  };
+  
+  
+  
+  // availableDate = async (
+  //   formData: Record<string, any>,
+  //   performerId: string
+  // ): Promise<boolean> => {
+  //   try {
+  //     console.log(formData,'is',performerId,'is')
+  //     const performer = await PerformerModel.findOne({ userId: performerId });
+  //     console.log('performer',performer)
+  //     if (!performer) {
+  //       throw new Error("Performer not found");
+  //     }
+  
+  //     const existingBooking = await BookingModel.findOne({
+  //       performerId: performer._id,
+  //       date: formData.date,
+  //     });
+  
+  //     if (existingBooking) {
+  //       return false;
+  //     }
+  
+  //     const slotDocument = await SlotModel.findOne({ performerId: performer._id });
+  //     if (slotDocument && Array.isArray(slotDocument.dates)) {
+  //       const inputDateString = new Date(formData.date).toISOString().split("T")[0];
+  //       const isDateExist = slotDocument.dates.some((date) => {
+  //         const slotDateString = new Date(date).toISOString().split("T")[0];
+  //         return slotDateString === inputDateString;
+  //       });
+  
+  //       if (isDateExist) {
+  //         return false;
+  //       }
+  //     }
+  
+  //     return true;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // };
+  
 
   getAllPerformer = async (
     id: mongoose.Types.ObjectId
@@ -123,10 +223,10 @@ export class userRepository implements IuserRepository {
   };
   getUserDetails = async (id: any): Promise<UserDocuments | null> => {
     try {
-      console.log(id, "id in google");
+    
 
       const user = await UserModel.findById(id).lean().exec();
-      console.log("uer", user, "und");
+   
 
       if (!user) throw new Error("User not found");
       return user ? user : null;
@@ -313,6 +413,9 @@ export class userRepository implements IuserRepository {
     try {
       const event = await EventModel.findById(eventId);
       const performer = await PerformerModel.findOne({ userId: performerId });
+      
+
+      console.log('form dat',formData)
 
       if (!event) {
         throw new Error("Event not found");
@@ -321,6 +424,36 @@ export class userRepository implements IuserRepository {
       if (!performer) {
         throw new Error("Performer not found");
       }
+
+ const performerBookingDate=await BookingModel.find({performerId:performer._id, date: formData.date})
+
+if(performerBookingDate.length>0){
+
+  return null
+}
+ let slotDocument = await SlotModel.findOne({ performerId: performer._id });
+console.log("Slot Document:", slotDocument);
+
+if (slotDocument && Array.isArray(slotDocument.dates)) {
+
+  const inputDateString = new Date(formData.date).toISOString().split("T")[0];
+
+
+  const isDateExist = slotDocument.dates.some((date) => {
+    const slotDateString = new Date(date).toISOString().split("T")[0]; 
+    return slotDateString === inputDateString; 
+  });
+
+  if (isDateExist) {
+   
+   return null 
+   
+  } else {
+    console.log("Date does not exist in the slotDocument:", inputDateString);
+  }
+} else {
+  console.log("SlotDocument not found or does not have a valid dates array");
+}
 
       const price = event.price;
       const advancePayment = (price * 10) / 100 - 10;
@@ -354,11 +487,68 @@ export class userRepository implements IuserRepository {
     }
   };
 
+  // getAllUpcomingEvents = async (
+  //   id: mongoose.Types.ObjectId
+  // ): Promise<UpcomingEventDocument[] | null> => {
+  //   try {
+  //     const bookings = await BookingModel.find({ userId: id })
+  //       .populate({
+  //         path: "eventId",
+  //         model: "Event",
+  //         select:
+  //           "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+  //       })
+  //       .populate("performerId", "name")
+  //       .lean();
+       
+  //     const upcomingEvents: UpcomingEventDocument[] = bookings.map(
+  //       (booking) => {
+  //         const event = booking.eventId as any;
+         
+  //         return {
+  //           _id: booking._id,
+  //           eventId: booking.eventId,
+  //           performerId: booking.performerId,
+  //           userId: booking.userId,
+  //           price: booking.price,
+  //           status: event.status,
+  //           teamLeader: event.teamLeader,
+  //           teamLeaderNumber: event.teamLeaderNumber,
+  //           rating: event.rating,
+  //           description: event.description,
+  //           imageUrl: event.imageUrl,
+  //           isblocked: event.isblocked,
+  //           advancePayment: booking.advancePayment,
+  //           restPayment: booking.restPayment,
+  //           time: booking.time,
+  //           place: booking.place,
+  //           date: booking.date,
+  //           bookingStatus: booking.bookingStatus,
+  //           isRated: booking.isRated,
+  //           createdAt: booking.createdAt,
+  //           updatedAt: booking.updatedAt,
+  //           title: event.title,
+  //           category: event.category,
+  //         } as unknown as UpcomingEventDocument; // Type assertion here
+  //       }
+  //     );
+  // console.log('up',upcomingEvents)
+  //     return upcomingEvents;
+  //   } catch (error) {
+  //     console.error("Error in getAllUpcomingEvents:", error);
+  //     throw error;
+  //   }
+  // };
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<UpcomingEventDocument[] | null> => {
     try {
-      const bookings = await BookingModel.find({ userId: id })
+      const currentDate = new Date(); // Get the current date
+  
+      const bookings = await BookingModel.find({
+        userId: id,
+        date: { $gte: currentDate }, // Filter for upcoming events
+      })
         .populate({
           path: "eventId",
           model: "Event",
@@ -391,6 +581,7 @@ export class userRepository implements IuserRepository {
             place: booking.place,
             date: booking.date,
             bookingStatus: booking.bookingStatus,
+            isRated: booking.isRated,
             createdAt: booking.createdAt,
             updatedAt: booking.updatedAt,
             title: event.title,
@@ -399,6 +590,7 @@ export class userRepository implements IuserRepository {
         }
       );
   
+      console.log('Upcoming Events:', upcomingEvents);
       return upcomingEvents;
     } catch (error) {
       console.error("Error in getAllUpcomingEvents:", error);
@@ -410,27 +602,27 @@ export class userRepository implements IuserRepository {
     id: mongoose.Types.ObjectId
   ): Promise<BookingDocument | null> => {
     try {
-      console.log("Cancel event initiated");
+
 
       const today = new Date();
       const event = await BookingModel.findById(id);
 
       // Check if the event exists
       if (!event) {
-        console.log("Booking not found");
+    
         return null;
       }
 
       const dateDifferenceInDays = Math.floor(
         (event.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
-      console.log("Date difference (days):", dateDifferenceInDays);
+     
 
       const { userId, performerId, advancePayment } = event;
 
       // Validate if the event has an associated user
       if (!userId) {
-        console.log("No user associated with this event");
+  
         return null;
       }
 
@@ -460,7 +652,7 @@ export class userRepository implements IuserRepository {
       }
 
       if (dateDifferenceInDays < 0) {
-        console.log("Cannot cancel an event that has already occurred.");
+     
         return null;
       }
 
@@ -468,7 +660,7 @@ export class userRepository implements IuserRepository {
       const performer = await PerformerModel.findById(performerId);
 
       if (!performer) {
-        console.log("Performer not found");
+     
         return null;
       }
 
@@ -503,11 +695,68 @@ export class userRepository implements IuserRepository {
   walletHistory=async(objectId: mongoose.Types.ObjectId): Promise<WalletDocument[] | null>=> {
     try {
       const userWallet=await WalletModel.find({userId:objectId})
-      console.log('userwalle',userWallet)
+ 
       return userWallet;
     } catch (error) {
       throw error
     }
   }
- 
+
+  getAlleventHistory = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<UpcomingEventDocument[] | null> => {
+    try {
+      const currentDate = new Date(); // Get the current date
+  
+      const bookings = await BookingModel.find({
+        userId: id,
+        date: { $lt: currentDate }, // Filter for past events
+      })
+        .populate({
+          path: "eventId",
+          model: "Event",
+          select:
+            "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+        })
+        .populate("performerId", "name")
+        .lean();
+  
+      const pastEventHistory: UpcomingEventDocument[] = bookings.map(
+        (booking) => {
+          const event = booking.eventId as any;
+  
+          return {
+            _id: booking._id,
+            eventId: booking.eventId,
+            performerId: booking.performerId,
+            userId: booking.userId,
+            price: booking.price,
+            status: event.status,
+            teamLeader: event.teamLeader,
+            teamLeaderNumber: event.teamLeaderNumber,
+            rating: event.rating,
+            description: event.description,
+            imageUrl: event.imageUrl,
+            isblocked: event.isblocked,
+            advancePayment: booking.advancePayment,
+            restPayment: booking.restPayment,
+            time: booking.time,
+            place: booking.place,
+            date: booking.date,
+            bookingStatus: booking.bookingStatus,
+            isRated: booking.isRated,
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
+            title: event.title,
+            category: event.category,
+          } as unknown as UpcomingEventDocument; // Type assertion here
+        }
+      );
+  
+      return pastEventHistory;
+    } catch (error) {
+      console.error("Error in getPastEventHistory:", error);
+      throw error;
+    }
+  };
 }

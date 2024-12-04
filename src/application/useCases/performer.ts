@@ -34,7 +34,7 @@ export class performerUseCase implements IperformerUseCase {
     throw error
    }
   }
-  updateslot=async(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null> =>{
+  updateslot=async(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null |string> =>{
 
    try {
     return await this._repository.updateslot(id,date)
@@ -52,7 +52,7 @@ export class performerUseCase implements IperformerUseCase {
   getPerformerEvents=async(id: string): Promise<EventDocument[] | null> =>{
     try {
      const performerEvents= await this._repository.getPerformerEvents(id)
-   console.log('per',performerEvents)
+
      return performerEvents
     } catch (error) {
       throw error
@@ -61,9 +61,6 @@ export class performerUseCase implements IperformerUseCase {
  
  
 
-  // resendOtp(email: string): Promise<OtpUser> {
-  //   throw new Error("Method not implemented.");
-  // }
 
 
   loginPerformer = async (
@@ -78,7 +75,7 @@ export class performerUseCase implements IperformerUseCase {
   };
   jwt = async (payload: asPerformer): Promise<string | null> => {
     try {
-      // Create the JWT with the user ID included in the payload
+   
       const token = jwt.sign(
         {
           id: payload._id,
@@ -100,10 +97,8 @@ export class performerUseCase implements IperformerUseCase {
   };
   getPerformerDetails = async (id: any) => {
     try {
-      console.log("performer details");
-      console.log("user performe", id);
+     
 
-      // Use the updated repository method
       const response = await this._repository.getPerformerDetails(id);
 
       return response ? response : null;
@@ -131,7 +126,7 @@ export class performerUseCase implements IperformerUseCase {
         user_id
       );
       const s3Response: any = await uploadS3Video(video);
-      console.log("use case", s3Response);
+   
       if (s3Response?.error) {
         console.error("Error uploading video to S3:", s3Response.error);
         throw new Error("Failed to upload video to S3");
@@ -139,7 +134,7 @@ export class performerUseCase implements IperformerUseCase {
 
       console.log("URL of the video from the S3 bucket:", s3Response?.Location);
       const s3Location = s3Response.Location;
-      // Use the updated repository method
+  
       const response = await this._repository.videoUploadDB(
         bandName,
         mobileNumber,
@@ -147,7 +142,7 @@ export class performerUseCase implements IperformerUseCase {
         user_id,
         s3Location
       );
-      console.log("resposnssssss", response);
+    
       return response ? response : null;
     } catch (error) {
       console.error("Error occurred during video upload:", error);
@@ -169,19 +164,17 @@ export class performerUseCase implements IperformerUseCase {
   }): Promise<EventDocument | null> => {
     try {
      
-      // Ensure that this._repository.uploadedEvent accepts the event data
+   
       const uploadedEvent = await this._repository.uploadedEvent(event);
   
-      // Return the uploaded event document or null if not successful
+   
       return uploadedEvent ? uploadedEvent : null;
     } catch (error) {
       throw error;
     }
   };
 
-// Define the function to edit events with specified parameter types and return type
 
-// Use Case: Adjust to call editEvent in the repository
 editEvents = async (eventId: string, event: {
   imageUrl: string;
   title: string;

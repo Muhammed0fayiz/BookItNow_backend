@@ -25,7 +25,7 @@ export class adminController {
   allUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await this._useCase.getAllUser();
-      console.log("users", users);
+
       if (!users || users.length === 0) {
         return res
           .status(ResponseStatus.NotFound)
@@ -48,8 +48,7 @@ export class adminController {
     try {
       const id: string = req.params.id;
       // Extract user ID from params and type it as a string
-      console.log(id, "is id");
-      console.log("user is their");
+   
       const { isblocked }: { isblocked: boolean } = req.body; // Destructure isblocked from the body with the expected type
 
       const userStatusChange = await this._useCase.userStatusChange(
@@ -70,7 +69,7 @@ export class adminController {
   ) => {
     try {
       const userId: string = req.params.id;
-      console.log("block performer", userId, "block user");
+ 
 
       if (!userId) {
         return res
@@ -92,7 +91,7 @@ export class adminController {
 
       res.status(200).json({ success: true, user: performerStatusChange });
     } catch (error) {
-      console.error("Error in blockunblockperformer:", error);
+
       if (error instanceof Error) {
         res.status(500).json({ success: false, message: error.message });
       } else {
@@ -163,7 +162,7 @@ export class adminController {
     try {
      
       const id: string = req.params.id;
-      console.log("ID received:", id);
+
 
       // Validate ID format
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -203,11 +202,11 @@ export class adminController {
     next: NextFunction
   ) => {
     try {
-      console.log("Fetching all performers...");
+
 
       // Fetch all performers using the use case
       const performers = await this._useCase.getAllPerformer();
-      console.log("Performers fetched:", performers);
+
 
       // Check if performers exist
       if (!performers || performers.length === 0) {
@@ -297,7 +296,7 @@ adminLogin = async (req: Request, res: Response, next: NextFunction) => {
       if (req.session?.admin) {
         req.session.destroy((err) => {
           if (err) {
-            console.error('Error destroying session:', err);
+          
             return res.status(500).json({ success: false, message: 'Failed to log out' });
           }
           return res.status(200).json({ success: true, message: 'Logout successful' });
@@ -358,7 +357,7 @@ adminLogin = async (req: Request, res: Response, next: NextFunction) => {
       }
   
       const changedEvent = await this._useCase.toggleBlockStatus(id);
-  console.log('changed',changedEvent,'change event')
+
       // If the toggle operation did not affect any records
       if (!changedEvent) {
         return res.status(404).json({ message: 'Event not found or update failed' });
@@ -381,7 +380,7 @@ adminLogin = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
     
-    console.log('fay')
+
       const hashedPassword = await bcrypt.hash('123', 10);
   
       // Insert a single admin document with hashed password
@@ -400,13 +399,13 @@ adminLogin = async (req: Request, res: Response, next: NextFunction) => {
   getAdminDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = await this._useCase.getAdminDetails();
-      console.log('response', response);
+  
       return res.status(200).json({
         success: true,
         data: response,
       });
     } catch (error) {
-      console.error('Error fetching admin details:', error);
+   
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch admin details. Please try again later.',

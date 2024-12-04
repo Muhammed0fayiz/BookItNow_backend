@@ -47,8 +47,15 @@ userBookEvent(
   performerId: string,
   userId: string
 ): Promise<BookingDocument | null>;
-
+availableDate(
+  formData: Record<string, any>,
+  eventId: string,
+  performerId: string,
+ 
+): Promise<boolean>;
 getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
 cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
 walletHistory(objectId: mongoose.Types.ObjectId):Promise<WalletDocument[]|null>
+
+getAlleventHistory(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
 }

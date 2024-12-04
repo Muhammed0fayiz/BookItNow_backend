@@ -73,5 +73,10 @@ router.get('/upcomingevents/:id', controller.upcomingEvents.bind(controller));
 router.post('/cancelevent/:id', controller.cancelEventByUser.bind(controller));
 router.get('/getWalletHistory/:id', controller.walletHistory.bind(controller));
 
+router.post('/handleSendMessage/:userid/:performerid', controller.sendMessage.bind(controller));
+router.post('/checkavailable', controller.availableDate.bind(controller));
+router.get('/eventhistory/:id',controller.eventHistory.bind(controller));
+
+router.post('/ed/:id',controller.pdateBookingDate.bind(controller));
 
 export default router;

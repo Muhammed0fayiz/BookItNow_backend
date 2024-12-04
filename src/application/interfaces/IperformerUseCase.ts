@@ -49,7 +49,7 @@ export interface IperformerUseCase {
   toggleBlockStatus(id:string):Promise<EventDocument|null>
   getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
   cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
-  updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null>;
+  updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null |string>;
   slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
 }
 
