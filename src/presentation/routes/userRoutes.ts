@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
 import { userRepository } from "../../infrastructure/repositories/user";
@@ -6,8 +5,8 @@ import { userUseCase } from "../../application/useCases/user";
 import authenticateJWT from "../../shared/middlewares/authentication";
 import multer from "multer";
 import path from "path";
-import mongoose from "mongoose";
 import passport from "passport";
+import authMiddleware from "../../shared/middlewares/authMiddleware";
 
 const router = Router();
 
@@ -32,51 +31,48 @@ const storage = multer.diskStorage({
 // Initialize multer with the defined storage
 const upload = multer({ storage: storage });
 
+// Authentication-related routes
 router.post("/userlogin", controller.userLogin.bind(controller));
 router.post("/signup", controller.userSignup.bind(controller));
 router.post("/verify-otp", controller.checkOtp.bind(controller));
-router.get("/getUser/:id", controller.getUserDetails.bind(controller));
 router.post("/resendotp/:email", controller.resendOtp.bind(controller));
-
-router.put(
-  "/updateUserProfile/:id",
-  upload.single("profilePic"), // Ensure to use multer for file upload
-  controller.updateUserProfile.bind(controller) // Bind the controller method
-);
-
 router.get("/auth/google", (req, res, next) => {
-  console.log("Google OAuth initiated");
-  passport.authenticate("google", { scope: ["profile", "email"] })(
-    req,
-    res,
-    next
-  );
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
-
-// Route to handle Google authentication callback
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login",
-  }),
+  passport.authenticate("google", { failureRedirect: "http://localhost:3000/login" }),
   controller.googleCallback.bind(controller)
+);
+// router.post("/chatwithPerformer/userid/performerid",controller.chatwithPerformer.bind(controller))
+// Unprotected routes (no authMiddleware)
+router.get("/getUser/:id", controller.getUserDetails.bind(controller));
+router.put(
+  "/updateUserProfile/:id",
+  upload.single("profilePic"),
+  controller.updateUserProfile.bind(controller)
+);
+router.put("/changePassword/:id",authMiddleware,controller.changePassword.bind(controller));
+router.get("/getAllEvents/:id",authMiddleware,controller.getAllEvents.bind(controller));
+router.get("/getperformers/:id",authMiddleware,controller.getAllPerformers.bind(controller));
+router.post("/events/book", authMiddleware,controller.bookEvent.bind(controller));
+router.get("/upcomingevents/:id",authMiddleware, controller.upcomingEvents.bind(controller));
+router.post("/cancelevent/:id",authMiddleware, controller.cancelEventByUser.bind(controller));
+router.get("/getWalletHistory/:id",authMiddleware, controller.walletHistory.bind(controller));
+router.post("/handleSendMessage/:sender/:receiver",authMiddleware, controller.sendMessage.bind(controller));
+router.post("/ed/:id",controller.pdateBookingDate.bind(controller));
+router.post("/checkavailable",authMiddleware,controller.availableDate.bind(controller));
+router.get("/eventhistory/:id",authMiddleware,controller.eventHistory.bind(controller));
+router.post("/add-rating/:id",authMiddleware,controller.addRating.bind(controller));
+router.post("/walletPayment",authMiddleware,controller.walletPayment.bind(controller));
+router.get("/favorites/:id", authMiddleware,controller.getFavoriteEvents.bind(controller));
+router.get("/chat-with/:myId/:anotherId", authMiddleware,controller.chatWith.bind(controller));
+router.get("/chatrooms/:id", authMiddleware,controller.getAllChatRooms.bind(controller));
+router.post(
+  "/toggleFavoriteEvent/:userId/:eventId",authMiddleware,
+  controller.toggleFavoriteEvent.bind(controller)
 );
 
 
-
-router.put("/changePassword/:id", controller.changePassword.bind(controller));
-router.get('/getAllEvents/:id',controller.getAllEvents.bind(controller))
-router.get('/getperformers/:id', controller.getAllPerformers.bind(controller));
-
-router.post('/events/book', controller.bookEvent.bind(controller));
-router.get('/upcomingevents/:id', controller.upcomingEvents.bind(controller));
-router.post('/cancelevent/:id', controller.cancelEventByUser.bind(controller));
-router.get('/getWalletHistory/:id', controller.walletHistory.bind(controller));
-
-router.post('/handleSendMessage/:userid/:performerid', controller.sendMessage.bind(controller));
-router.post('/checkavailable', controller.availableDate.bind(controller));
-router.get('/eventhistory/:id',controller.eventHistory.bind(controller));
-
-router.post('/ed/:id',controller.pdateBookingDate.bind(controller));
 
 export default router;

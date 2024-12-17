@@ -36,4 +36,5 @@ export interface IadminRepository {
   toggleBlockStatus(id:string):Promise<EventDocument|null>
   adminWallet():Promise<AdminDocument[]|null>
   getAdminDetails():Promise<AdminDetails>
+  getReport(startDate: Date,endDate: Date): Promise<AdminDetails>
 }

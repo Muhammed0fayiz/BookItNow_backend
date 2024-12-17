@@ -15,20 +15,28 @@ import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../infrastructure/models/adminModel";
 import bcrypt from "bcrypt";
 import { AdminDetails } from "../../domain/entities/adminDetails";
-
+const ExcelJS = require('exceljs');
+const path=require('path')
 export class adminUseCase implements IadminUseCase {
   private _repository: IadminRepository;
 
   constructor(private repository: IadminRepository) {
     this._repository = repository;
   }
+  getReport = async (startdate: Date, endingdate: Date): Promise<AdminDetails> => {
+    const report = await this._repository.getReport(startdate, endingdate);
+    console.log('rep', report);
+
+    return report;
+  };
+  
 
   adminWallet=async(): Promise<AdminDocument []| null>=> {
     const adminWallet=await this._repository.adminWallet()
     return adminWallet
   }
 
-  rejectedPermission = async (id: string): Promise<TempPerformer> => {
+  rejectedPermission = async (id: string,rejectReason:string): Promise<TempPerformer> => {
     try {
       // Fetch rejected performer data
       const tempPerformer = await this._repository.rejectedPermission(id);
@@ -41,7 +49,7 @@ export class adminUseCase implements IadminUseCase {
 
           // Send rejection email
           try {
-            const rejectionMessage = await this.sendRejectionEmail(user.email);
+            const rejectionMessage = await this.sendRejectionEmail(user.email,rejectReason);
          
           } catch (error) {
             console.error("Error sending rejection email:", error);
@@ -174,10 +182,10 @@ export class adminUseCase implements IadminUseCase {
     }
   };
 
-  sendRejectionEmail = async (email: string): Promise<string> => {
+  sendRejectionEmail = async (email: string, rejectReason: string): Promise<string> => {
     try {
       console.log("Sending rejection email...");
-      const sendEmail = async (email: string): Promise<string> => {
+      const sendEmail = async (email: string, rejectReason: string): Promise<string> => {
         return new Promise((resolve, reject) => {
           const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -188,13 +196,14 @@ export class adminUseCase implements IadminUseCase {
           });
 
           const mailOptions = {
-            from: process.env.EMAIL_ADDRESS, // Ensure the sender email is set
+            from: process.env.EMAIL_ADDRESS,
             to: email,
             subject: "Application Rejected",
             html: `
               <div style="font-family: Arial, sans-serif;">
                 <p>Dear User,</p>
-                <p>We regret to inform you that your application to become a performer has been rejected.</p>
+                <p>We regret to inform you that your application to become a performer on <span style="color: blue; font-weight: bold;">BookItNow</span> has been rejected.</p>
+                <p>Reason for Rejection: <span style="color: red; font-weight: bold;">${rejectReason}</span></p>
                 <p>Feel free to apply again in the future, or contact support for more information.</p>
               </div>
             `,
@@ -211,7 +220,7 @@ export class adminUseCase implements IadminUseCase {
         });
       };
 
-      const mailSent = await sendEmail(email);
+      const mailSent = await sendEmail(email, rejectReason);
       return mailSent;
     } catch (error) {
       console.error("Error in sending rejection mail:", error);

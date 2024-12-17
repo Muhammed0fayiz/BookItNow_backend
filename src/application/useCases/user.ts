@@ -1,3 +1,4 @@
+import { ChatRoomDocument } from './../../infrastructure/models/chatRoomModel';
 import { UpcomingEventDocument } from "./../../domain/entities/upcomingevent";
 import { Response } from "express";
 import { User, UserDocument } from "../../domain/entities/user";
@@ -26,6 +27,10 @@ import { Performer } from "../../domain/entities/performer";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { WalletDocument } from "../../infrastructure/models/walletHistory";
 import { SlotModel } from "../../infrastructure/models/slotModel";
+import { FavoriteDocument } from "../../infrastructure/models/FavoriteScema";
+import { MessageDocument } from '../../infrastructure/models/messageModel';
+import { ChatRoom } from '../../domain/entities/chatRoom';
+
 
 export class userUseCase implements IuserUseCase {
   private _repository: IuserRepository;
@@ -33,10 +38,68 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+//   chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=>{
+//  try {
+//     return await this._repository.chatWithPerformer(userId,performerId)
+//  } catch (error) {
+//   throw error
+//  }
+//   }
+  getAllChatRooms=async(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null>=> {
+   try {
+    return this._repository.getAllChatRooms(userId)
+   } catch (error) {
+    throw error
+   }
+  }
+
+  ChatWith=async(myIdObject: mongoose.Types.ObjectId, anotherIdObject: mongoose.Types.ObjectId): Promise<MessageDocument[] | null> =>{
+   try {
+     const chatwith=await this._repository.ChatWith(myIdObject,anotherIdObject)
+  
+     return chatwith
+   } catch (error) {
+    throw error
+   }
+  }
+  sendMessage=async(senderId: mongoose.Types.ObjectId, reseverId: mongoose.Types.ObjectId, message: string): Promise<ChatRoomDocument|null>=> {
+try {
+     return await this._repository.sendMessage(senderId,reseverId,message)
+} catch (error) {
+  throw error
+ 
+}
+  }
+  favaroiteEvents=async(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null> =>{
+try {
+    return this._repository.favaroiteEvents(id)
+} catch (error) {
+  throw error
+}
+  }
+  toggleFavoriteEvent=async(uid: mongoose.Types.ObjectId, eid: mongoose.Types.ObjectId): Promise<FavoriteDocument | null> =>{
+    try {
+    return this._repository.toggleFavoriteEvent(uid,eid)
+    } catch (error) {
+      throw error
+    }
+  }
+
+ 
+
+
+  ratingAdded=async(bookingId: mongoose.Types.ObjectId, rating: number,review:string): Promise<EventDocument | null> =>{
+   try {
+    return this._repository.ratingAdded(bookingId,rating,review)
+   } catch (error) {
+    throw error
+    
+   } 
+  }
   availableDate(formData: Record<string, any>, eventId: string, performerId: string): Promise<boolean> {
     try {
 
-      console.log('formdddddddddd',formData,'ee',performerId)
+   
      
       const bookEvent = this._repository.availableDate(
          formData,
@@ -114,10 +177,10 @@ export class userUseCase implements IuserUseCase {
         newPassword
       );
 
-      return updatedUser; // Return the updated user document
+      return updatedUser; 
     } catch (error) {
       console.error("Error changing password :", error);
-      throw error; // Re-throw the error for further handling
+      throw error; 
     }
   };
 
@@ -171,7 +234,7 @@ export class userUseCase implements IuserUseCase {
   checkOtp = async (user: checkOtp): Promise<User | null> => {
     try {
       const insertUser = await this.repository.checkOtp(user);
-      return insertUser; // Return the result
+      return insertUser;
     } catch (error) {
       throw error;
     }
@@ -219,7 +282,7 @@ export class userUseCase implements IuserUseCase {
           });
 
           const mailOptions = {
-            from: process.env.EMAIL_ADDRESS, // Ensure the sender email is set
+            from: process.env.EMAIL_ADDRESS, 
             to: email,
             subject: "One-Time Password (OTP) for Authentication",
             html: `
@@ -326,6 +389,26 @@ export class userUseCase implements IuserUseCase {
     }
   };
 
+    userWalletBookEvent= async (
+      formData: Record<string, any>,
+      eventId: string,
+      performerId: string,
+      userId: string
+    ): Promise<BookingDocument | null> => {
+      try {
+       
+       const walletbooking = this._repository.userWalletBookEvent(
+          formData,
+          eventId,
+          performerId,
+          userId
+        );
+        return walletbooking ;
+      } catch (error) {
+        throw error;
+      }
+    };
+ 
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<UpcomingEventDocument[] | null> => {

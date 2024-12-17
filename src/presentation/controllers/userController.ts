@@ -9,12 +9,12 @@ import { generateOTP } from "../../shared/utils/generateOtp";
 import { TempPerformer } from "../../domain/entities/tempPerformer";
 import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
 import mongoose, { Types } from "mongoose";
+
 import {
   UserDocuments,
   UserModel,
 } from "../../infrastructure/models/userModel";
-import { PerformerModel } from "../../infrastructure/models/performerModel";
-import { MessageModel } from "../../infrastructure/models/messageModel";
+
 import { BookingModel } from "../../infrastructure/models/bookingEvents";
 
 export class UserController {
@@ -36,7 +36,7 @@ export class UserController {
           .json({ message: "Invalid user ID format" });
       }
 
-      const objectId = new mongoose.Types.ObjectId(id); // Convert to ObjectId
+      const objectId = new mongoose.Types.ObjectId(id); 
 
       const response = await this._useCase.getUserDetails(objectId);
       if (response) {
@@ -49,7 +49,7 @@ export class UserController {
           .json({ message: "User Details Fetch Failed" });
       }
     } catch (error) {
-      next(error); // Pass the error to the next middleware
+      next(error);
     }
   };
 
@@ -198,9 +198,9 @@ export class UserController {
   };
   resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("hello world");
+    
       const email = req.params.email;
-      console.log("resend", email);
+    
       if (email) {
         const otp = generateOTP();
         const otpUser = await this._useCase.resendOtp(email, otp);
@@ -214,7 +214,7 @@ export class UserController {
 
   changePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
-   
+console.log('fahfaldsffasdljalsdfjldskf')
       const id = new mongoose.Types.ObjectId(req.params.id);
       const { currentPassword, newPassword } = req.body;
 
@@ -254,7 +254,7 @@ export class UserController {
         const token = await this._useCase.jwt(user as User);
         const userData = encodeURIComponent(JSON.stringify(req.user));
         const tokenData = encodeURIComponent(JSON.stringify(token));
-        // console.log('userData',userData)
+   
    
 
         res.cookie("userToken", tokenData, {
@@ -280,6 +280,7 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      console.log('fayiz')
       const { username } = req.body;
  
       const userId = new mongoose.Types.ObjectId(req.params.id);
@@ -346,25 +347,60 @@ export class UserController {
     next: NextFunction
   ) => {
     try {
-      console.log("Fetching all performers...");
+
     
       const id = new mongoose.Types.ObjectId(req.params.id);
       const performers = await this._useCase.getAllPerformer(id);
-      console.log("Performers fetched:", performers);
+  
 
-      // Check if performers exist
+
       if (!performers || performers.length === 0) {
         return res.status(404).json({ message: "No performers found." });
       }
 
-      // Respond with the fetched performers
+
       res.status(200).json({ success: true, data: performers });
     } catch (error) {
       console.error("Error fetching performers:", error);
       next(error); // Pass the error to the error handling middleware
     }
   };
+  chatWith = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { myId, anotherId } = req.params;
+
+    
+      const myIdObject = new mongoose.Types.ObjectId(myId);
+      const anotherIdObject = new mongoose.Types.ObjectId(anotherId);
   
+   
+      const chatting = await this._useCase.ChatWith(myIdObject, anotherIdObject);
+
+      res.status(200).json({ message: 'Chat data fetched successfully', data: chatting });
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+      next(error);
+    }
+  }
+  // chatWithPerformer = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const { userid, performerid } = req.params;
+//     const userId = new mongoose.Types.ObjectId(userid);
+//     const performerId = new mongoose.Types.ObjectId(performerid);
+
+//     const performerMessage = await this._useCase.chatWithPerformer(userId, performerId);
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Chat started successfully',
+//       data: performerMessage,
+//     });
+//   } catch (error) {
+//     console.error('Error in chatWithPerformer:', error);
+//     next(error);
+//   }
+// };
   bookEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -457,33 +493,33 @@ walletHistory = async (req: Request, res: Response, next: NextFunction) => {
 };
 sendMessage = async (req: Request, res: Response, next: NextFunction) => {
   try {
+   
+    const { sender, receiver } = req.params;
+    console.log('fayiz',sender,receiver)
 
-    const { userid, performerid } = req.params;
+
+    const senderId = new mongoose.Types.ObjectId(sender);
+    const receiverId = new mongoose.Types.ObjectId(receiver);
+
     const { message } = req.body;
 
-  
 
-    const performer = await PerformerModel.findOne({ userId: performerid });
-    if (!performer) {
-      return res.status(404).json({ error: 'Performer not found' });
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
     }
 
-    const performerOriginalId = performer._id;
+  
+    const sentMessage = await this._useCase.sendMessage(senderId, receiverId, message);
 
-    
-    const newMessage = await MessageModel.create({
-      roomId: performerOriginalId,
-      senderId: userid,
-      message,
-      timestamp: new Date(),
-    });
+ 
+    return res.status(200).json({ message: 'Message sent successfully', data: sentMessage });
 
-    res.status(201).json({ message: 'Message sent successfully', data: newMessage });
   } catch (error) {
     console.error('Error in sendMessage:', error);
     next(error);
   }
-}
+};
+
 availableDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { formData, eventId, performerId } = req.body;
@@ -501,7 +537,7 @@ availableDate = async (req: Request, res: Response, next: NextFunction) => {
 
     const availableDates = await this._useCase.availableDate(formData, eventId, performerId);
 
-    console.log('Available dates:', availableDates);
+
 
     res.status(200).json({ message: 'Available dates retrieved successfully', data: availableDates });
   } catch (error) {
@@ -511,14 +547,14 @@ availableDate = async (req: Request, res: Response, next: NextFunction) => {
 };
 eventHistory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('hellllllllll')
+  
     const userId = req.params.id;
     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
     const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
    
     if (eventHistory) {
-      console.log('arm',eventHistory)
+   
       return res.status(200).json({ success: true, events: eventHistory });
     }
 
@@ -529,16 +565,16 @@ eventHistory = async (req: Request, res: Response, next: NextFunction) => {
 };
 pdateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id; // Retrieve the booking ID from the request params
-    const newDate = new Date('2024-11-01'); // Create a Date object for 1/11/2024
+    const id = req.params.id; 
+    const newDate = new Date('2024-11-01'); 
 
-    // Find the document by ID and update its date field
+   
     const updatedBooking = await BookingModel.findByIdAndUpdate(
       id,
       { date: newDate },
-      { new: true } // Return the updated document
+      { new: true } 
     );
-console.log('us',updatedBooking)
+
     if (!updatedBooking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
@@ -549,4 +585,135 @@ console.log('us',updatedBooking)
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+addRating = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid event ID" });
+    }
+
+    const eventId = new mongoose.Types.ObjectId(id);
+    const { rating, review } = req.body;
+
+    // Validate rating
+    if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
+    }
+
+    // Validate review
+    if (!review || typeof review !== "string" || review.trim().length < 5 || review.length > 500) {
+      return res.status(400).json({
+        error: "Review must be a string between 5 and 500 characters",
+      });
+    }
+
+    const eventRated = await this._useCase.ratingAdded(eventId, rating, review);
+
+    if (!eventRated) {
+      return res.status(404).json({ error: "Event not found or rating could not be added" });
+    }
+
+    res.status(200).json({ message: "Rating added successfully", data: eventRated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+walletPayment=async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { formData, eventId, performerId, userId } = req.body;
+
+  
+    if (!formData || typeof formData !== 'object') {
+      return res.status(400).json({ error: 'Invalid form data' });
+    }
+    if (!eventId || typeof eventId !== 'string') {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+    if (!performerId || typeof performerId !== 'string') {
+      return res.status(400).json({ error: 'Invalid performer ID' });
+    }
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const userWalletBookEvent = await this._useCase.userWalletBookEvent(formData, eventId, performerId, userId);
+
+
+
+    
+    res.status(200).json({ message: 'Event booked successfully', data: userWalletBookEvent });
+  } catch (error) {
+    console.error('Error booking event:', error);
+    next(error);
+  }
+};
+
+
+
+getFavoriteEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.params.id;
+    const id = new mongoose.Types.ObjectId(userId);
+
+    const favoriteEvent = await this._useCase.favaroiteEvents(id);
+     console.log('favo',favoriteEvent)
+
+    return res.status(200).json({
+      success: true,
+      data: favoriteEvent,
+    });
+  } catch (error) {
+    next(error); 
+  }
+};
+
+toggleFavoriteEvent= async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+    const userId = req.params.userId; 
+    const eventId = req.params.eventId; 
+    console.log('fayivaifadkfajdsladjsfads',userId,eventId)
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid user or event ID" });
+    }
+    const uid = new mongoose.Types.ObjectId(userId);
+    const eid = new mongoose.Types.ObjectId(eventId);
+
+    const result = await this._useCase.toggleFavoriteEvent(uid, eid);
+
+   
+    return res.status(200).json({ message: "Event added to favorites", data: result });
+  } catch (error) {
+   
+    next(error);
+  }
+};
+ getAllChatRooms = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+  
+    const id = req.params.id;
+
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const userId = new mongoose.Types.ObjectId(id);
+
+
+    const allRooms = await this._useCase.getAllChatRooms(userId);
+  console.log('allrooms',allRooms)
+
+    return res.status(200).json({ success: true, data: allRooms });
+  } catch (error) {
+  
+    next(error);
+  }
+};
+
+
+
 }

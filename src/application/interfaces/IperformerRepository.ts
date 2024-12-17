@@ -11,6 +11,7 @@ import { UpcomingEventDocument } from "../../domain/entities/upcomingevent";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { SlotDocuments } from "../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../domain/entities/slot";
+import { performerAllDetails } from "../../domain/entities/performerAllDetails";
 
 export interface IperformerRepository {
   // updateslot(id: Types.ObjectId, date: Date): SlotDocuments | PromiseLike<SlotDocuments | null> | null;
@@ -42,5 +43,10 @@ export interface IperformerRepository {
       cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
       slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
       updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null | string>;
+      getAlleventHistory(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+      performerAllDetails(id: mongoose.Types.ObjectId): Promise<performerAllDetails| null>;
+      changeEventStatus():Promise<BookingDocument[]|null>
+      getAllUsers(id: mongoose.Types.ObjectId):Promise<UserDocuments[]|null>
+    getReport(performerId:mongoose.Types.ObjectId,startDate: Date,endDate: Date): Promise<performerAllDetails|null>
 }
 

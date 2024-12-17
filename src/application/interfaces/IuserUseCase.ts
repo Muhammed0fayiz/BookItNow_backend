@@ -1,3 +1,4 @@
+import { FavoriteDocument } from './../../infrastructure/models/FavoriteScema';
 import { UpcomingEventDocument } from './../../domain/entities/upcomingevent';
 import { BookingDocument } from './../../infrastructure/models/bookingEvents';
 import { getNameOfJSDocTypedef } from "typescript";
@@ -13,6 +14,9 @@ import mongoose from "mongoose";
 import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { Performer } from "../../domain/entities/performer";
 import { WalletDocument } from '../../infrastructure/models/walletHistory';
+import { ChatRoomDocument } from '../../infrastructure/models/chatRoomModel';
+import { MessageDocument } from '../../infrastructure/models/messageModel';
+import { ChatRoom } from '../../domain/entities/chatRoom';
 export interface IuserUseCase {
 
  
@@ -58,4 +62,21 @@ cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
 walletHistory(objectId: mongoose.Types.ObjectId):Promise<WalletDocument[]|null>
 
 getAlleventHistory(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+ratingAdded(bookingId: mongoose.Types.ObjectId, rating:number,review:string): Promise<EventDocument| null>;
+
+userWalletBookEvent(
+  formData: Record<string, any>,
+  eventId: string,
+  performerId: string,
+  userId: string
+): Promise<BookingDocument | null>;
+
+favaroiteEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
+toggleFavoriteEvent(uid: mongoose.Types.ObjectId,eid: mongoose.Types.ObjectId): Promise<FavoriteDocument| null>;
+sendMessage(senderId: mongoose.Types.ObjectId,receiverId: mongoose.Types.ObjectId,message:string):Promise<ChatRoomDocument|null>
+
+ChatWith(myIdObject: mongoose.Types.ObjectId,anotherIdObject: mongoose.Types.ObjectId):Promise<MessageDocument[]|null>
+getAllChatRooms(userId: mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
+
+// chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
 }

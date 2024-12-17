@@ -9,6 +9,7 @@ export interface EventDocument extends Document {
   teamLeader: string;
   teamLeaderNumber: string;
   rating: number;
+  totalReviews:number;
   description: string;
   imageUrl: string;
   createdAt: Date;
@@ -26,6 +27,7 @@ const EventSchema: Schema<EventDocument> = new Schema({
   teamLeader: { type: String, required: true },
   teamLeaderNumber: { type: String, required: true },
   rating: { type: Number, default: 0 },
+  totalReviews: { type: Number, default: 0 },
   description: { type: String, required: true },
   imageUrl: { type: String, required: true },
   isblocked: { type: Boolean, default: false },

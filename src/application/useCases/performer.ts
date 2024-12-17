@@ -1,6 +1,6 @@
 import { OtpUser } from "../../domain/entities/otpUser";
 // import { OtpModel } from "../../infrastructure/models/otpSession";
-import { UserModel } from "../../infrastructure/models/userModel";
+import { UserDocuments, UserModel } from "../../infrastructure/models/userModel";
 import { checkOtp } from "../../domain/entities/checkOtp";
 import {
   TempPerformerDocument,
@@ -19,11 +19,50 @@ import { UpcomingEventDocument } from "../../domain/entities/upcomingevent";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { SlotDocuments } from "../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../domain/entities/slot";
+import { performerAllDetails } from "../../domain/entities/performerAllDetails";
+import { User } from "../../domain/entities/user";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
+  }
+  getReport = async (
+    performerId: mongoose.Types.ObjectId,
+    startDate: Date,
+    endDate: Date
+  ): Promise<performerAllDetails | null> => {
+    try {
+    
+      const report = await this._repository.getReport(performerId, startDate, endDate);
+      console.log('rep', report);
+  
+  
+      return report;
+    } catch (error) {
+
+      console.error('Error fetching performer report:', error);
+      return null; // Return null in case of error
+    }
+  };
+  
+  getAllUsers=async(id: mongoose.Types.ObjectId): Promise<UserDocuments[]| null> =>{
+    try {
+     
+      return await this._repository.getAllUsers(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  performerAllDetails=async(id: mongoose.Types.ObjectId): Promise<performerAllDetails | null> =>{
+  try {
+      const allDetails=await this._repository.performerAllDetails(id)
+      console.log('allDetail',allDetails)
+  return allDetails
+  } catch (error) {
+    throw error
+  }
   }
   slotDetails=async(id: mongoose.Types.ObjectId): Promise<SlotMangement | null> =>{
    try {
@@ -220,5 +259,21 @@ cancelEvent = async (
     throw error;
   }
 };
-
+getAlleventHistory = async (
+  id: mongoose.Types.ObjectId
+): Promise<UpcomingEventDocument[] | null> => {
+  try {
+    const eventHistory = await this._repository.getAlleventHistory(id);
+    return eventHistory;
+  } catch (error) {
+    throw error;
+  }
+};
+changeEventStatus=async(): Promise<BookingDocument[] | null>=>{
+  try {
+    return await this._repository.changeEventStatus()
+  } catch (error) {
+    throw error
+  }
+  }
 }

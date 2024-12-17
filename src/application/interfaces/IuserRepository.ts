@@ -10,6 +10,10 @@ import { Performer } from "../../domain/entities/performer";
 import { BookingDocument } from "../../infrastructure/models/bookingEvents";
 import { WalletDocument } from '../../infrastructure/models/walletHistory';
 import { SlotDocuments } from '../../infrastructure/models/slotModel';
+import { FavoriteDocument } from '../../infrastructure/models/FavoriteScema';
+import { ChatRoomDocument } from '../../infrastructure/models/chatRoomModel';
+import { MessageDocument } from '../../infrastructure/models/messageModel';
+import { ChatRoom } from '../../domain/entities/chatRoom';
 
 
 export interface IuserRepository {
@@ -55,4 +59,18 @@ export interface IuserRepository {
  
   ): Promise<boolean>;
   getAlleventHistory(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+  ratingAdded(bookingId: mongoose.Types.ObjectId, rating:number,review:string): Promise<EventDocument| null>;
+  userWalletBookEvent(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string,
+    userId: string
+  ): Promise<BookingDocument | null>;
+  toggleFavoriteEvent(uid: mongoose.Types.ObjectId,eid: mongoose.Types.ObjectId): Promise<FavoriteDocument| null>;
+ 
+favaroiteEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
+sendMessage(senderId: mongoose.Types.ObjectId,receiverId: mongoose.Types.ObjectId,message:string):Promise<ChatRoomDocument|null>
+ChatWith(myIdObject: mongoose.Types.ObjectId,anotherIdObject: mongoose.Types.ObjectId):Promise<MessageDocument[]|null>
+getAllChatRooms(userId: mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
+// chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
 }

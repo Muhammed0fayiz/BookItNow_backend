@@ -19,6 +19,68 @@ import { EventDocument, EventModel } from "../models/eventsModel";
 import { AdminDocument, AdminModel } from "../models/adminModel";
 import { AdminDetails } from "../../domain/entities/adminDetails";
 export class adminRepository implements IadminRepository {
+getReport = async (startDate: Date, endDate: Date): Promise<AdminDetails> => {
+  try {
+    console.log('Fetching report for date range...', startDate, endDate);
+    
+    // Adjust endDate to include the entire end day (endDate + 1)
+    const adjustedEndDate = new Date(endDate);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1); // Add 1 day to include the full end date
+
+    // Fetch admin data (assuming there is only one admin record)
+    const admin = await AdminModel.findOne();
+
+    let walletAmount = 0;
+    let walletTransactionHistory: Record<string, number> = {};
+
+    if (admin) {
+      walletAmount = admin.walletAmount;
+      walletTransactionHistory = admin.transactions;
+    }
+ 
+
+    // Fetch performers and users within the date range
+    const performers = await PerformerModel.find({
+      createdAt: { $gte: startDate, $lt: adjustedEndDate },
+    });
+console.log('elerj',performers)
+    const users = await UserModel.find({
+      createdAt: { $gte: startDate, $lt: adjustedEndDate },
+    });
+
+    // Calculate performer registration history by day within the date range
+    const performerRegistrationHistory: Record<string, number> = {};
+    performers.forEach(({ createdAt }) => {
+      if (createdAt && createdAt >= startDate && createdAt < adjustedEndDate) {
+        const day = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
+        performerRegistrationHistory[day] = (performerRegistrationHistory[day] || 0) + 1;
+      }
+    });
+
+    // Calculate user registration history by day within the date range
+    const userRegistrationHistory: Record<string, number> = {};
+    users.forEach(({ createdAt }) => {
+      if (createdAt && createdAt >= startDate && createdAt < adjustedEndDate) {
+        const day = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
+        userRegistrationHistory[day] = (userRegistrationHistory[day] || 0) + 1;
+      }
+    });
+
+    // Return the report with the data filtered by the date range
+    return {
+      walletAmount: walletAmount,
+      walletTransactionHistory: walletTransactionHistory,
+      totalUsers: users.length,
+      totalPerformers: performers.length,
+      userRegistrationHistory: userRegistrationHistory,
+      performerRegistrationHistory: performerRegistrationHistory,
+    };
+  } catch (error) {
+    console.error('Error fetching report details:', error);
+    throw error;
+  }
+};
+
   adminWallet(): Promise<AdminDocument[] | null> {
     throw new Error("Method not implemented.");
   }
@@ -258,7 +320,7 @@ export class adminRepository implements IadminRepository {
         }
       });
 
-      // Calculate user registration history by day
+    
       const userRegistrationHistory: Record<string, number> = {};
       users.forEach(({ createdAt }) => {
         if (createdAt) {

@@ -7,9 +7,11 @@ export interface PerformerDocuments extends Document {
   rating: number;
   description: string;
   profileImage?: string;
-  totalReviews?: number;
+  totalReviews: number;
   walletBalance?: number;
   place?:string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const PerformerSchema: Schema<PerformerDocuments> = new Schema({

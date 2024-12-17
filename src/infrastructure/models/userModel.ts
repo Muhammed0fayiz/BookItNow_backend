@@ -8,7 +8,7 @@ export interface UserDocuments extends Document {
   isblocked: boolean;
   isPerformerBlocked: boolean;
   waitingPermission: boolean;
-  // role: 'user' | 'performer' | 'admin';  
+
   walletBalance?: number;
   createdAt?: Date; 
   updatedAt?: Date; 

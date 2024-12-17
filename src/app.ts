@@ -3,12 +3,12 @@ import cors from "cors";
 import passportConfig from "./config/passport";
 import passport from "passport";
 import session from "express-session";
-
+import cookieParser from 'cookie-parser'
 
 passportConfig()
 
 const app = express();
-
+app.use(cookieParser())
 app.use(
   session({
     secret: 'your-secret-key',

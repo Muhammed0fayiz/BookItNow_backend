@@ -8,6 +8,7 @@ import { performerUseCase } from "../../application/useCases/performer";
 import { performerController } from "../controllers/performerController";
 import path from "path";
 import multer from "multer";
+import authMiddleware from "../../shared/middlewares/authMiddleware";
 
 const upload = multer();
 
@@ -19,7 +20,6 @@ const useCase = new performerUseCase(repository);
 
 const controller = new performerController(useCase);
 
-// Define storage configuration for multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../../../../frontend/public/uploads"));
@@ -33,12 +33,10 @@ const storage = multer.diskStorage({
   },
 });
 
-// Initialize multer with the defined storage
 const uploads = multer({ storage: storage });
 
-
-
 router.get("/getPerformer/:id", controller.getPerformerDetails.bind(controller));
+router.get('/downloadReport/:id', controller.downloadReport.bind(controller));
 router.post(
   "/tempPerformer",
   upload.single("video"),
@@ -47,28 +45,76 @@ router.post(
 
 router.post("/performerlogin", controller.performerLogin.bind(controller));
 
-
 router.put(
   "/updatePerformerProfile/:id",
-  uploads.single("image"), // Ensure to use multer for file upload
-  controller.updatePerformerProfile.bind(controller) // Bind the controller method
+  uploads.single("image"),
+  controller.updatePerformerProfile.bind(controller)
 );
 
-router.post('/uploadEvents/:id',
- controller.uploadEvents.bind(controller))
+router.post(
+  "/uploadEvents/:id",
+  controller.uploadEvents.bind(controller)
+);
 
+router.put(
+  "/editEvents/:id/:eid",authMiddleware,
+  controller.editEvents.bind(controller)
+);
 
- router.put('/editEvents/:id/:eid', controller.editEvents.bind(controller));
+router.get(
+  "/getPerformerEvents/:id",authMiddleware,
+  controller.getPerformerEvents.bind(controller)
+);
 
+router.delete(
+  "/deleteEvent/:id",authMiddleware,
+  controller.deleteEvent.bind(controller)
+);
 
+router.put(
+  "/blockUnblockEvents/:id",authMiddleware,
+  controller.toggleBlockStatus.bind(controller)
+);
 
- router.get('/getPerformerEvents/:id', controller.getPerformerEvents.bind(controller))
-router.post('/deleteEvent/:id',controller.deleteEvent.bind(controller))
-router.put('/blockUnblockEvents/:id', controller.toggleBlockStatus.bind(controller));
-router.get('/upcomingevents/:id', controller.upcomingEvents.bind(controller));
-router.post('/cancelevent/:id', controller.cancelEventByUser.bind(controller));
-router.post('/updateSlotStatus/:id', controller.updateSlotStatus.bind(controller));
+router.get(
+  "/upcomingevents/:id",authMiddleware,
+  controller.upcomingEvents.bind(controller)
+);
 
-router.get('/getslot/:id',controller.getslotDetails.bind(controller));
+router.post(
+  "/cancelevent/:id",authMiddleware,
+  controller.cancelEventByUser.bind(controller)
+);
+
+router.post(
+  "/updateSlotStatus/:id",authMiddleware,
+  controller.updateSlotStatus.bind(controller)
+);
+
+router.get(
+  "/eventhistory/:id",authMiddleware,
+  controller.eventHistory.bind(controller)
+);
+
+router.get(
+  "/getusers/:id",authMiddleware,
+  controller.getAllUsers.bind(controller)
+);
+
+router.get(
+  "/getslot/:id",authMiddleware,
+  controller.getslotDetails.bind(controller)
+);
+
+router.get(
+  "/performerAllDetails/:id",authMiddleware,
+  controller.performerAllDetails.bind(controller)
+);
+
+router.put(
+  "/changeEventStatus",authMiddleware,
+  controller.changeEventStatus.bind(controller)
+);
+
 
 export default router;

@@ -22,7 +22,230 @@ import { UpcomingEventDocument } from "../../domain/entities/upcomingevent";
 import { BookingDocument, BookingModel } from "../models/bookingEvents";
 import { WalletModel } from "../models/walletHistory";
 import { SlotMangement } from "../../domain/entities/slot";
+import { performerAllDetails } from "../../domain/entities/performerAllDetails";
 export class performerRepository implements IperformerRepository {
+  getReport = async (
+    performerId: mongoose.Types.ObjectId,
+    startDate: Date,
+    endDate: Date
+  ): Promise<performerAllDetails | null> => {
+    try {
+      // Fetch performer and performerDetails
+      const performer = await UserModel.findById(performerId);
+      if (!performer) throw new Error('Performer not found');
+      
+      const performerDetails = await PerformerModel.findOne({ userId: performerId });
+      if (!performerDetails) throw new Error('Performer details not found');
+      
+      // Fetch total events booked by performer (within the date range)
+      const total = await BookingModel.find({
+        userId: performerDetails._id,
+        date: { $gte: startDate, $lte: endDate }, // Filter by date range
+      });
+  
+      // Calculate total events by performer (within the date range)
+      const totalEvents = await BookingModel.find({
+        performerId: performerDetails._id,
+        date: { $gte: startDate, $lte: endDate }, // Filter by date range
+      }).countDocuments();
+    
+      // Calculate wallet details (within the date range)
+      const userWallet = await WalletModel.find({
+        userId: performerId,
+        date: { $gte: startDate, $lte: endDate }, // Filter by date range
+      });
+    
+      const walletAmount = userWallet.reduce((total, wallet) => total + wallet.amount, 0);
+      const walletTransactionHistory = userWallet.reduce(
+        (history, wallet) => ({
+          ...history,
+          [wallet.date.toISOString()]: wallet.amount,
+        }),
+        {}
+      );
+    
+      // Calculate total programs (within the date range)
+      const totalPrograms = await EventModel.countDocuments({
+        userId: performerId,
+        createdAt: { $gte: startDate, $lte: endDate }, // Filter by date range
+      });
+  
+      // Get upcoming events (grouped by month and filtered by date range)
+      const upcomingEventsPipeline = [
+        {
+          $match: {
+            performerId: performerDetails._id,
+            bookingStatus: { $nin: ['canceled', 'completed'] }, // Exclude 'canceled' and 'completed'
+            date: { $gte: startDate, $lte: endDate }, // Filter by date range
+          },
+        },
+        {
+          $project: {
+            formattedDate: { $dateToString: { format: '%Y-%m', date: '$date' } }, // Format date as 'Year-Month'
+            count: 1,
+          },
+        },
+        {
+          $group: {
+            _id: '$formattedDate', // Group by formatted date (month)
+            count: { $sum: 1 }, // Count the number of events in each month
+          },
+        },
+      ];
+  
+      const upcomingEventsResult = await BookingModel.aggregate(upcomingEventsPipeline);
+      const upcomingEvents = upcomingEventsResult.reduce(
+        (events, item) => ({ ...events, [item._id]: item.count }),
+        {}
+      );
+    
+      // Calculate total events history grouped by date (completed events within the date range)
+      const totalEventsHistoryPipeline = [
+        { $match: { performerId: performerDetails._id, bookingStatus: 'completed', date: { $gte: startDate, $lte: endDate } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%d/%m/%Y', date: '$date' } }, // Use '%Y' for the year
+            count: { $sum: 1 },
+          },
+        },
+      ];
+  
+      const totalEventsHistoryResult = await BookingModel.aggregate(totalEventsHistoryPipeline);
+      const totalEventsHistory = totalEventsHistoryResult.reduce(
+        (history, item) => ({ ...history, [item._id]: item.count }),
+        {}
+      );
+  
+      // Return aggregated details
+      return {
+        walletAmount,
+        walletTransactionHistory,
+        totalEvent: totalEvents, // Assuming "totalEvent" is the total wallet entries
+        totalPrograms,
+        totalEventsHistory,
+        upcomingEvents,
+        totalReviews: performerDetails.totalReviews || 0, // Default value if not present
+      };
+  
+    } catch (error: any) {
+      console.error('Error fetching performer details:', error.message);
+      throw new Error(`Error fetching performer details: ${error.message}`);
+    }
+  };
+  
+  
+
+  getAllUsers = async (id: mongoose.Types.ObjectId): Promise<UserDocuments[] | null> => {
+    try {
+      const users = await UserModel.find({ _id: { $ne: id } });
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  performerAllDetails = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<performerAllDetails | null> => {
+    try {
+      // Fetch performer and performerDetails
+      const performer = await UserModel.findById(id);
+      if (!performer) throw new Error('Performer not found');
+      
+      const performerDetails = await PerformerModel.findOne({ userId: id });
+      if (!performerDetails) throw new Error('Performer details not found');
+  
+      // Fetch total events booked by performer
+      const total = await BookingModel.find({ userId: performerDetails?._id });
+     
+  
+      // Calculate total events by performer
+      const totalEvents = await BookingModel.find({ performerId: performerDetails._id }).countDocuments();
+    
+      // Calculate wallet details
+      const userWallet = await WalletModel.find({ userId: id });
+      // if (!userWallet || userWallet.length === 0) throw new Error('No wallet data found');
+  
+      const walletAmount = userWallet.reduce((total, wallet) => total + wallet.amount, 0);
+      const walletTransactionHistory = userWallet.reduce(
+        (history, wallet) => ({
+          ...history,
+          [wallet.date.toISOString()]: wallet.amount,
+        }),
+        {}
+      );
+    
+      // Calculate total programs
+      const totalPrograms = await EventModel.countDocuments({ userId: id });
+    
+      // Get upcoming events (group by month if event is only for one day)
+      const upcomingEventsPipeline = [
+        {
+          $match: {
+            performerId: performerDetails._id,
+            bookingStatus: { $nin: ['canceled', 'completed'] }, // Exclude 'canceled' and 'completed'
+          },
+        },
+        {
+          $project: {
+            formattedDate: { $dateToString: { format: '%Y-%m', date: '$date' } }, // Format date as 'Year-Month'
+            count: 1,
+          },
+        },
+        {
+          $group: {
+            _id: "$formattedDate", // Group by formatted date (month)
+            count: { $sum: 1 }, // Count the number of events in each month
+          },
+        },
+      ];
+  
+      const upcomingEventsResult = await BookingModel.aggregate(upcomingEventsPipeline);
+      console.log('1000', upcomingEventsResult);
+      
+      const upcomingEvents = upcomingEventsResult.reduce(
+        (events, item) => ({ ...events, [item._id]: item.count }),
+        {}
+      );
+  
+      // Calculate totalEventsHistory grouped by date
+      const totalEventsHistoryPipeline = [
+        { $match: { performerId: performerDetails._id, bookingStatus: 'completed' } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%d/%m/%Y', date: '$date' } }, // Use '%Y' for the year
+            count: { $sum: 1 },
+          },
+        },
+      ];
+  
+      const totalEventsHistoryResult = await BookingModel.aggregate(totalEventsHistoryPipeline);
+      const totalEventsHistory = totalEventsHistoryResult.reduce(
+        (history, item) => ({ ...history, [item._id]: item.count }),
+        {}
+      );
+  
+      // Return aggregated details
+      return {
+        walletAmount,
+        walletTransactionHistory,
+        totalEvent: totalEvents, // Assuming "totalEvent" is the total wallet entries
+        totalPrograms,
+        totalEventsHistory,
+        upcomingEvents,
+        totalReviews: performerDetails.totalReviews || 0, // Default value if not present
+      };
+  
+    } catch (error: any) {
+      console.error('Error fetching performer details:', error.message);
+      // You can throw or return a custom error message if needed
+      throw new Error(`Error fetching performer details: ${error.message}`);
+    }
+  };
+  
+  
+  
+  
   slotDetails = async (
     id: mongoose.Types.ObjectId
   ): Promise<SlotMangement | null> => {
@@ -307,14 +530,14 @@ export class performerRepository implements IperformerRepository {
     id: mongoose.Types.ObjectId
   ): Promise<UpcomingEventDocument[] | null> => {
     try {
-      // Fetch the performer based on the user ID
+      const currentDate = new Date();
       const performer = await PerformerModel.findOne({ userId: id }).lean();
       if (!performer) {
         throw new Error("Performer not found");
       }
 
       // Fetch bookings for the performer
-      const bookings = await BookingModel.find({ performerId: performer._id })
+      const bookings = await BookingModel.find({ performerId: performer._id, date: { $gte: currentDate } })
         .populate({
           path: "eventId",
           model: "Event",
@@ -421,6 +644,91 @@ export class performerRepository implements IperformerRepository {
       return updatedEvent;
     } catch (error) {
       console.error("Error canceling event:", error);
+      throw error;
+    }
+  };
+  getAlleventHistory = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<UpcomingEventDocument[] | null> => {
+    try {
+      const currentDate = new Date();
+      const performer = await PerformerModel.findOne({ userId: id }).lean();
+      if (!performer) {
+        throw new Error("Performer not found");
+      }
+  
+   
+      const bookings = await BookingModel.find({ performerId: performer._id, date: { $lt: currentDate }})
+        .populate({
+          path: "eventId",
+          model: "Event",
+          select:
+            "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+        })
+        .populate("performerId", "name")
+        .populate("userId", "name") 
+        .lean();
+  
+    
+      const eventHistory: UpcomingEventDocument[] = bookings.map((booking) => {
+        const event = booking.eventId as any;
+        const user = booking.userId as any;
+  
+        return {
+          _id: booking._id,
+          eventId: booking.eventId,
+          performerId: booking.performerId,
+          userId: booking.userId,
+          username: user?.name, 
+          price: booking.price,
+          status: event?.status,
+          teamLeader: event?.teamLeader,
+          teamLeaderNumber: event?.teamLeaderNumber,
+          rating: event?.rating,
+          description: event?.description,
+          imageUrl: event?.imageUrl,
+          isblocked: event?.isblocked,
+          advancePayment: booking.advancePayment,
+          restPayment: booking.restPayment,
+          time: booking.time,
+          place: booking.place,
+          date: booking.date,
+          bookingStatus: booking.bookingStatus,
+          createdAt: booking.createdAt,
+          updatedAt: booking.updatedAt,
+          title: event?.title,
+          category: event?.category,
+        } as unknown as UpcomingEventDocument;
+      });
+  
+      return eventHistory;
+    } catch (error) {
+      console.error("Error in getAlleventHistory:", error);
+      throw error;
+    }
+  };
+  changeEventStatus = async (): Promise<BookingDocument[] | null> => {
+    try {
+      console.log('1')
+      const events = await BookingModel.find({
+        date: { $lt: new Date() },
+        bookingStatus: { $ne: 'canceled' }
+      });
+      console.log('11',events)
+  
+      if (events.length === 0) {
+        return null;
+      }
+  
+      const updatedEvents = await Promise.all(
+        events.map(async (event) => {
+          event.bookingStatus = 'completed';
+          return await event.save();
+        })
+      );
+  
+      return updatedEvents;
+    } catch (error) {
       throw error;
     }
   };

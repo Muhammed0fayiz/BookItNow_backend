@@ -20,7 +20,7 @@ export interface IadminUseCase {
   
 
   grantedPermission(id: string): Promise<Performer>; // Ensure this method takes an argument
-  rejectedPermission(id: string): Promise<TempPerformer>; 
+  rejectedPermission(id: string,rejectReason:string): Promise<TempPerformer>; 
   getUserDetails(id: string): unknown;
   
   getAllUser(): Promise<UserDocument[]>;
@@ -47,4 +47,6 @@ export interface IadminUseCase {
   toggleBlockStatus(id:string):Promise<EventDocument|null>
   adminWallet():Promise<AdminDocument[]|null>
   getAdminDetails():Promise<AdminDetails>
+  getReport(startDate: Date,endDate: Date): Promise<AdminDetails>
+
 }

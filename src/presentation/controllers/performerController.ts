@@ -15,7 +15,7 @@ import { asPerformer } from "../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
 import { PerformerDocuments, PerformerModel } from '../../infrastructure/models/performerModel';
 import { EventDocument } from '../../infrastructure/models/eventsModel';
-
+const ExcelJS = require('exceljs');
 export class performerController {
   private _useCase: IperformerUseCase;
    
@@ -136,7 +136,7 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
     const { bandName, mobileNumber, place } = req.body;
 
 
-    // Handle profile image update
+   
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
   
@@ -148,7 +148,6 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
       profileImage?: string | null 
     } = {};
 
-    // Only add properties if they're provided
     if (bandName) updateData.bandName = bandName;
     if (mobileNumber) updateData.mobileNumber = mobileNumber;
     if (place) updateData.place = place;
@@ -181,6 +180,8 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
 uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<Response<any> | void> => {
   try {
     const id = req.params.id
+    console.log(id,'id')
+    console.log('req',req.body)
 
     if (!req.body) {
       return res.status(400).json({ message: "No event data provided." });
@@ -196,13 +197,13 @@ uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<
       teamLeaderNumber: req.body.teamLeaderNumber ? parseInt(req.body.teamLeaderNumber, 10) : null, // Convert teamLeaderNumber to number
       description: req.body.description ? req.body.description.trim() : null,
     };
-
-    // Check for required fields
+     console.log('eve',event)
+ 
     if (!event.imageUrl || !event.title || !event.category || !event.userId || !event.price || !event.teamLeader || !event.teamLeaderNumber || !event.description) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Basic validation checks
+
     if (event.title.length < 3) {
       return res.status(400).json({ message: "Title must be at least 3 characters long." });
     }
@@ -302,12 +303,12 @@ editEvents = async (req: Request, res: Response, next: NextFunction): Promise<Re
       description: req.body.description ? req.body.description.trim() : "",
     };
 
-    // Check for required fields that must have non-empty values
+
     if (!event.title || !event.category || !event.price || !event.teamLeader || !event.teamLeaderNumber || !event.description) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Call the use case with eventId and eventData
+
     const updatedEvent = await this._useCase.editEvents(eventId, event);
     if (updatedEvent) {
       return res.status(200).json({ message: "Event updated successfully", event: updatedEvent });
@@ -478,5 +479,128 @@ getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 };
+eventHistory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    
+    const userId = req.params.id;
+    const userObjectId = new mongoose.Types.ObjectId(userId); 
+    
+    const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
 
+    if (eventHistory) {
+      return res.status(200).json({ success: true, events: eventHistory });
+    }
+
+    return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+  } catch (error) {
+    next(error);
+  }
+};
+getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+  
+    const id = new mongoose.Types.ObjectId(req.params.id);
+    const users = await this._useCase.getAllUsers(id);
+    console.log("users fetched:", users);
+
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found." });
+    }
+
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    next(error); 
+  }
+};
+performerAllDetails= async (req: Request, res: Response, next: NextFunction) => {
+  try {
+ 
+    const Id = req.params.id;
+ 
+    if (!Id) {
+      return res.status(400).json({ error: 'Invalid performer ID' });
+    }
+    const performerId = new mongoose.Types.ObjectId(Id); 
+    const performerDetails = await this._useCase.performerAllDetails(performerId);
+
+   
+    res.status(200).json({ performerDetails });
+  } catch (error) {
+    next(error);
+  }
+}
+changeEventStatus= async (req: Request, res: Response, next: NextFunction) =>{
+  
+  return await this._useCase.changeEventStatus()
+}
+downloadReport = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const Id = req.params.id;
+    const performerId = new mongoose.Types.ObjectId(Id);
+
+
+    const start = startDate ? new Date(startDate as string) : null;
+    const end = endDate ? new Date(endDate as string) : null;
+
+    if (!(start instanceof Date) || isNaN(start.getTime())) {
+      return res.status(400).json({ error: 'Invalid startDate' });
+    }
+
+    if (!(end instanceof Date) || isNaN(end.getTime())) {
+      return res.status(400).json({ error: 'Invalid endDate' });
+    }
+
+    console.log('Fetching report for:', start, end);
+
+
+    const report = await this._useCase.getReport(performerId, start, end);
+
+   
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Performer Report');
+
+    worksheet.columns = [
+      { header: 'Metric', key: 'metric', width: 25 },
+      { header: 'Value', key: 'value', width: 50 },
+    ];
+
+    worksheet.addRow({ metric: 'Wallet Amount', value: report.walletAmount });
+    worksheet.addRow({ metric: 'Wallet Transaction History', value: '' });
+
+    Object.entries(report.walletTransactionHistory).forEach(([date, amount]) => {
+      worksheet.addRow({ metric: `  - ${date}`, value: amount });
+    });
+
+    worksheet.addRow({ metric: 'Total Events', value: report.totalEvent });
+    worksheet.addRow({ metric: 'Total Programs', value: report.totalPrograms });
+
+    worksheet.addRow({ metric: 'Upcoming Events', value: '' });
+    Object.entries(report.upcomingEvents).forEach(([month, eventCount]) => {
+      worksheet.addRow({ metric: `  - ${month}`, value: eventCount });
+    });
+
+    worksheet.addRow({ metric: 'Total Reviews', value: report.totalReviews });
+
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=Performer_Report_${startDate}_to_${endDate}.xlsx`);
+
+ 
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+};
 }
