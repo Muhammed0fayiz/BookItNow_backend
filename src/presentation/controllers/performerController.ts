@@ -545,7 +545,7 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
     const Id = req.params.id;
     const performerId = new mongoose.Types.ObjectId(Id);
 
-
+    // Validate and parse startDate and endDate
     const start = startDate ? new Date(startDate as string) : null;
     const end = endDate ? new Date(endDate as string) : null;
 
@@ -557,50 +557,179 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'Invalid endDate' });
     }
 
-    console.log('Fetching report for:', start, end);
-
-
+    // Fetch report data
     const report = await this._useCase.getReport(performerId, start, end);
 
-   
     if (!report) {
       return res.status(404).json({ error: 'Report not found' });
     }
 
+    // Initialize Excel Workbook and Worksheet
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Performer Report');
+    const worksheet = workbook.addWorksheet('Performer Report', {
+      pageSetup: { paperSize: 9, orientation: 'landscape' }
+    });
 
+    // Set column widths
     worksheet.columns = [
-      { header: 'Metric', key: 'metric', width: 25 },
-      { header: 'Value', key: 'value', width: 50 },
+      { width: 30 },   // Title
+      { width: 15 },   // Date
+      { width: 5 },    // Spacer
+      { width: 20 },   // Place
+      { width: 12 },   // Price
+      { width: 10 },   // Rating
+      { width: 20 },   // Team Leader
+      { width: 15 },   // Number
+      { width: 5 },    // Spacer
+      { width: 15 },   // Category
+      { width: 15 }    // Status
     ];
 
-    worksheet.addRow({ metric: 'Wallet Amount', value: report.walletAmount });
-    worksheet.addRow({ metric: 'Wallet Transaction History', value: '' });
+    // Color Palette
+    const colors = {
+      headerBackground: 'FF4A90E2',  // Vibrant blue
+      headerText: 'FFFFFFFF',        // White
+      titleBackground: 'FFF0F4F8',   // Light blue background
+      titleText: 'FF2C3E50',         // Dark blue text
+      sectionTitleText: 'FF1A5F7A'   // Muted blue for section titles
+    };
 
-    Object.entries(report.walletTransactionHistory).forEach(([date, amount]) => {
-      worksheet.addRow({ metric: `  - ${date}`, value: amount });
-    });
+    // Report Title with Styling
+    const titleRow = worksheet.addRow(['Performer Report']);
+    titleRow.height = 30;
+    worksheet.mergeCells('A1:K1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: colors.titleBackground }
+    };
+    titleCell.font = {
+      name: 'Arial',
+      size: 18,
+      bold: true,
+      color: { argb: colors.titleText }
+    };
+    titleCell.alignment = { 
+      horizontal: 'center', 
+      vertical: 'middle' 
+    };
 
-    worksheet.addRow({ metric: 'Total Events', value: report.totalEvent });
-    worksheet.addRow({ metric: 'Total Programs', value: report.totalPrograms });
+    // Total Programs Section
+    worksheet.addRow([]);
+    const statsRow = worksheet.addRow(['Total Programs', `  ${report.totalPrograms}`]);
+    statsRow.getCell(1).font = { 
+      bold: true, 
+      size: 14, 
+      color: { argb: colors.sectionTitleText } 
+    };
 
-    worksheet.addRow({ metric: 'Upcoming Events', value: '' });
-    Object.entries(report.upcomingEvents).forEach(([month, eventCount]) => {
-      worksheet.addRow({ metric: `  - ${month}`, value: eventCount });
-    });
+    // Function to create table for events
+    const createEventTable = (events: any[], title: string) => {
+      // Check if events exist
+      if (!events || events.length === 0) {
+        return;
+      }
 
-    worksheet.addRow({ metric: 'Total Reviews', value: report.totalReviews });
+      // Section Title
+      worksheet.addRow([]);
+      const sectionTitleRow = worksheet.addRow([title]);
+      sectionTitleRow.getCell(1).font = { 
+        bold: true, 
+        size: 14, 
+        color: { argb: colors.sectionTitleText } 
+      };
 
+      // Header Row
+      const headerRow = worksheet.addRow([
+        'Title', 'Date', '', 'Place', 'Price', 
+        'Rating', 'Team Leader', 'Number', '', 
+        'Category', 'Status'
+      ]);
 
+      // Style Header
+      headerRow.eachCell((cell: { fill: { type: string; pattern: string; fgColor: { argb: string; }; }; font: { bold: boolean; color: { argb: string; }; name: string; }; alignment: { horizontal: string; vertical: string; }; border: { top: { style: string; }; left: { style: string; }; bottom: { style: string; }; right: { style: string; }; }; }) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: colors.headerBackground }
+        };
+        cell.font = {
+          bold: true,
+          color: { argb: colors.headerText },
+          name: 'Arial'
+        };
+        cell.alignment = { 
+          horizontal: 'center', 
+          vertical: 'middle' 
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Merge specific header cells
+      worksheet.mergeCells(`B${headerRow.number}:C${headerRow.number}`);
+      worksheet.mergeCells(`H${headerRow.number}:I${headerRow.number}`);
+
+      // Add Event Data
+      events.forEach((event, index) => {
+        const dataRow = worksheet.addRow([
+          event.title,
+          event.date.toISOString().split('T')[0],
+          '',
+          event.place,
+          event.price,
+          event.rating,
+          event.teamLeadername,
+          event.teamLeaderNumber,
+          '',
+          event.category,
+          event.status
+        ]);
+
+        // Apply alternating row colors
+        dataRow.eachCell((cell: { fill: { type: string; pattern: string; fgColor: { argb: string; }; }; border: { bottom: { style: string; color: { argb: string; }; }; }; }) => {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: index % 2 ? 'FFF0F8FF' : 'FFFFFFFF' }
+          };
+          cell.border = {
+            bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } }
+          };
+        });
+
+        // Merge Date and Number columns
+        worksheet.mergeCells(`B${dataRow.number}:C${dataRow.number}`);
+        worksheet.mergeCells(`H${dataRow.number}:I${dataRow.number}`);
+      });
+    };
+
+    // Conditionally render Upcoming Events
+    createEventTable(report.upcomingEvent, 'Upcoming Events');
+
+    // Conditionally render Event History
+    createEventTable(report.eventHistory, 'Event History');
+
+    // Finalize and Send the Report
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=Performer_Report_${startDate}_to_${endDate}.xlsx`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=Performer_Report_${startDate}_to_${endDate}.xlsx`
+    );
 
- 
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
     next(error);
   }
 };
+
+
+
+
 }

@@ -21,6 +21,7 @@ import { SlotDocuments } from "../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../domain/entities/slot";
 import { performerAllDetails } from "../../domain/entities/performerAllDetails";
 import { User } from "../../domain/entities/user";
+import { PerformerReport } from "../../domain/entities/performerReport";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
@@ -31,11 +32,11 @@ export class performerUseCase implements IperformerUseCase {
     performerId: mongoose.Types.ObjectId,
     startDate: Date,
     endDate: Date
-  ): Promise<performerAllDetails | null> => {
+  ): Promise<PerformerReport | null> => {
     try {
     
       const report = await this._repository.getReport(performerId, startDate, endDate);
-      console.log('rep', report);
+      console.log('rep', report,'er');
   
   
       return report;

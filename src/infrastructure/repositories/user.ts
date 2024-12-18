@@ -584,7 +584,6 @@ export class userRepository implements IuserRepository {
   };
 
 
-  
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<UpcomingEventDocument[] | null> => {

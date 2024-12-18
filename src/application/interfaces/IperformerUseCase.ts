@@ -17,6 +17,7 @@ import { UpcomingEventDocument } from '../../domain/entities/upcomingevent';
 import { BookingDocument } from '../../infrastructure/models/bookingEvents';
 import { SlotMangement } from '../../domain/entities/slot';
 import { performerAllDetails } from '../../domain/entities/performerAllDetails';
+import { PerformerReport } from '../../domain/entities/performerReport';
 
 
 
@@ -56,7 +57,7 @@ export interface IperformerUseCase {
   performerAllDetails(id: mongoose.Types.ObjectId): Promise<performerAllDetails| null>;
   changeEventStatus():Promise<BookingDocument[]|null>
   getAllUsers(id: mongoose.Types.ObjectId):Promise<UserDocuments[]|null>
-    getReport(performerId:mongoose.Types.ObjectId,startDate: Date,endDate: Date): Promise<performerAllDetails|null>
+    getReport(performerId:mongoose.Types.ObjectId,startDate: Date,endDate: Date): Promise<PerformerReport|null>
 }
 
 

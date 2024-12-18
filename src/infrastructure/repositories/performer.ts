@@ -23,116 +23,92 @@ import { BookingDocument, BookingModel } from "../models/bookingEvents";
 import { WalletModel } from "../models/walletHistory";
 import { SlotMangement } from "../../domain/entities/slot";
 import { performerAllDetails } from "../../domain/entities/performerAllDetails";
+import { PerformerReport } from "../../domain/entities/performerReport";
 export class performerRepository implements IperformerRepository {
-  getReport = async (
-    performerId: mongoose.Types.ObjectId,
+ getReport = async (
+    performerId: Types.ObjectId,
     startDate: Date,
     endDate: Date
-  ): Promise<performerAllDetails | null> => {
+  ): Promise<PerformerReport | null> => {
     try {
-      // Fetch performer and performerDetails
+      // Find Performer
       const performer = await UserModel.findById(performerId);
       if (!performer) throw new Error('Performer not found');
-      
+  
       const performerDetails = await PerformerModel.findOne({ userId: performerId });
       if (!performerDetails) throw new Error('Performer details not found');
-      
-      // Fetch total events booked by performer (within the date range)
-      const total = await BookingModel.find({
-        userId: performerDetails._id,
-        date: { $gte: startDate, $lte: endDate }, // Filter by date range
-      });
   
-      // Calculate total events by performer (within the date range)
-      const totalEvents = await BookingModel.find({
+      // Fetch total programs
+      const totalPrograms = await EventModel.countDocuments({ userId: performerId});
+          console.log(totalPrograms,'dd','id',performerId)
+      // Fetch bookings within the date range
+      const bookings = await BookingModel.find({
         performerId: performerDetails._id,
-        date: { $gte: startDate, $lte: endDate }, // Filter by date range
-      }).countDocuments();
-    
-      // Calculate wallet details (within the date range)
-      const userWallet = await WalletModel.find({
-        userId: performerId,
-        date: { $gte: startDate, $lte: endDate }, // Filter by date range
-      });
-    
-      const walletAmount = userWallet.reduce((total, wallet) => total + wallet.amount, 0);
-      const walletTransactionHistory = userWallet.reduce(
-        (history, wallet) => ({
-          ...history,
-          [wallet.date.toISOString()]: wallet.amount,
-        }),
-        {}
-      );
-    
-      // Calculate total programs (within the date range)
-      const totalPrograms = await EventModel.countDocuments({
-        userId: performerId,
-        createdAt: { $gte: startDate, $lte: endDate }, // Filter by date range
-      });
+        date: { $gte: startDate, $lte: endDate },
+      }).populate('eventId');
   
-      // Get upcoming events (grouped by month and filtered by date range)
-      const upcomingEventsPipeline = [
-        {
-          $match: {
-            performerId: performerDetails._id,
-            bookingStatus: { $nin: ['canceled', 'completed'] }, // Exclude 'canceled' and 'completed'
-            date: { $gte: startDate, $lte: endDate }, // Filter by date range
-          },
-        },
-        {
-          $project: {
-            formattedDate: { $dateToString: { format: '%Y-%m', date: '$date' } }, // Format date as 'Year-Month'
-            count: 1,
-          },
-        },
-        {
-          $group: {
-            _id: '$formattedDate', // Group by formatted date (month)
-            count: { $sum: 1 }, // Count the number of events in each month
-          },
-        },
-      ];
+      // Aggregate booking history
+      const totalEventsHistory: Record<string, number> = {};
+      const performerRegistrationHistory: Record<string, number> = {};
+      const upcomingEvent: PerformerReport['upcomingEvent'] = [];
+      const eventHistory: PerformerReport['eventHistory'] = [];
   
-      const upcomingEventsResult = await BookingModel.aggregate(upcomingEventsPipeline);
-      const upcomingEvents = upcomingEventsResult.reduce(
-        (events, item) => ({ ...events, [item._id]: item.count }),
-        {}
-      );
-    
-      // Calculate total events history grouped by date (completed events within the date range)
-      const totalEventsHistoryPipeline = [
-        { $match: { performerId: performerDetails._id, bookingStatus: 'completed', date: { $gte: startDate, $lte: endDate } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%d/%m/%Y', date: '$date' } }, // Use '%Y' for the year
-            count: { $sum: 1 },
-          },
-        },
-      ];
+      for (const booking of bookings) {
+        const event = booking.eventId as unknown as EventDocument;
   
-      const totalEventsHistoryResult = await BookingModel.aggregate(totalEventsHistoryPipeline);
-      const totalEventsHistory = totalEventsHistoryResult.reduce(
-        (history, item) => ({ ...history, [item._id]: item.count }),
-        {}
-      );
+        // Filter completed events for eventHistory
+        if (booking.bookingStatus === 'completed') {
+          eventHistory.push({
+            title: event.title,
+            date: booking.date,
+            place: booking.place,
+            price: event.price,
+            rating: event.rating,
+            teamLeadername: event.teamLeader, 
+            teamLeaderNumber: event.teamLeaderNumber,
+            category: event.category,
+            status: booking.bookingStatus,
+          });
+        }
+        
+        // Filter future events for upcomingEvent
+        if (booking.date > new Date()) {
+          upcomingEvent.push({
+            title: event.title,
+            date: booking.date,
+            place: booking.place,
+            price: event.price,
+            rating: event.rating,
+            teamLeadername: event.teamLeader,
+            teamLeaderNumber: event.teamLeaderNumber,
+            category: event.category,
+            status: booking.bookingStatus, // Include status
+          });
+        }
+        
   
-      // Return aggregated details
+        // Count total events history by status
+   
+  
+        // Count performer registrations per month
+        const month = booking.date.toISOString().slice(0, 7); // YYYY-MM
+        performerRegistrationHistory[month] =
+          (performerRegistrationHistory[month] || 0) + 1;
+      }
+  
+      // Return the formatted report
       return {
-        walletAmount,
-        walletTransactionHistory,
-        totalEvent: totalEvents, // Assuming "totalEvent" is the total wallet entries
-        totalPrograms,
-        totalEventsHistory,
-        upcomingEvents,
-        totalReviews: performerDetails.totalReviews || 0, // Default value if not present
+        totalPrograms: totalPrograms || 0,
+     
+     
+        upcomingEvent,
+        eventHistory,
       };
-  
     } catch (error: any) {
       console.error('Error fetching performer details:', error.message);
       throw new Error(`Error fetching performer details: ${error.message}`);
     }
   };
-  
   
 
   getAllUsers = async (id: mongoose.Types.ObjectId): Promise<UserDocuments[] | null> => {

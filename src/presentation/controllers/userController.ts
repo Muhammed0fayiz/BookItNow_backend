@@ -563,28 +563,32 @@ eventHistory = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-pdateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
+updateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id; 
     const newDate = new Date('2024-11-01'); 
+    const newStatus = "completed"; 
 
-   
     const updatedBooking = await BookingModel.findByIdAndUpdate(
       id,
-      { date: newDate },
-      { new: true } 
+      { date: newDate, bookingStatus: newStatus },
+      { new: true }
     );
 
     if (!updatedBooking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    res.status(200).json({ message: 'Booking date updated successfully', booking: updatedBooking });
+    res.status(200).json({
+      message: 'Booking date and status updated successfully',
+      booking: updatedBooking,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 addRating = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id;

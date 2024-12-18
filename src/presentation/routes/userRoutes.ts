@@ -60,7 +60,7 @@ router.get("/upcomingevents/:id",authMiddleware, controller.upcomingEvents.bind(
 router.post("/cancelevent/:id",authMiddleware, controller.cancelEventByUser.bind(controller));
 router.get("/getWalletHistory/:id",authMiddleware, controller.walletHistory.bind(controller));
 router.post("/handleSendMessage/:sender/:receiver",authMiddleware, controller.sendMessage.bind(controller));
-router.post("/ed/:id",controller.pdateBookingDate.bind(controller));
+router.post("/ed/:id",controller.updateBookingDate.bind(controller));
 router.post("/checkavailable",authMiddleware,controller.availableDate.bind(controller));
 router.get("/eventhistory/:id",authMiddleware,controller.eventHistory.bind(controller));
 router.post("/add-rating/:id",authMiddleware,controller.addRating.bind(controller));
