@@ -29,87 +29,163 @@ import { ChatRoom } from "../../domain/entities/chatRoom";
 import { RatingModel } from "../models/ratingModel";
 
 export class userRepository implements IuserRepository {
+  getUpcomingEvents = async (
+    userId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<UpcomingEventDocument[]> => {
+    try {
+      console.log("Fetching upcoming events with pagination...");
+
+      const currentDate = new Date();
+      const pageSize = 8; // Number of events per page
+      const skip = (page - 1) * pageSize; // Skip events based on the current page
+
+      // Query to match upcoming bookings
+      const matchQuery = {
+        userId: userId,
+        date: { $gte: currentDate },
+      };
+
+      // Fetch the events with pagination (skip and limit)
+      const bookings = await BookingModel.find(matchQuery)
+        .sort({ date: -1 }) // Sort in descending order
+        .skip(skip) // Skip the events based on page
+        .limit(pageSize) // Limit to 8 documents
+        .populate({
+          path: "eventId",
+          model: "Event",
+          select:
+            "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+        })
+        .populate("performerId", "name")
+        .lean();
+
+      console.log("Processing bookings...");
+      const upcomingEvents: UpcomingEventDocument[] = bookings.map(
+        (booking) => {
+          const event = booking.eventId as any;
+
+          return {
+            _id: booking._id,
+            eventId: booking.eventId,
+            performerId: booking.performerId,
+            userId: booking.userId,
+            price: booking.price,
+            status: event.status,
+            teamLeader: event.teamLeader,
+            teamLeaderNumber: event.teamLeaderNumber,
+            rating: event.rating,
+            description: event.description,
+            imageUrl: event.imageUrl,
+            isblocked: event.isblocked,
+            advancePayment: booking.advancePayment,
+            restPayment: booking.restPayment,
+            time: booking.time,
+            place: booking.place,
+            date: booking.date,
+            bookingStatus: booking.bookingStatus,
+            isRated: booking.isRated,
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
+            title: event.title,
+            category: event.category,
+          } as unknown as UpcomingEventDocument;
+        }
+      );
+
+      console.log("Upcoming Events:", upcomingEvents);
+      return upcomingEvents; // Return the events for the given page
+    } catch (error) {
+      console.error("Error in getUpcomingEvents:", error);
+      throw error;
+    }
+  };
   // chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=> {
   //   try {
-      
+
   //   } catch (error) {
   //     throw error
   //   }
   // }
-  getAllChatRooms = async (userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null> => {
+  getAllChatRooms = async (
+    userId: mongoose.Types.ObjectId
+  ): Promise<ChatRoom[] | null> => {
     try {
-    
       const chatRooms = await ChatRoomModel.find({ participants: userId });
-  
-  
+
       const chatRoomsWithMessages = await Promise.all(
         chatRooms.map(async (chatRoom) => {
-       
-          const lastMessage = await MessageModel.findOne({ roomId: chatRoom._id })
-            .sort({ timestamp: -1 }); 
-  
-         
-          const otherParticipantId = chatRoom.participants.find(id => id.toString() !== userId.toString());
+          const lastMessage = await MessageModel.findOne({
+            roomId: chatRoom._id,
+          }).sort({ timestamp: -1 });
+
+          const otherParticipantId = chatRoom.participants.find(
+            (id) => id.toString() !== userId.toString()
+          );
           const otherParticipant = await UserModel.findById(otherParticipantId);
-  
+
           // Step 4: Find performer linked to this chat room (if any)
           const performer = await PerformerModel.findOne({
             userId: otherParticipantId,
           });
-  
+
           // Return an object with last message timestamp for sorting
           return {
             chatRoom,
-            lastMessageTimestamp: lastMessage ? lastMessage.timestamp : new Date(0), // Use epoch if no messages
+            lastMessageTimestamp: lastMessage
+              ? lastMessage.timestamp
+              : new Date(0), // Use epoch if no messages
             profileImage: otherParticipant?.profileImage || null, // Use user's profile image
             userName: otherParticipant ? otherParticipant.username : null,
             performerName: performer ? performer.bandName : null,
-            otherId: otherParticipantId ? otherParticipantId.toString() : null  // Convert to string
+            otherId: otherParticipantId ? otherParticipantId.toString() : null, // Convert to string
           };
         })
       );
-  
+
       // Sort chat rooms by the timestamp of their latest message (most recent first)
       const sortedChatRooms = chatRoomsWithMessages
-        .sort((a, b) => b.lastMessageTimestamp.getTime() - a.lastMessageTimestamp.getTime())
-        .map(room => ({
+        .sort(
+          (a, b) =>
+            b.lastMessageTimestamp.getTime() - a.lastMessageTimestamp.getTime()
+        )
+        .map((room) => ({
           profileImage: room.profileImage,
           userName: room.userName,
           performerName: room.performerName,
           otherId: room.otherId,
-          myId: userId ? userId.toString() : null
+          myId: userId ? userId.toString() : null,
         }));
-  
+
       return sortedChatRooms;
     } catch (error) {
-      console.error('Error fetching chat rooms:', error);
+      console.error("Error fetching chat rooms:", error);
       return null;
     }
   };
-  ChatWith = async (myIdObject: mongoose.Types.ObjectId, anotherIdObject: mongoose.Types.ObjectId): Promise<any[] | null> => {
+  ChatWith = async (
+    myIdObject: mongoose.Types.ObjectId,
+    anotherIdObject: mongoose.Types.ObjectId
+  ): Promise<any[] | null> => {
     try {
-
       const chatMessages = await MessageModel.find({
         $or: [
           { senderId: myIdObject, receiverId: anotherIdObject },
-          { senderId: anotherIdObject, receiverId: myIdObject }
-        ]
+          { senderId: anotherIdObject, receiverId: myIdObject },
+        ],
       }).sort({ timestamp: 1 });
 
-    
       const messagesWithRole = chatMessages.map((message) => {
         if (message.senderId.toString() === myIdObject.toString()) {
-         
-          return { ...message.toObject(), role: 'sender' };
+          return { ...message.toObject(), role: "sender" };
         } else {
-         
-          return { ...message.toObject(), role: 'receiver' };
+          return { ...message.toObject(), role: "receiver" };
         }
       });
-  
-      return messagesWithRole; 
+
+      return messagesWithRole;
     } catch (error) {
-      throw error; 
+      throw error;
     }
   };
   sendMessage = async (
@@ -122,7 +198,7 @@ export class userRepository implements IuserRepository {
       let chatRoom = await ChatRoomModel.findOne({
         participants: { $all: [senderId, receiverId] },
       });
-  
+
       // If no room exists, create one
       if (!chatRoom) {
         chatRoom = new ChatRoomModel({
@@ -130,7 +206,7 @@ export class userRepository implements IuserRepository {
         });
         await chatRoom.save();
       }
-  
+
       // Save the message in the MessageModel
       const newMessage = new MessageModel({
         roomId: chatRoom._id,
@@ -138,12 +214,14 @@ export class userRepository implements IuserRepository {
         receiverId,
         message,
       });
-  
+
       await newMessage.save();
-  
+
       // Optionally populate chat room details (e.g., messages)
-      const populatedChatRoom = await ChatRoomModel.findById(chatRoom._id).populate('participants');
-  
+      const populatedChatRoom = await ChatRoomModel.findById(
+        chatRoom._id
+      ).populate("participants");
+
       return populatedChatRoom;
     } catch (error) {
       throw error;
@@ -153,21 +231,18 @@ export class userRepository implements IuserRepository {
     id: Types.ObjectId
   ): Promise<EventDocument[] | null> => {
     try {
-
-      const favoriteEvents = await FavoriteModel.find({ userId: id })
+      const favoriteEvents = await FavoriteModel.find({ userId: id });
 
       const eventIds = favoriteEvents.map((favorite) => favorite.eventId);
-  
- 
+
       const events = await EventModel.find({ _id: { $in: eventIds } });
-  
+
       return events;
     } catch (error) {
-      console.error('Error fetching favorite events:', error);
+      console.error("Error fetching favorite events:", error);
       throw error;
     }
   };
-
 
   toggleFavoriteEvent = async (
     userId: mongoose.Types.ObjectId,
@@ -176,22 +251,18 @@ export class userRepository implements IuserRepository {
     try {
       // Check if the favorite event already exists
       const existingFavorite = await FavoriteModel.findOne({ userId, eventId });
-  
+
       if (existingFavorite) {
-       
         await FavoriteModel.deleteOne({ userId, eventId });
-        return null; 
+        return null;
       } else {
-       
         const newFavorite = await FavoriteModel.create({ userId, eventId });
-        return newFavorite; 
+        return newFavorite;
       }
     } catch (error) {
-      throw error; 
+      throw error;
     }
   };
-  
-
 
   ratingAdded = async (
     bookingId: mongoose.Types.ObjectId,
@@ -201,64 +272,65 @@ export class userRepository implements IuserRepository {
     try {
       const bookingevent = await BookingModel.findByIdAndUpdate(
         bookingId,
-        { isRated: true }, 
-        { new: true } 
+        { isRated: true },
+        { new: true }
       );
-  
+
       const eventId = bookingevent?.eventId;
       if (!eventId) {
         console.error("Event ID not found in booking");
         return null;
       }
-  
+
       const event = await EventModel.findById(eventId);
       if (!event) {
         console.error("Event not found");
         return null;
       }
-  
+
       const ratingDoc = new RatingModel({
         eventId: eventId,
         userId: bookingevent.userId,
         rating: rating,
         review: review,
       });
-  
+
       await ratingDoc.save();
-  
+
       const totalRating = event.rating * event.totalReviews + rating;
       const newRatedCount = event.totalReviews + 1;
       const newAverageRating = totalRating / newRatedCount;
-  
+
       event.rating = newAverageRating;
       event.totalReviews = newRatedCount;
-  
+
       await event.save();
-  
+
       const userId = event.userId;
       if (userId) {
         const performer = await PerformerModel.findOne({ userId });
         if (performer) {
-          const totalPerformerRating = performer.rating * performer.totalReviews + rating;
+          const totalPerformerRating =
+            performer.rating * performer.totalReviews + rating;
           const newTotalReviews = performer.totalReviews + 1;
-          const newPerformerAverageRating = totalPerformerRating / newTotalReviews;
-  
+          const newPerformerAverageRating =
+            totalPerformerRating / newTotalReviews;
+
           performer.rating = newPerformerAverageRating;
           performer.totalReviews = newTotalReviews;
-  
+
           await performer.save();
         } else {
           console.error("Performer not found for userId:", userId);
         }
       }
-  
+
       return event;
     } catch (error) {
       console.error("Error in ratingAdded:", error);
       throw error;
     }
   };
-  
 
   availableDate = async (
     formData: Record<string, any>,
@@ -306,7 +378,6 @@ export class userRepository implements IuserRepository {
       throw error;
     }
   };
-
 
   getAllPerformer = async (
     id: mongoose.Types.ObjectId
@@ -583,18 +654,29 @@ export class userRepository implements IuserRepository {
     }
   };
 
-
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
-  ): Promise<UpcomingEventDocument[] | null> => {
+  ): Promise<{
+    totalCount: number;
+    upcomingEvents: UpcomingEventDocument[];
+  }> => {
     try {
-      console.log('upcomeing')
+      console.log("Fetching upcoming events...");
       const currentDate = new Date();
 
-      const bookings = await BookingModel.find({
+      // Query to match upcoming bookings
+      const matchQuery = {
         userId: id,
         date: { $gte: currentDate },
-      })
+      };
+
+      // Total count of matching documents
+      const totalCount = await BookingModel.countDocuments(matchQuery);
+
+      // Fetch the top 8 bookings sorted by date in descending order
+      const bookings = await BookingModel.find(matchQuery)
+        .sort({ date: -1 }) // Sort in descending order
+        .limit(8) // Limit to 8 documents
         .populate({
           path: "eventId",
           model: "Event",
@@ -603,11 +685,12 @@ export class userRepository implements IuserRepository {
         })
         .populate("performerId", "name")
         .lean();
-        console.log('upcomeing888')
+
+      console.log("Processing bookings...");
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
           const event = booking.eventId as any;
-          console.log('upcomeing444',event)
+
           return {
             _id: booking._id,
             eventId: booking.eventId,
@@ -637,7 +720,7 @@ export class userRepository implements IuserRepository {
       );
 
       console.log("Upcoming Events:", upcomingEvents);
-      return upcomingEvents;
+      return { totalCount, upcomingEvents }; // Use the correct property name
     } catch (error) {
       console.error("Error in getAllUpcomingEvents:", error);
       throw error;
@@ -651,7 +734,6 @@ export class userRepository implements IuserRepository {
       const today = new Date();
       const event = await BookingModel.findById(id);
 
-
       if (!event) {
         return null;
       }
@@ -662,17 +744,14 @@ export class userRepository implements IuserRepository {
 
       const { userId, performerId, advancePayment } = event;
 
-  
       if (!userId) {
         return null;
       }
 
       if (dateDifferenceInDays > 9) {
-
         await UserModel.findByIdAndUpdate(userId, {
           $inc: { walletBalance: advancePayment },
         });
-
 
         const walletEntry = new WalletModel({
           userId,
@@ -684,7 +763,6 @@ export class userRepository implements IuserRepository {
         });
         await walletEntry.save();
 
-      
         event.bookingStatus = "canceled";
         const updatedEvent = await event.save();
 
@@ -694,7 +772,6 @@ export class userRepository implements IuserRepository {
       if (dateDifferenceInDays < 0) {
         return null;
       }
-
 
       const performer = await PerformerModel.findById(performerId);
 
@@ -718,7 +795,6 @@ export class userRepository implements IuserRepository {
       });
       await performerWalletEntry.save();
 
- 
       event.bookingStatus = "canceled";
       const updatedEvent = await event.save();
 
@@ -740,16 +816,20 @@ export class userRepository implements IuserRepository {
     }
   };
 
-  getAlleventHistory = async (
+  getAllEventHistory = async (
     id: mongoose.Types.ObjectId
-  ): Promise<UpcomingEventDocument[] | null> => {
+  ): Promise<{
+    totalCount: number;
+    pastEventHistory: UpcomingEventDocument[];
+  }> => {
     try {
-      const currentDate = new Date(); // Get the current date
+      const currentDate = new Date();
+      const matchQuery = { userId: id, date: { $lt: currentDate } };
+      const totalCount = await BookingModel.countDocuments(matchQuery);
 
-      const bookings = await BookingModel.find({
-        userId: id,
-        date: { $lt: currentDate }, // Filter for past events
-      })
+      const bookings = await BookingModel.find(matchQuery)
+        .sort({ date: -1 }) // Sort by newest date first
+        .limit(8)
         .populate({
           path: "eventId",
           model: "Event",
@@ -787,13 +867,13 @@ export class userRepository implements IuserRepository {
             updatedAt: booking.updatedAt,
             title: event.title,
             category: event.category,
-          } as unknown as UpcomingEventDocument; 
+          } as unknown as UpcomingEventDocument;
         }
       );
 
-      return pastEventHistory;
+      return { totalCount, pastEventHistory };
     } catch (error) {
-      console.error("Error in getPastEventHistory:", error);
+      console.error("Error in getAllEventHistory:", error);
       throw error;
     }
   };
@@ -805,7 +885,6 @@ export class userRepository implements IuserRepository {
     userId: string
   ): Promise<BookingDocument | null> => {
     try {
-
       const event = await EventModel.findById(eventId);
 
       const performer = await PerformerModel.findOne({ userId: performerId });
@@ -813,42 +892,42 @@ export class userRepository implements IuserRepository {
       if (!event) {
         throw new Error("Event not found");
       }
-  
+
       if (!performer) {
         throw new Error("Performer not found");
       }
-  
+
       const performerBookingDate = await BookingModel.find({
         performerId: performer._id,
         date: formData.date,
       });
 
       if (performerBookingDate.length > 0) {
-     
         return null;
       }
-  
+
       let slotDocument = await SlotModel.findOne({
         performerId: performer._id,
       });
 
       if (slotDocument && Array.isArray(slotDocument.dates)) {
-        const inputDateString = new Date(formData.date).toISOString().split("T")[0];
+        const inputDateString = new Date(formData.date)
+          .toISOString()
+          .split("T")[0];
         const isDateExist = slotDocument.dates.some((date) => {
           const slotDateString = new Date(date).toISOString().split("T")[0];
           return slotDateString === inputDateString;
         });
-  
+
         if (isDateExist) {
           return null;
         }
       }
-  
+
       const price = event.price;
       const advancePayment = (price * 10) / 100 - 10;
       const restPayment = price - (price * 10) / 100;
-  
-     
+
       const bookEvent = await BookingModel.create({
         eventId: event._id,
         performerId: performer._id,
@@ -862,8 +941,7 @@ export class userRepository implements IuserRepository {
       });
 
       const currentDate = new Date().toISOString().split("T")[0];
-  
-    
+
       await AdminModel.updateOne(
         {},
         {
@@ -871,17 +949,16 @@ export class userRepository implements IuserRepository {
         },
         { upsert: true }
       );
-  
-   
-   await UserModel.findByIdAndUpdate(userId, {
+
+      await UserModel.findByIdAndUpdate(userId, {
         $inc: { walletBalance: -advancePayment },
       });
- 
+
       const performerUserId = performer.userId;
       await UserModel.findByIdAndUpdate(performerUserId, {
         $inc: { walletBalance: advancePayment },
       });
-  
+
       const userWalletEntry = new WalletModel({
         userId,
         amount: -advancePayment,
@@ -891,7 +968,7 @@ export class userRepository implements IuserRepository {
         description: "Advance payment for event booking",
       });
       await userWalletEntry.save();
-  
+
       // Log performer wallet transaction
       const performerWalletEntry = new WalletModel({
         userId: performerUserId,
@@ -902,13 +979,13 @@ export class userRepository implements IuserRepository {
         description: "Advance payment received for event booking",
       });
       await performerWalletEntry.save();
-  
+
       return bookEvent;
     } catch (error) {
       throw error;
     }
   };
-  
+
   userBookEvent = async (
     formData: Record<string, any>,
     eventId: string,
@@ -998,4 +1075,71 @@ export class userRepository implements IuserRepository {
     }
   };
 
+  getEventHistory = async (
+    userId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<{
+    totalCount: number;
+    pastEventHistory: UpcomingEventDocument[];
+  }> => {
+    try {
+      const currentDate = new Date();
+      const pageSize = 8;
+      const skip = (page - 1) * pageSize;
+
+      const matchQuery = { userId: userId, date: { $lt: currentDate } };
+
+      const totalCount = await BookingModel.countDocuments(matchQuery);
+
+      const bookings = await BookingModel.find(matchQuery)
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(pageSize)
+        .populate({
+          path: "eventId",
+          model: "Event",
+          select:
+            "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+        })
+        .populate("performerId", "name")
+        .lean();
+
+      const pastEventHistory: UpcomingEventDocument[] = bookings.map(
+        (booking) => {
+          const event = booking.eventId as any;
+
+          return {
+            _id: booking._id,
+            eventId: booking.eventId,
+            performerId: booking.performerId,
+            userId: booking.userId,
+            price: booking.price,
+            status: event.status,
+            teamLeader: event.teamLeader,
+            teamLeaderNumber: event.teamLeaderNumber,
+            rating: event.rating,
+            description: event.description,
+            imageUrl: event.imageUrl,
+            isblocked: event.isblocked,
+            advancePayment: booking.advancePayment,
+            restPayment: booking.restPayment,
+            time: booking.time,
+            place: booking.place,
+            date: booking.date,
+            bookingStatus: booking.bookingStatus,
+            isRated: booking.isRated,
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
+            title: event.title,
+            category: event.category,
+          } as unknown as UpcomingEventDocument;
+        }
+      );
+
+      return { totalCount, pastEventHistory };
+    } catch (error) {
+      console.error("Error in getEventHistory:", error);
+      throw error;
+    }
+  };
 }

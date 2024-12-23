@@ -433,14 +433,21 @@ console.log('fahfaldsffasdljalsdfjldskf')
   };
   upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      
       const userId = req.params.id;
-      const userObjectId = new mongoose.Types.ObjectId(userId); 
-      
+  
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ success: false, message: 'Invalid user ID format.' });
+      }
+  
+      const userObjectId = new mongoose.Types.ObjectId(userId);
       const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-     
-      if (upcomingEvents) {
-        return res.status(200).json({ success: true, events: upcomingEvents });
+  console.log(upcomingEvents.totalCount,'dd')
+      if (upcomingEvents?.upcomingEvents?.length > 0) {
+        return res.status(200).json({ 
+          success: true, 
+          totalCount: upcomingEvents.totalCount, 
+          events: upcomingEvents.upcomingEvents 
+        });
       }
   
       return res.status(404).json({ success: false, message: 'No upcoming events found.' });
@@ -448,6 +455,7 @@ console.log('fahfaldsffasdljalsdfjldskf')
       next(error);
     }
   };
+  
 
   cancelEventByUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -545,28 +553,28 @@ availableDate = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-eventHistory = async (req: Request, res: Response, next: NextFunction) => {
-  try {
+// eventHistory = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
   
-    const userId = req.params.id;
-    const userObjectId = new mongoose.Types.ObjectId(userId); 
+//     const userId = req.params.id;
+//     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
-    const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
+//     const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
    
-    if (eventHistory) {
+//     if (eventHistory) {
    
-      return res.status(200).json({ success: true, events: eventHistory });
-    }
+//       return res.status(200).json({ success: true, events: eventHistory });
+//     }
 
-    return res.status(404).json({ success: false, message: 'No upcoming events found.' });
-  } catch (error) {
-    next(error);
-  }
-};
+//     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 updateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id; 
-    const newDate = new Date('2024-11-01'); 
+    const newDate = new Date('2024-12-01'); 
     const newStatus = "completed"; 
 
     const updatedBooking = await BookingModel.findByIdAndUpdate(
@@ -718,6 +726,62 @@ toggleFavoriteEvent= async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
+ getUpcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
 
+    console.log('ucountrre')
+    const id = req.params.id;
+    const userId = new mongoose.Types.ObjectId(id); 
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+
+    const upcomingEvents = await this._useCase.getUpcomingEvents(userId, page);
+
+   return res.json({ events: upcomingEvents || [] });
+  } catch (error) {
+    next(error); 
+  }
+};
+
+eventHistory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+  
+    const userId = req.params.id;
+    const userObjectId = new mongoose.Types.ObjectId(userId); 
+    
+    const eventHistory = await this._useCase.getAllEventHistory(userObjectId);
+   console.log('event',eventHistory)
+  
+    if (eventHistory?.pastEventHistory?.length > 0) {
+      return res.status(200).json({ 
+        success: true, 
+        totalCount: eventHistory.totalCount, 
+        events: eventHistory.pastEventHistory 
+      });
+    }
+
+    return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+getEventHistory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+
+    const id = req.params.id;
+    const userId = new mongoose.Types.ObjectId(id); 
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+
+    const getEventHistory = await this._useCase.getEventHistory(userId, page);
+    console.log('fay',getEventHistory)
+
+   return res.json({ events: getEventHistory || [] });
+  } catch (error) {
+    next(error); 
+  }
+};
 
 }

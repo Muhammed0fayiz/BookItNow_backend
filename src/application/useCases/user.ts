@@ -38,6 +38,28 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+
+
+
+
+  getUpcomingEvents = async (
+    userId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<UpcomingEventDocument[]> => {
+    try {
+      console.log('usecase')
+      
+      // Make sure you're calling the correct method, not the one that leads to recursion.
+      const response = await this._repository.getUpcomingEvents(userId, page);  // <-- Call the correct method
+
+      return response;  // Return the response correctly
+      
+    } catch (error) {
+      console.error('Error in getUpcomingEvents usecase:', error);
+      throw error;  // Propagate the error to be handled by the caller
+    }
+  }
+  
 //   chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=>{
 //  try {
 //     return await this._repository.chatWithPerformer(userId,performerId)
@@ -409,24 +431,89 @@ try {
       }
     };
  
-  getAllUpcomingEvents = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<UpcomingEventDocument[] | null> => {
+    getAllUpcomingEvents = async (
+      id: mongoose.Types.ObjectId
+    ): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }> => {
     try {
-      const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
-      return upcomingEvents;
+      const result = await this._repository.getAllUpcomingEvents(id);
+      return {
+        totalCount: result.totalCount,
+        upcomingEvents: result.upcomingEvents,
+      };
     } catch (error) {
       throw error;
     }
   };
-  getAlleventHistory = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<UpcomingEventDocument[] | null> => {
-    try {
-      const eventHistory = await this._repository.getAlleventHistory(id);
-      return eventHistory;
-    } catch (error) {
-      throw error;
-    }
-  };
+  // getAlleventHistory = async (
+  //   id: mongoose.Types.ObjectId
+  // ): Promise<UpcomingEventDocument[] | null> => {
+  //   try {
+  //     const eventHistory = await this._repository.getAlleventHistory(id);
+  //     return eventHistory;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // };
+
+  
+//   getAlleventHistory = async (
+//     id: mongoose.Types.ObjectId
+//   ): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }> => {
+//   try {
+//     const result  = await this._repository.getAlleventHistory(id);
+//     return {
+//       totalCount: result.totalCount,
+//       upcomingEvents: result.upcomingEvents,
+//     };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+// getAllEventHistory = async (
+//   id: mongoose.Types.ObjectId
+// ): Promise<{ totalCount: number; pastEventHistory: UpcomingEventDocument[] }> => {
+//   try {
+//     const result = await this._repository.getAlleventHistory(id);
+//     return {
+//       totalCount: result.totalCount,
+//       pastEventHistory: result.pastEventHistory,
+//     };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+getAllEventHistory=async(id: mongoose.Types.ObjectId): Promise<{ totalCount: number; pastEventHistory: UpcomingEventDocument[]; }>=> {
+  try {
+    const result = await this._repository.getAllEventHistory(id);
+    return {
+      totalCount: result.totalCount,
+      pastEventHistory: result.pastEventHistory,
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+
+
+getEventHistory = async (
+  userId: mongoose.Types.ObjectId,
+  page: number
+): Promise<{
+  pastEventHistory: UpcomingEventDocument[];
+}> => {
+  try {
+    console.log('usecase')
+    
+    // Make sure you're calling the correct method, not the one that leads to recursion.
+    const response = await this._repository.getEventHistory(userId, page);  // <-- Call the correct method
+
+    return response;  // Return the response correctly
+    
+  } catch (error) {
+    console.error('Error in getEventHistory usecase:', error);
+    throw error;  // Propagate the error to be handled by the caller
+  }
+}
 }
