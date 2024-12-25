@@ -25,6 +25,9 @@ import { SlotMangement } from "../../domain/entities/slot";
 import { performerAllDetails } from "../../domain/entities/performerAllDetails";
 import { PerformerReport } from "../../domain/entities/performerReport";
 export class performerRepository implements IperformerRepository {
+
+
+
  getReport = async (
     performerId: Types.ObjectId,
     startDate: Date,
@@ -504,16 +507,23 @@ export class performerRepository implements IperformerRepository {
   };
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
-  ): Promise<UpcomingEventDocument[] | null> => {
+  ): Promise<{
+    totalCount: number;
+    upcomingEvents: UpcomingEventDocument[];
+  }> => {
     try {
       const currentDate = new Date();
       const performer = await PerformerModel.findOne({ userId: id }).lean();
       if (!performer) {
         throw new Error("Performer not found");
       }
-
+  
       // Fetch bookings for the performer
-      const bookings = await BookingModel.find({ performerId: performer._id, date: { $gte: currentDate } })
+      const bookings = await BookingModel.find({
+        performerId: performer._id,
+        date: { $gte: currentDate },
+      }) .sort({ date: 1 }) 
+      .limit(9)
         .populate({
           path: "eventId",
           model: "Event",
@@ -521,21 +531,20 @@ export class performerRepository implements IperformerRepository {
             "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
         })
         .populate("performerId", "name")
-        .populate("userId", "name") 
+        .populate("userId", "name")
         .lean();
-
   
       const upcomingEvents: UpcomingEventDocument[] = await Promise.all(
         bookings.map(async (booking) => {
           const event = booking.eventId as any;
           const user = booking.userId as any;
-
+  
           return {
             _id: booking._id,
             eventId: booking.eventId,
             performerId: booking.performerId,
             userId: booking.userId,
-            username: user.name, 
+            username: user.name,
             price: booking.price,
             status: event.status,
             teamLeader: event.teamLeader,
@@ -557,13 +566,17 @@ export class performerRepository implements IperformerRepository {
           } as unknown as UpcomingEventDocument;
         })
       );
-
-      return upcomingEvents;
+  
+      return {
+        totalCount: upcomingEvents.length, 
+        upcomingEvents,
+      };
     } catch (error) {
       console.error("Error in getAllUpcomingEvents:", error);
       throw error;
     }
   };
+  
   cancelEvent = async (
     id: mongoose.Types.ObjectId
   ): Promise<BookingDocument | null> => {
@@ -708,4 +721,81 @@ export class performerRepository implements IperformerRepository {
       throw error;
     }
   };
+
+ 
+  getUpcomingEvents = async (
+    performerId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<UpcomingEventDocument[]> => {
+    try {
+      console.log("Fetching upcoming events for performer with pagination...");
+  
+      const currentDate = new Date();
+      const performer = await PerformerModel.findOne({ userId: performerId }).lean();
+      if (!performer) {
+        throw new Error("Performer not found");
+      }
+      const pageSize = 9; // Number of events per page
+      const skip = (page - 1) * pageSize; // Skip events based on the current page
+  
+      // Query to match upcoming bookings for the performer
+      const matchQuery = {
+        performerId: performer._id,
+        date: { $gte: currentDate },
+      };
+  
+      // Fetch bookings with pagination (skip and limit)
+      const bookings = await BookingModel.find(matchQuery)
+        .sort({ date: 1 }) // Sort in ascending order
+        .skip(skip) // Skip the events based on page
+        .limit(pageSize) // Limit to page size
+        .populate({
+          path: "eventId",
+          model: "Event",
+          select:
+            "title category performerId status teamLeader teamLeaderNumber rating description imageUrl isblocked",
+        })
+        .populate("userId", "name")
+        .lean();
+  
+     
+      const upcomingEvents: UpcomingEventDocument[] = bookings.map((booking) => {
+        const event = booking.eventId as any;
+        const user = booking.userId as any;
+  
+        return {
+          _id: booking._id,
+          eventId: booking.eventId,
+          performerId: booking.performerId,
+          userId: booking.userId,
+          username: user.name,
+          price: booking.price,
+          status: event.status,
+          teamLeader: event.teamLeader,
+          teamLeaderNumber: event.teamLeaderNumber,
+          rating: event.rating,
+          description: event.description,
+          imageUrl: event.imageUrl,
+          isblocked: event.isblocked,
+          advancePayment: booking.advancePayment,
+          restPayment: booking.restPayment,
+          time: booking.time,
+          place: booking.place,
+          date: booking.date,
+          
+          bookingStatus: booking.bookingStatus,
+          createdAt: booking.createdAt,
+          updatedAt: booking.updatedAt,
+          title: event.title,
+          category: event.category,
+        } as unknown as UpcomingEventDocument;
+      });
+  
+      return upcomingEvents;
+    } catch (error) {
+      console.error("Error in getUpcomingEvents:", error);
+      throw error;
+    }
+  };
+  
 }

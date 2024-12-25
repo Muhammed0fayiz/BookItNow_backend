@@ -28,6 +28,7 @@ export class performerUseCase implements IperformerUseCase {
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
   }
+
   getReport = async (
     performerId: mongoose.Types.ObjectId,
     startDate: Date,
@@ -241,16 +242,20 @@ toggleBlockStatus=async(id: string): Promise<EventDocument | null>=> {
    
   }
  }
- getAllUpcomingEvents = async (
-  id: mongoose.Types.ObjectId
-): Promise<UpcomingEventDocument[] | null> => {
-  try {
-    const upcomingEvents = await this._repository.getAllUpcomingEvents(id);
-    return upcomingEvents;
-  } catch (error) {
-    throw error;
-  }
-};
+  getAllUpcomingEvents = async (
+      id: mongoose.Types.ObjectId
+    ): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }> => {
+    try {
+      const result = await this._repository.getAllUpcomingEvents(id);
+      return {
+        totalCount: result.totalCount,
+        upcomingEvents: result.upcomingEvents,
+      };
+    } catch (error) {
+      throw error;
+    }
+  };
+
 cancelEvent = async (
   id: mongoose.Types.ObjectId
 ): Promise<BookingDocument | null> => {
@@ -276,5 +281,22 @@ changeEventStatus=async(): Promise<BookingDocument[] | null>=>{
   } catch (error) {
     throw error
   }
+  }
+ getUpcomingEvents = async (
+  performerId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<UpcomingEventDocument[]> => {
+    try {
+      console.log('usecase')
+      
+    
+      const response = await this._repository.getUpcomingEvents(performerId, page);
+         console.log('fayi',response)
+      return response
+      
+    } catch (error) {
+      console.error('Error in getUpcomingEvents usecase:', error);
+      throw error;  
+    }
   }
 }

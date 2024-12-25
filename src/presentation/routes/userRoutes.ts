@@ -144,11 +144,7 @@ router.get(
   authMiddleware,
   controller.getUpcomingEvents.bind(controller)
 );
-router.get(
-  "/userUpcomingEvents/:id",
-  authMiddleware,
-  controller.getUpcomingEvents.bind(controller)
-);
+
 router.get(
   "/userEventHistory/:id",
   authMiddleware,

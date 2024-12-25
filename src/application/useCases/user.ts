@@ -444,44 +444,7 @@ try {
       throw error;
     }
   };
-  // getAlleventHistory = async (
-  //   id: mongoose.Types.ObjectId
-  // ): Promise<UpcomingEventDocument[] | null> => {
-  //   try {
-  //     const eventHistory = await this._repository.getAlleventHistory(id);
-  //     return eventHistory;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
 
-  
-//   getAlleventHistory = async (
-//     id: mongoose.Types.ObjectId
-//   ): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }> => {
-//   try {
-//     const result  = await this._repository.getAlleventHistory(id);
-//     return {
-//       totalCount: result.totalCount,
-//       upcomingEvents: result.upcomingEvents,
-//     };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-// getAllEventHistory = async (
-//   id: mongoose.Types.ObjectId
-// ): Promise<{ totalCount: number; pastEventHistory: UpcomingEventDocument[] }> => {
-//   try {
-//     const result = await this._repository.getAlleventHistory(id);
-//     return {
-//       totalCount: result.totalCount,
-//       pastEventHistory: result.pastEventHistory,
-//     };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
 getAllEventHistory=async(id: mongoose.Types.ObjectId): Promise<{ totalCount: number; pastEventHistory: UpcomingEventDocument[]; }>=> {
   try {
     const result = await this._repository.getAllEventHistory(id);

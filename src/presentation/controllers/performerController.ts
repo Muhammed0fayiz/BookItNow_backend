@@ -349,6 +349,24 @@ toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+// upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+    
+//     const userId = req.params.id;
+//     const userObjectId = new mongoose.Types.ObjectId(userId); 
+    
+//     const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
+
+//     if (upcomingEvents) {
+//       return res.status(200).json({ success: true, events: upcomingEvents });
+//     }
+
+//     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
     
@@ -356,10 +374,14 @@ upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
     const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-
-    if (upcomingEvents) {
-      return res.status(200).json({ success: true, events: upcomingEvents });
-    }
+console.log('upc',upcomingEvents)
+if (upcomingEvents?.upcomingEvents?.length > 0) {
+  return res.status(200).json({ 
+    success: true, 
+    totalCount: upcomingEvents.totalCount, 
+    events: upcomingEvents.upcomingEvents 
+  });
+}
 
     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
   } catch (error) {
@@ -731,5 +753,21 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
 
 
 
+ getUpcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+ 
+    const id = req.params.id;
+    console.log('upcomin',id)
+    const performerId = new mongoose.Types.ObjectId(id); 
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+console.log('pate',page)
+    const upcomingEvents = await this._useCase.getUpcomingEvents(performerId, page);
+    console.log('ucountrredddfasfafaf123',upcomingEvents)
+   return res.json({ events: upcomingEvents || [] });
+  } catch (error) {
+    next(error); 
+  }
+};
 
 }

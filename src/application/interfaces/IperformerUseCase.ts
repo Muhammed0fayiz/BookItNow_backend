@@ -49,7 +49,7 @@ export interface IperformerUseCase {
   
 
   toggleBlockStatus(id:string):Promise<EventDocument|null>
-  getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+  getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }>;
   cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
   updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null |string>;
   slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
@@ -58,6 +58,7 @@ export interface IperformerUseCase {
   changeEventStatus():Promise<BookingDocument[]|null>
   getAllUsers(id: mongoose.Types.ObjectId):Promise<UserDocuments[]|null>
     getReport(performerId:mongoose.Types.ObjectId,startDate: Date,endDate: Date): Promise<PerformerReport|null>
+    getUpcomingEvents(performerId:mongoose.Types.ObjectId,page:number): Promise<UpcomingEventDocument[]>;
 }
 
 

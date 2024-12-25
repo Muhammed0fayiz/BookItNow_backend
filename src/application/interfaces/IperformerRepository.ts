@@ -15,7 +15,7 @@ import { performerAllDetails } from "../../domain/entities/performerAllDetails";
 import { PerformerReport } from "../../domain/entities/performerReport";
 
 export interface IperformerRepository {
-  // updateslot(id: Types.ObjectId, date: Date): SlotDocuments | PromiseLike<SlotDocuments | null> | null;
+  
    
 
     loginPerformer(email: string, password: string): Promise<asPerformer | null|string>;
@@ -40,7 +40,7 @@ export interface IperformerRepository {
       ): Promise<EventDocument | null>;
       
       toggleBlockStatus(id:string):Promise<EventDocument|null>
-      getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<UpcomingEventDocument[] | null>;
+     getAllUpcomingEvents(id: mongoose.Types.ObjectId): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }>;
       cancelEvent(id: mongoose.Types.ObjectId): Promise<BookingDocument| null>;
       slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
       updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null | string>;
@@ -49,5 +49,6 @@ export interface IperformerRepository {
       changeEventStatus():Promise<BookingDocument[]|null>
       getAllUsers(id: mongoose.Types.ObjectId):Promise<UserDocuments[]|null>
     getReport(performerId:mongoose.Types.ObjectId,startDate: Date,endDate: Date): Promise<PerformerReport|null>
+    getUpcomingEvents(performerId:mongoose.Types.ObjectId,page:number): Promise<UpcomingEventDocument[]>;
 }
 

@@ -116,5 +116,9 @@ router.put(
   controller.changeEventStatus.bind(controller)
 );
 
-
+router.get(
+  "/performerUpcomingEvents/:id",
+  authMiddleware,
+  controller.getUpcomingEvents.bind(controller)
+);
 export default router;
