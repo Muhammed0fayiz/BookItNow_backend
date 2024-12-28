@@ -518,8 +518,14 @@ sendMessage = async (req: Request, res: Response, next: NextFunction) => {
 
   
     const sentMessage = await this._useCase.sendMessage(senderId, receiverId, message);
+    const messageData = { senderId, receiverId, message }
 
- 
+    // const io = req.io
+    // io.emit('sendMessage',messageData)
+    // console.log("sending...");
+    
+    
+
     return res.status(200).json({ message: 'Message sent successfully', data: sentMessage });
 
   } catch (error) {

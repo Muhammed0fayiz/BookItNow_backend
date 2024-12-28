@@ -84,6 +84,10 @@ passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use((req, res, next) => {
+  req.io = io
+  next()
+})
 // Routes
 app.use('/', userRoutes);
 app.use('/performer', performerRoutes);
@@ -108,11 +112,14 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("userConnected", (userId: string) => {
     userSocketMap[userId] = socket.id;
+    console.log("🆔 map ",userSocketMap)
     console.log(`User connected: ${userId} with socket ID: ${socket.id}`);
   });
 
   socket.on("sendMessage", (messageData: MessageData) => {
+    console.log("😏 yup success")
     const { senderId, receiverId, message } = messageData;
+    console.log("msg data 🤖",messageData)
     const receiverSocketId = userSocketMap[receiverId];
     console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
 
