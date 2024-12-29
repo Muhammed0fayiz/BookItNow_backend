@@ -29,12 +29,31 @@ import { ChatRoom } from "../../domain/entities/chatRoom";
 import { RatingModel } from "../models/ratingModel";
 
 export class userRepository implements IuserRepository {
+   favaroiteEvents = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<{ totalEvent: number; events: EventDocument[] | null }> => {
+    try {
+      const favoriteEvents = await FavoriteModel.find({ userId: id })
+        .sort({ _id: -1 })
+      
+  
+      const totalEvent = await FavoriteModel.countDocuments({ userId: id });
+      const eventIds = favoriteEvents.map((favorite) => favorite.eventId);
+      const events = await EventModel.find({ _id: { $in: eventIds } });
+  
+      return { totalEvent, events };
+    } catch (error) {
+      console.error("Error fetching favorite events:", error);
+      throw error;
+    }
+  };
+
   getUpcomingEvents = async (
     userId: mongoose.Types.ObjectId,
     page: number
   ): Promise<UpcomingEventDocument[]> => {
     try {
-      console.log("Fetching upcoming events with pagination...");
+  
 
       const currentDate = new Date();
       const pageSize = 8; // Number of events per page
@@ -48,7 +67,7 @@ export class userRepository implements IuserRepository {
 
       // Fetch the events with pagination (skip and limit)
       const bookings = await BookingModel.find(matchQuery)
-        .sort({ date: -1 }) // Sort in descending order
+        .sort({ date: 1 }) // Sort in descending order
         .skip(skip) // Skip the events based on page
         .limit(pageSize) // Limit to 8 documents
         .populate({
@@ -60,7 +79,7 @@ export class userRepository implements IuserRepository {
         .populate("performerId", "name")
         .lean();
 
-      console.log("Processing bookings...");
+   
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
           const event = booking.eventId as any;
@@ -93,20 +112,14 @@ export class userRepository implements IuserRepository {
         }
       );
 
-      console.log("Upcoming Events:", upcomingEvents);
+ 
       return upcomingEvents; // Return the events for the given page
     } catch (error) {
       console.error("Error in getUpcomingEvents:", error);
       throw error;
     }
   };
-  // chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=> {
-  //   try {
 
-  //   } catch (error) {
-  //     throw error
-  //   }
-  // }
   getAllChatRooms = async (
     userId: mongoose.Types.ObjectId
   ): Promise<ChatRoom[] | null> => {
@@ -227,22 +240,8 @@ export class userRepository implements IuserRepository {
       throw error;
     }
   };
-  favaroiteEvents = async (
-    id: Types.ObjectId
-  ): Promise<EventDocument[] | null> => {
-    try {
-      const favoriteEvents = await FavoriteModel.find({ userId: id });
-
-      const eventIds = favoriteEvents.map((favorite) => favorite.eventId);
-
-      const events = await EventModel.find({ _id: { $in: eventIds } });
-
-      return events;
-    } catch (error) {
-      console.error("Error fetching favorite events:", error);
-      throw error;
-    }
-  };
+ 
+  
 
   toggleFavoriteEvent = async (
     userId: mongoose.Types.ObjectId,
@@ -364,10 +363,9 @@ export class userRepository implements IuserRepository {
           return slotDate === inputDate;
         });
 
-        console.log("hello check");
-        console.log(formData.date, "id");
+        
         if (isDateExist) {
-          console.log("true", existingBooking, "hari");
+     
           return false;
         }
       }
@@ -529,12 +527,12 @@ export class userRepository implements IuserRepository {
         tempUser.username,
         tempUser.email,
         tempUser.password,
-        tempUser._id?.toString(), // ID is optional, convert to string if it exists
-        tempUser.otp // Include the otp
+        tempUser._id?.toString(), 
+        tempUser.otp
       );
     } catch (error) {
       console.error("Error finding temp user:", error);
-      throw error; // Rethrow or handle the error as needed
+      throw error;
     }
   };
 
@@ -661,22 +659,22 @@ export class userRepository implements IuserRepository {
     upcomingEvents: UpcomingEventDocument[];
   }> => {
     try {
-      console.log("Fetching upcoming events...");
+  
       const currentDate = new Date();
 
-      // Query to match upcoming bookings
+   
       const matchQuery = {
         userId: id,
         date: { $gte: currentDate },
       };
 
-      // Total count of matching documents
+
       const totalCount = await BookingModel.countDocuments(matchQuery);
 
-      // Fetch the top 8 bookings sorted by date in descending order
+ 
       const bookings = await BookingModel.find(matchQuery)
-        .sort({ date: -1 }) // Sort in descending order
-        .limit(8) // Limit to 8 documents
+        .sort({ date: 1 }) 
+        .limit(8) 
         .populate({
           path: "eventId",
           model: "Event",
@@ -686,7 +684,7 @@ export class userRepository implements IuserRepository {
         .populate("performerId", "name")
         .lean();
 
-      console.log("Processing bookings...");
+     
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
           const event = booking.eventId as any;
@@ -719,8 +717,7 @@ export class userRepository implements IuserRepository {
         }
       );
 
-      console.log("Upcoming Events:", upcomingEvents);
-      return { totalCount, upcomingEvents }; // Use the correct property name
+      return { totalCount, upcomingEvents }; 
     } catch (error) {
       console.error("Error in getAllUpcomingEvents:", error);
       throw error;
@@ -828,7 +825,7 @@ export class userRepository implements IuserRepository {
       const totalCount = await BookingModel.countDocuments(matchQuery);
 
       const bookings = await BookingModel.find(matchQuery)
-        .sort({ date: -1 }) // Sort by newest date first
+        .sort({ date: -1 }) 
         .limit(8)
         .populate({
           path: "eventId",
@@ -969,7 +966,7 @@ export class userRepository implements IuserRepository {
       });
       await userWalletEntry.save();
 
-      // Log performer wallet transaction
+  
       const performerWalletEntry = new WalletModel({
         userId: performerUserId,
         amount: advancePayment,
@@ -996,7 +993,7 @@ export class userRepository implements IuserRepository {
       const event = await EventModel.findById(eventId);
       const performer = await PerformerModel.findOne({ userId: performerId });
 
-      console.log("form dat", formData);
+ 
 
       if (!event) {
         throw new Error("Event not found");
@@ -1017,7 +1014,7 @@ export class userRepository implements IuserRepository {
       let slotDocument = await SlotModel.findOne({
         performerId: performer._id,
       });
-      console.log("Slot Document:", slotDocument);
+
 
       if (slotDocument && Array.isArray(slotDocument.dates)) {
         const inputDateString = new Date(formData.date)
@@ -1032,10 +1029,7 @@ export class userRepository implements IuserRepository {
         if (isDateExist) {
           return null;
         } else {
-          console.log(
-            "Date does not exist in the slotDocument:",
-            inputDateString
-          );
+     
         }
       } else {
         console.log(
@@ -1139,6 +1133,60 @@ export class userRepository implements IuserRepository {
       return { totalCount, pastEventHistory };
     } catch (error) {
       console.error("Error in getEventHistory:", error);
+      throw error;
+    }
+  };
+  chatWithPerformer = async (
+    userId: mongoose.Types.ObjectId,
+    performerId: mongoose.Types.ObjectId
+  ): Promise<ChatRoomDocument | null> => {
+    try {
+      // Check if a chat room exists
+      let chatRoom = await ChatRoomModel.findOne({
+        participants: { $all: [userId, performerId] },
+      });
+  
+      // If no chat room exists, create one
+      if (!chatRoom) {
+        chatRoom = new ChatRoomModel({
+          participants: [userId, performerId],
+        });
+        await chatRoom.save();
+      }
+  
+      // Send the initial message from the user
+      const userMessage = new MessageModel({
+        roomId: chatRoom._id,
+        senderId: userId,
+        receiverId: performerId,
+        message: 'Hi',
+      });
+      await userMessage.save();
+  
+      // Retrieve the user's information to personalize the performer's reply
+      const user = await UserModel.findById(userId);
+  
+      // Check if the user exists
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      // Performer's auto-reply message
+      const performerReply = new MessageModel({
+        roomId: chatRoom._id,
+        senderId: performerId,
+        receiverId: userId,
+        message: `Hi ${user.username}, how can I help you?`,
+      });
+      await performerReply.save();
+  
+  
+      const populatedChatRoom = await ChatRoomModel.findById(chatRoom._id).populate(
+        'participants'
+      );
+  
+      return populatedChatRoom;
+    } catch (error) {
       throw error;
     }
   };

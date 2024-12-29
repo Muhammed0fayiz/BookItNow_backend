@@ -37,7 +37,7 @@ export class performerUseCase implements IperformerUseCase {
     try {
     
       const report = await this._repository.getReport(performerId, startDate, endDate);
-      console.log('rep', report,'er');
+     
   
   
       return report;
@@ -60,7 +60,7 @@ export class performerUseCase implements IperformerUseCase {
   performerAllDetails=async(id: mongoose.Types.ObjectId): Promise<performerAllDetails | null> =>{
   try {
       const allDetails=await this._repository.performerAllDetails(id)
-      console.log('allDetail',allDetails)
+    
   return allDetails
   } catch (error) {
     throw error
@@ -69,7 +69,7 @@ export class performerUseCase implements IperformerUseCase {
   slotDetails=async(id: mongoose.Types.ObjectId): Promise<SlotMangement | null> =>{
    try {
      const slotDetails=await this._repository.slotDetails(id)
-     console.log('slot',slotDetails)
+
      return slotDetails
    } catch (error) {
     throw error
@@ -159,13 +159,7 @@ export class performerUseCase implements IperformerUseCase {
   ): Promise<TempPerformerDocument | null> => {
     try {
   
-      console.log(
-       
-        bandName,
-        mobileNumber,
-        description,
-        user_id
-      );
+   
       const s3Response: any = await uploadS3Video(video);
    
       if (s3Response?.error) {
@@ -173,7 +167,7 @@ export class performerUseCase implements IperformerUseCase {
         throw new Error("Failed to upload video to S3");
       }
 
-      console.log("URL of the video from the S3 bucket:", s3Response?.Location);
+    
       const s3Location = s3Response.Location;
   
       const response = await this._repository.videoUploadDB(
@@ -287,11 +281,11 @@ changeEventStatus=async(): Promise<BookingDocument[] | null>=>{
     page: number
   ): Promise<UpcomingEventDocument[]> => {
     try {
-      console.log('usecase')
+
       
     
       const response = await this._repository.getUpcomingEvents(performerId, page);
-         console.log('fayi',response)
+       
       return response
       
     } catch (error) {

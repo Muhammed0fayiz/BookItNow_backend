@@ -90,7 +90,7 @@ export interface IuserRepository {
   ): Promise<{
     pastEventHistory: UpcomingEventDocument[];
   }>;
-  favaroiteEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
+favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
   sendMessage(
     senderId: mongoose.Types.ObjectId,
     receiverId: mongoose.Types.ObjectId,
@@ -101,7 +101,7 @@ export interface IuserRepository {
     anotherIdObject: mongoose.Types.ObjectId
   ): Promise<MessageDocument[] | null>;
   getAllChatRooms(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null>;
-  // chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
+  chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
   getUpcomingEvents(
     userId: mongoose.Types.ObjectId,
     page: number

@@ -151,7 +151,7 @@ export class adminController {
     try {
       const id: string = req.params.id;
     const  rejectReason=req.body.rejectReason;
-    console.log(rejectReason)
+   
       // Validate ID format
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
         return res
@@ -330,7 +330,7 @@ export class adminController {
   ) => {
     try {
       const { id } = req.params;
-      console.log("hwll", id);
+
 
       if (!id || typeof id !== "string") {
         return res
@@ -404,7 +404,6 @@ export class adminController {
         return res.status(400).json({ error: 'Invalid endDate' });
       }
   
-      console.log('Fetching report for:', start, end);
   
       // Get report data
       const report = await this._useCase.getReport(start, end);

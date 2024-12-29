@@ -50,7 +50,7 @@ router.get(
   }),
   controller.googleCallback.bind(controller)
 );
-// router.post("/chatwithPerformer/userid/performerid",controller.chatwithPerformer.bind(controller))
+router.post("/chatWithPerformer/:userid/:performerid",controller.chatWithPerformer.bind(controller))
 // Unprotected routes (no authMiddleware)
 router.get("/getUser/:id", controller.getUserDetails.bind(controller));
 router.put(

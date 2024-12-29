@@ -5,21 +5,21 @@ import jwt from 'jsonwebtoken';
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Extract token from cookies or headers
-        console.log('1')
+    
         const token = req.cookies?.userToken;
-        console.log('2',token)
+    
         if (!token) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         // Decode and verify the token
         const decoded = jwt.verify(token, 'loginsecrit' as string) as { id: string; role: string };
-        console.log('deco',decoded)
+   
         req.user = decoded; // Attach user info to request for later use
-        console.log('deco',decoded)
+     
         // Fetch the user from the database to validate their status
         const user = await UserModel.findById(decoded.id);
-        console.log('2',user)
+
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

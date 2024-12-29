@@ -78,14 +78,15 @@ userWalletBookEvent(
   userId: string
 ): Promise<BookingDocument | null>;
 
-favaroiteEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
+favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
+
 toggleFavoriteEvent(uid: mongoose.Types.ObjectId,eid: mongoose.Types.ObjectId): Promise<FavoriteDocument| null>;
 sendMessage(senderId: mongoose.Types.ObjectId,receiverId: mongoose.Types.ObjectId,message:string):Promise<ChatRoomDocument|null>
 
 ChatWith(myIdObject: mongoose.Types.ObjectId,anotherIdObject: mongoose.Types.ObjectId):Promise<MessageDocument[]|null>
 getAllChatRooms(userId: mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
 
-// chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
+chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
 getUpcomingEvents(userId:mongoose.Types.ObjectId,page:number): Promise<UpcomingEventDocument[]>;
   getEventHistory(
     userId: mongoose.Types.ObjectId,
@@ -94,4 +95,5 @@ getUpcomingEvents(userId:mongoose.Types.ObjectId,page:number): Promise<UpcomingE
     pastEventHistory: UpcomingEventDocument[];
   }>;
 
+  
 }

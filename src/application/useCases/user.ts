@@ -38,35 +38,39 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
-
-
-
+  favaroiteEvents=async(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null; }> =>{
+    try {
+      return this._repository.favaroiteEvents(id)
+  } catch (error) {
+    throw error
+  }
+    }
 
   getUpcomingEvents = async (
     userId: mongoose.Types.ObjectId,
     page: number
   ): Promise<UpcomingEventDocument[]> => {
     try {
-      console.log('usecase')
+   
       
-      // Make sure you're calling the correct method, not the one that leads to recursion.
-      const response = await this._repository.getUpcomingEvents(userId, page);  // <-- Call the correct method
+     
+      const response = await this._repository.getUpcomingEvents(userId, page);  
 
-      return response;  // Return the response correctly
+      return response;  
       
     } catch (error) {
       console.error('Error in getUpcomingEvents usecase:', error);
-      throw error;  // Propagate the error to be handled by the caller
+      throw error;  
     }
   }
   
-//   chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=>{
-//  try {
-//     return await this._repository.chatWithPerformer(userId,performerId)
-//  } catch (error) {
-//   throw error
-//  }
-//   }
+  chatWithPerformer=async(userId: mongoose.Types.ObjectId, performerId: mongoose.Types.ObjectId): Promise<ChatRoomDocument | null>=>{
+ try {
+    return await this._repository.chatWithPerformer(userId,performerId)
+ } catch (error) {
+  throw error
+ }
+  }
   getAllChatRooms=async(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null>=> {
    try {
     return this._repository.getAllChatRooms(userId)
@@ -92,13 +96,7 @@ try {
  
 }
   }
-  favaroiteEvents=async(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null> =>{
-try {
-    return this._repository.favaroiteEvents(id)
-} catch (error) {
-  throw error
-}
-  }
+
   toggleFavoriteEvent=async(uid: mongoose.Types.ObjectId, eid: mongoose.Types.ObjectId): Promise<FavoriteDocument | null> =>{
     try {
     return this._repository.toggleFavoriteEvent(uid,eid)
@@ -467,7 +465,7 @@ getEventHistory = async (
   pastEventHistory: UpcomingEventDocument[];
 }> => {
   try {
-    console.log('usecase')
+   
     
     // Make sure you're calling the correct method, not the one that leads to recursion.
     const response = await this._repository.getEventHistory(userId, page);  // <-- Call the correct method

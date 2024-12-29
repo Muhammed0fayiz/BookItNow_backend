@@ -180,8 +180,7 @@ updatePerformerProfile = async (req: Request, res: Response, next: NextFunction)
 uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<Response<any> | void> => {
   try {
     const id = req.params.id
-    console.log(id,'id')
-    console.log('req',req.body)
+ 
 
     if (!req.body) {
       return res.status(400).json({ message: "No event data provided." });
@@ -197,7 +196,7 @@ uploadEvents = async (req: Request, res: Response, next: NextFunction): Promise<
       teamLeaderNumber: req.body.teamLeaderNumber ? parseInt(req.body.teamLeaderNumber, 10) : null, // Convert teamLeaderNumber to number
       description: req.body.description ? req.body.description.trim() : null,
     };
-     console.log('eve',event)
+  
  
     if (!event.imageUrl || !event.title || !event.category || !event.userId || !event.price || !event.teamLeader || !event.teamLeaderNumber || !event.description) {
       return res.status(400).json({ message: "All fields are required." });
@@ -349,23 +348,6 @@ toggleBlockStatus = async (req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-// upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-    
-//     const userId = req.params.id;
-//     const userObjectId = new mongoose.Types.ObjectId(userId); 
-    
-//     const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-
-//     if (upcomingEvents) {
-//       return res.status(200).json({ success: true, events: upcomingEvents });
-//     }
-
-//     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -374,7 +356,7 @@ upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
     const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-console.log('upc',upcomingEvents)
+    console.log('fayiz',upcomingEvents.totalCount)
 if (upcomingEvents?.upcomingEvents?.length > 0) {
   return res.status(200).json({ 
     success: true, 
@@ -382,6 +364,7 @@ if (upcomingEvents?.upcomingEvents?.length > 0) {
     events: upcomingEvents.upcomingEvents 
   });
 }
+
 
     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
   } catch (error) {
@@ -476,8 +459,7 @@ getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
     const objectid = new mongoose.Types.ObjectId(id);
 
     const slotDetails = await this._useCase.slotDetails(objectid);
-    console.log('slot',slotDetails)
-    console.log(`[getslotDetails]: Slot Details - ${JSON.stringify(slotDetails)}`);
+  
 
 
     return res.status(200).json({
@@ -527,7 +509,7 @@ getAllUsers = async (
   
     const id = new mongoose.Types.ObjectId(req.params.id);
     const users = await this._useCase.getAllUsers(id);
-    console.log("users fetched:", users);
+
 
 
     if (!users || users.length === 0) {
@@ -594,29 +576,29 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
 
     // Set column widths
     worksheet.columns = [
-      { width: 30 },   // Title
-      { width: 15 },   // Date
-      { width: 5 },    // Spacer
-      { width: 20 },   // Place
-      { width: 12 },   // Price
-      { width: 10 },   // Rating
-      { width: 20 },   // Team Leader
-      { width: 15 },   // Number
-      { width: 5 },    // Spacer
-      { width: 15 },   // Category
-      { width: 15 }    // Status
+      { width: 30 },   
+      { width: 15 },  
+      { width: 5 },   
+      { width: 20 },   
+      { width: 12 },   
+      { width: 10 }, 
+      { width: 20 },   
+      { width: 15 },   
+      { width: 5 },   
+      { width: 15 },  
+      { width: 15 }    
     ];
 
-    // Color Palette
+   
     const colors = {
-      headerBackground: 'FF4A90E2',  // Vibrant blue
-      headerText: 'FFFFFFFF',        // White
-      titleBackground: 'FFF0F4F8',   // Light blue background
-      titleText: 'FF2C3E50',         // Dark blue text
-      sectionTitleText: 'FF1A5F7A'   // Muted blue for section titles
+      headerBackground: 'FF4A90E2',  
+      headerText: 'FFFFFFFF',        
+      titleBackground: 'FFF0F4F8',  
+      titleText: 'FF2C3E50',         
+      sectionTitleText: 'FF1A5F7A'   
     };
 
-    // Report Title with Styling
+
     const titleRow = worksheet.addRow(['Performer Report']);
     titleRow.height = 30;
     worksheet.mergeCells('A1:K1');
@@ -637,7 +619,6 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
       vertical: 'middle' 
     };
 
-    // Total Programs Section
     worksheet.addRow([]);
     const statsRow = worksheet.addRow(['Total Programs', `  ${report.totalPrograms}`]);
     statsRow.getCell(1).font = { 
@@ -758,12 +739,12 @@ downloadReport = async (req: Request, res: Response, next: NextFunction) => {
 
  
     const id = req.params.id;
-    console.log('upcomin',id)
+
     const performerId = new mongoose.Types.ObjectId(id); 
     const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-console.log('pate',page)
+
     const upcomingEvents = await this._useCase.getUpcomingEvents(performerId, page);
-    console.log('ucountrredddfasfafaf123',upcomingEvents)
+ console.log(upcomingEvents)
    return res.json({ events: upcomingEvents || [] });
   } catch (error) {
     next(error); 

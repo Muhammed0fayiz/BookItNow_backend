@@ -25,7 +25,7 @@ export class adminUseCase implements IadminUseCase {
   }
   getReport = async (startdate: Date, endingdate: Date): Promise<AdminDetails> => {
     const report = await this._repository.getReport(startdate, endingdate);
-    console.log('rep', report);
+ 
 
     return report;
   };
@@ -72,7 +72,7 @@ export class adminUseCase implements IadminUseCase {
   };
   grantedPermission = async (id: string): Promise<Performer> => {
     // Fetch performer data or handle logic here
-    console.log("gran use");
+
 
     const performer = await this._repository.grantedPermission(id);
 
@@ -120,7 +120,7 @@ export class adminUseCase implements IadminUseCase {
     isverified: boolean
   ): Promise<User> => {
     try {
-      console.log("use case performer");
+
       return await this._repository.performerStatusChange(
         id,
         isblocked,

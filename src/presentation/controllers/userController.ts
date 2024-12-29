@@ -214,7 +214,7 @@ export class UserController {
 
   changePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
-console.log('fahfaldsffasdljalsdfjldskf')
+
       const id = new mongoose.Types.ObjectId(req.params.id);
       const { currentPassword, newPassword } = req.body;
 
@@ -280,7 +280,7 @@ console.log('fahfaldsffasdljalsdfjldskf')
     next: NextFunction
   ): Promise<void> => {
     try {
-      console.log('fayiz')
+  
       const { username } = req.body;
  
       const userId = new mongoose.Types.ObjectId(req.params.id);
@@ -383,24 +383,7 @@ console.log('fahfaldsffasdljalsdfjldskf')
       next(error);
     }
   }
-  // chatWithPerformer = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const { userid, performerid } = req.params;
-//     const userId = new mongoose.Types.ObjectId(userid);
-//     const performerId = new mongoose.Types.ObjectId(performerid);
 
-//     const performerMessage = await this._useCase.chatWithPerformer(userId, performerId);
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Chat started successfully',
-//       data: performerMessage,
-//     });
-//   } catch (error) {
-//     console.error('Error in chatWithPerformer:', error);
-//     next(error);
-//   }
-// };
   bookEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -423,7 +406,7 @@ console.log('fahfaldsffasdljalsdfjldskf')
       const bookingResult = await this._useCase.userBookEvent(formData, eventId, performerId, userId);
 
 
-      console.log('booking result',bookingResult,'boo')
+
       
       res.status(200).json({ message: 'Event booked successfully', data: bookingResult });
     } catch (error) {
@@ -441,7 +424,7 @@ console.log('fahfaldsffasdljalsdfjldskf')
   
       const userObjectId = new mongoose.Types.ObjectId(userId);
       const upcomingEvents = await this._useCase.getAllUpcomingEvents(userObjectId);
-  console.log(upcomingEvents.totalCount,'dd')
+
       if (upcomingEvents?.upcomingEvents?.length > 0) {
         return res.status(200).json({ 
           success: true, 
@@ -503,7 +486,7 @@ sendMessage = async (req: Request, res: Response, next: NextFunction) => {
   try {
    
     const { sender, receiver } = req.params;
-    console.log('fayiz',sender,receiver)
+
 
 
     const senderId = new mongoose.Types.ObjectId(sender);
@@ -518,14 +501,8 @@ sendMessage = async (req: Request, res: Response, next: NextFunction) => {
 
   
     const sentMessage = await this._useCase.sendMessage(senderId, receiverId, message);
-    const messageData = { senderId, receiverId, message }
 
-    // const io = req.io
-    // io.emit('sendMessage',messageData)
-    // console.log("sending...");
-    
-    
-
+ 
     return res.status(200).json({ message: 'Message sent successfully', data: sentMessage });
 
   } catch (error) {
@@ -537,7 +514,7 @@ sendMessage = async (req: Request, res: Response, next: NextFunction) => {
 availableDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { formData, eventId, performerId } = req.body;
-          console.log(formData,'is',eventId,'is',performerId)
+       
     if (!formData || typeof formData !== 'object') {
       return res.status(400).json({ error: 'Invalid form data' });
     }
@@ -677,23 +654,24 @@ getFavoriteEvents = async (req: Request, res: Response, next: NextFunction) => {
     const id = new mongoose.Types.ObjectId(userId);
 
     const favoriteEvent = await this._useCase.favaroiteEvents(id);
-     console.log('favo',favoriteEvent)
-
+  
     return res.status(200).json({
       success: true,
-      data: favoriteEvent,
+      totalCount: favoriteEvent.totalEvent,
+      data: favoriteEvent.events,
     });
   } catch (error) {
-    next(error); 
+    next(error);
   }
 };
+
 
 toggleFavoriteEvent= async (req: Request, res: Response, next: NextFunction) => {
   try {
 
     const userId = req.params.userId; 
     const eventId = req.params.eventId; 
-    console.log('fayivaifadkfajdsladjsfads',userId,eventId)
+
     if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(eventId)) {
       return res.status(400).json({ message: "Invalid user or event ID" });
     }
@@ -723,7 +701,7 @@ toggleFavoriteEvent= async (req: Request, res: Response, next: NextFunction) => 
 
 
     const allRooms = await this._useCase.getAllChatRooms(userId);
-  console.log('allrooms',allRooms)
+
 
     return res.status(200).json({ success: true, data: allRooms });
   } catch (error) {
@@ -735,7 +713,7 @@ toggleFavoriteEvent= async (req: Request, res: Response, next: NextFunction) => 
  getUpcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
 
-    console.log('ucountrre')
+
     const id = req.params.id;
     const userId = new mongoose.Types.ObjectId(id); 
     const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
@@ -755,7 +733,7 @@ eventHistory = async (req: Request, res: Response, next: NextFunction) => {
     const userObjectId = new mongoose.Types.ObjectId(userId); 
     
     const eventHistory = await this._useCase.getAllEventHistory(userObjectId);
-   console.log('event',eventHistory)
+
   
     if (eventHistory?.pastEventHistory?.length > 0) {
       return res.status(200).json({ 
@@ -787,6 +765,24 @@ getEventHistory = async (req: Request, res: Response, next: NextFunction) => {
    return res.json({ events: getEventHistory || [] });
   } catch (error) {
     next(error); 
+  }
+};
+  chatWithPerformer = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userid, performerid } = req.params;
+    const userId = new mongoose.Types.ObjectId(userid);
+    const performerId = new mongoose.Types.ObjectId(performerid);
+
+    const performerMessage = await this._useCase.chatWithPerformer(userId, performerId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Chat started successfully',
+      data: performerMessage,
+    });
+  } catch (error) {
+    console.error('Error in chatWithPerformer:', error);
+    next(error);
   }
 };
 

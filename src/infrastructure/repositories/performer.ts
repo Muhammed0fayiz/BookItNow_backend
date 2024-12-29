@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { IperformerRepository } from "../../application/interfaces/IperformerRepository";
 import { User, UserDocument } from "../../domain/entities/user";
 import { OtpUser } from "../../domain/entities/otpUser";
-// import { OtpDocument, OtpModel } from "../models/otpSession";
+
 import { UserDocuments, UserModel } from "../models/userModel";
 
 import bcrypt from "bcrypt";
@@ -34,23 +34,21 @@ export class performerRepository implements IperformerRepository {
     endDate: Date
   ): Promise<PerformerReport | null> => {
     try {
-      // Find Performer
+
       const performer = await UserModel.findById(performerId);
       if (!performer) throw new Error('Performer not found');
   
       const performerDetails = await PerformerModel.findOne({ userId: performerId });
       if (!performerDetails) throw new Error('Performer details not found');
   
-      // Fetch total programs
+  
       const totalPrograms = await EventModel.countDocuments({ userId: performerId});
-          console.log(totalPrograms,'dd','id',performerId)
-      // Fetch bookings within the date range
+       
       const bookings = await BookingModel.find({
         performerId: performerDetails._id,
         date: { $gte: startDate, $lte: endDate },
       }).populate('eventId');
   
-      // Aggregate booking history
       const totalEventsHistory: Record<string, number> = {};
       const performerRegistrationHistory: Record<string, number> = {};
       const upcomingEvent: PerformerReport['upcomingEvent'] = [];
@@ -59,7 +57,7 @@ export class performerRepository implements IperformerRepository {
       for (const booking of bookings) {
         const event = booking.eventId as unknown as EventDocument;
   
-        // Filter completed events for eventHistory
+      
         if (booking.bookingStatus === 'completed') {
           eventHistory.push({
             title: event.title,
@@ -74,7 +72,7 @@ export class performerRepository implements IperformerRepository {
           });
         }
         
-        // Filter future events for upcomingEvent
+     
         if (booking.date > new Date()) {
           upcomingEvent.push({
             title: event.title,
@@ -85,21 +83,21 @@ export class performerRepository implements IperformerRepository {
             teamLeadername: event.teamLeader,
             teamLeaderNumber: event.teamLeaderNumber,
             category: event.category,
-            status: booking.bookingStatus, // Include status
+            status: booking.bookingStatus, 
           });
         }
         
   
-        // Count total events history by status
+     
    
   
-        // Count performer registrations per month
-        const month = booking.date.toISOString().slice(0, 7); // YYYY-MM
+     
+        const month = booking.date.toISOString().slice(0, 7); 
         performerRegistrationHistory[month] =
           (performerRegistrationHistory[month] || 0) + 1;
       }
   
-      // Return the formatted report
+
       return {
         totalPrograms: totalPrograms || 0,
      
@@ -127,23 +125,23 @@ export class performerRepository implements IperformerRepository {
     id: mongoose.Types.ObjectId
   ): Promise<performerAllDetails | null> => {
     try {
-      // Fetch performer and performerDetails
+ 
       const performer = await UserModel.findById(id);
       if (!performer) throw new Error('Performer not found');
       
       const performerDetails = await PerformerModel.findOne({ userId: id });
       if (!performerDetails) throw new Error('Performer details not found');
   
-      // Fetch total events booked by performer
+
       const total = await BookingModel.find({ userId: performerDetails?._id });
      
   
-      // Calculate total events by performer
+   
       const totalEvents = await BookingModel.find({ performerId: performerDetails._id }).countDocuments();
     
-      // Calculate wallet details
+
       const userWallet = await WalletModel.find({ userId: id });
-      // if (!userWallet || userWallet.length === 0) throw new Error('No wallet data found');
+   
   
       const walletAmount = userWallet.reduce((total, wallet) => total + wallet.amount, 0);
       const walletTransactionHistory = userWallet.reduce(
@@ -154,40 +152,40 @@ export class performerRepository implements IperformerRepository {
         {}
       );
     
-      // Calculate total programs
+ 
       const totalPrograms = await EventModel.countDocuments({ userId: id });
     
-      // Get upcoming events (group by month if event is only for one day)
+      
       const upcomingEventsPipeline = [
         {
           $match: {
             performerId: performerDetails._id,
-            bookingStatus: { $nin: ['canceled', 'completed'] }, // Exclude 'canceled' and 'completed'
+            bookingStatus: { $nin: ['canceled', 'completed'] }, 
           },
         },
         {
           $project: {
-            formattedDate: { $dateToString: { format: '%Y-%m', date: '$date' } }, // Format date as 'Year-Month'
+            formattedDate: { $dateToString: { format: '%Y-%m', date: '$date' } }, 
             count: 1,
           },
         },
         {
           $group: {
-            _id: "$formattedDate", // Group by formatted date (month)
-            count: { $sum: 1 }, // Count the number of events in each month
+            _id: "$formattedDate", 
+            count: { $sum: 1 },
           },
         },
       ];
   
       const upcomingEventsResult = await BookingModel.aggregate(upcomingEventsPipeline);
-      console.log('1000', upcomingEventsResult);
+   
       
       const upcomingEvents = upcomingEventsResult.reduce(
         (events, item) => ({ ...events, [item._id]: item.count }),
         {}
       );
   
-      // Calculate totalEventsHistory grouped by date
+
       const totalEventsHistoryPipeline = [
         { $match: { performerId: performerDetails._id, bookingStatus: 'completed' } },
         {
@@ -204,20 +202,20 @@ export class performerRepository implements IperformerRepository {
         {}
       );
   
-      // Return aggregated details
+
       return {
         walletAmount,
         walletTransactionHistory,
-        totalEvent: totalEvents, // Assuming "totalEvent" is the total wallet entries
+        totalEvent: totalEvents,
         totalPrograms,
         totalEventsHistory,
         upcomingEvents,
-        totalReviews: performerDetails.totalReviews || 0, // Default value if not present
+        totalReviews: performerDetails.totalReviews || 0,
       };
   
     } catch (error: any) {
       console.error('Error fetching performer details:', error.message);
-      // You can throw or return a custom error message if needed
+   
       throw new Error(`Error fetching performer details: ${error.message}`);
     }
   };
@@ -241,10 +239,10 @@ export class performerRepository implements IperformerRepository {
         performerId: performerId,
       });
   
-      // Fetch bookings irrespective of slot presence
+   
       const bookingEvents = await BookingModel.find({
         performerId: performerId,
-        bookingStatus: { $ne: "canceled" }, // Exclude canceled bookings
+        bookingStatus: { $ne: "canceled" }, 
       });
   
       const bookingDates = bookingEvents.map((event) => event.date);
@@ -252,7 +250,7 @@ export class performerRepository implements IperformerRepository {
       let unavailableDates: Date[] = [];
   
       if (performerSlot) {
-        // If performerSlot exists, filter unavailable dates
+        
         unavailableDates = performerSlot.dates.filter(
           (date) =>
             !bookingDates.some(
@@ -278,12 +276,12 @@ export class performerRepository implements IperformerRepository {
     date: Date
   ): Promise<SlotDocuments | null | string> => {
     try {
-      // Validate input
+
       if (!id || !date) {
         throw new Error("User ID and date are required");
       }
 
-      // Find the performer by userId
+  
       const performer = await PerformerModel.findOne({ userId: id });
 
       if (!performer) {
@@ -292,14 +290,14 @@ export class performerRepository implements IperformerRepository {
 
       const performerId = performer._id;
 
-      // Check for existing booking
+
  const existingBooking = await BookingModel.findOne({
   performerId,
   date: {
     $gte: new Date(date.setHours(0, 0, 0, 0)),
     $lt: new Date(date.setHours(23, 59, 59, 999)),
   },
-  bookingStatus: { $ne: "canceled" }, // Ensure booking status is not "canceled"
+  bookingStatus: { $ne: "canceled" }, 
 });
 
       if (existingBooking) {
@@ -307,7 +305,7 @@ export class performerRepository implements IperformerRepository {
         return "Slot already booked for this date";
       }
 
-      // Find or create slot document
+     
       let slotDocument = await SlotModel.findOne({ performerId });
 
       if (!slotDocument) {
@@ -369,16 +367,16 @@ export class performerRepository implements IperformerRepository {
     description: string;
   }): Promise<EventDocument | null> => {
     try {
-      // Insert the event into the database
+      
       const events = await EventModel.insertMany([event]);
  
 
-      // Return the first inserted event (if exists)
+ 
       return events.length > 0 ? events[0] : null;
     } catch (error) {
-      // Log the error or handle it as necessary
+   
       console.error("Error inserting event:", error);
-      throw error; // re-throw the error for further handling if needed
+      throw error; 
     }
   };
 
@@ -387,28 +385,28 @@ export class performerRepository implements IperformerRepository {
     password: string
   ): Promise<asPerformer | null | string> => {
     try {
-      // Find the performer by email
+     
       const performer = await UserModel.findOne({ email: email });
 
 
       if (!performer) {
-        return null; // Performer not found
+        return null; 
       } else if (performer.isPerformerBlocked) {
-        return "Performer is Blocked"; // Performer is blocked
+        return "Performer is Blocked"; 
       } else if (!performer.isVerified) {
-        return "Performer is not Verified"; // Performer is not verified
+        return "Performer is not Verified"; 
       }
 
-      // Compare the provided password with the stored hashed password
+     
       const isMatch = await bcrypt.compare(password, performer.password);
       if (!isMatch) {
-        return null; // Passwords do not match
+        return null; 
       }
 
       return {
         username: performer.username,
         email: performer.email,
-        password: performer.password, // Consider omitting this for security reasons
+        password: performer.password, 
         _id: performer._id?.toString(),
         isVerified: performer.isVerified,
         isPerformerBlocked: performer.isPerformerBlocked,
@@ -422,7 +420,7 @@ export class performerRepository implements IperformerRepository {
     userId: Types.ObjectId
   ): Promise<PerformerDocuments | null> => {
     try {
-      // Find performer by userId
+  
 
       const performer = await PerformerModel.findOne({ userId }).lean().exec();
 
@@ -448,7 +446,7 @@ export class performerRepository implements IperformerRepository {
         waitingPermission: true,
       });
 
-      // Create a new TempPerformer document
+
       const newTempPerformer = new TempPerformerModel({
         bandName: bandName,
         mobileNumber: mobileNumber,
@@ -457,7 +455,6 @@ export class performerRepository implements IperformerRepository {
         user_id: user_id,
       });
 
-      // Save the document to the database
       const savedTempPerformer = await newTempPerformer.save();
 
       return savedTempPerformer;
@@ -481,11 +478,11 @@ export class performerRepository implements IperformerRepository {
     }
   ): Promise<EventDocument | null> => {
     try {
-      // Use $set to only update the provided fields
+
       const updatedEvent = await EventModel.findByIdAndUpdate(
         eventId,
         { $set: event },
-        { new: true } // Return the updated document
+        { new: true } 
       );
 
       return updatedEvent;
@@ -518,12 +515,19 @@ export class performerRepository implements IperformerRepository {
         throw new Error("Performer not found");
       }
   
-      // Fetch bookings for the performer
+      // First, get the total count of upcoming events (without limit)
+      const totalBookingsCount = await BookingModel.countDocuments({
+        performerId: performer._id,
+        date: { $gte: currentDate },
+      });
+  
+      // Now, retrieve the upcoming events with limit and sorting
       const bookings = await BookingModel.find({
         performerId: performer._id,
         date: { $gte: currentDate },
-      }) .sort({ date: 1 }) 
-      .limit(9)
+      })
+        .sort({ date: 1 })
+        .limit(9) // Limit applied after counting
         .populate({
           path: "eventId",
           model: "Event",
@@ -534,6 +538,7 @@ export class performerRepository implements IperformerRepository {
         .populate("userId", "name")
         .lean();
   
+      // Map the bookings to the upcoming events
       const upcomingEvents: UpcomingEventDocument[] = await Promise.all(
         bookings.map(async (booking) => {
           const event = booking.eventId as any;
@@ -568,7 +573,7 @@ export class performerRepository implements IperformerRepository {
       );
   
       return {
-        totalCount: upcomingEvents.length, 
+        totalCount: totalBookingsCount,
         upcomingEvents,
       };
     } catch (error) {
@@ -576,6 +581,7 @@ export class performerRepository implements IperformerRepository {
       throw error;
     }
   };
+  
   
   cancelEvent = async (
     id: mongoose.Types.ObjectId
@@ -595,7 +601,7 @@ export class performerRepository implements IperformerRepository {
       const dateDifferenceInDays = Math.floor(
         (event.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
-      console.log("Date difference (days):", dateDifferenceInDays);
+ 
 
 
       if (dateDifferenceInDays < 5) {
@@ -698,12 +704,12 @@ export class performerRepository implements IperformerRepository {
   };
   changeEventStatus = async (): Promise<BookingDocument[] | null> => {
     try {
-      console.log('1')
+
       const events = await BookingModel.find({
         date: { $lt: new Date() },
         bookingStatus: { $ne: 'canceled' }
       });
-      console.log('11',events)
+    
   
       if (events.length === 0) {
         return null;
@@ -728,27 +734,27 @@ export class performerRepository implements IperformerRepository {
     page: number
   ): Promise<UpcomingEventDocument[]> => {
     try {
-      console.log("Fetching upcoming events for performer with pagination...");
+    
   
       const currentDate = new Date();
       const performer = await PerformerModel.findOne({ userId: performerId }).lean();
       if (!performer) {
         throw new Error("Performer not found");
       }
-      const pageSize = 9; // Number of events per page
-      const skip = (page - 1) * pageSize; // Skip events based on the current page
+      const pageSize = 9; 
+      const skip = (page - 1) * pageSize; 
   
-      // Query to match upcoming bookings for the performer
+     
       const matchQuery = {
         performerId: performer._id,
         date: { $gte: currentDate },
       };
   
-      // Fetch bookings with pagination (skip and limit)
+
       const bookings = await BookingModel.find(matchQuery)
-        .sort({ date: 1 }) // Sort in ascending order
-        .skip(skip) // Skip the events based on page
-        .limit(pageSize) // Limit to page size
+        .sort({ date: 1 }) 
+        .skip(skip) 
+        .limit(pageSize)
         .populate({
           path: "eventId",
           model: "Event",
