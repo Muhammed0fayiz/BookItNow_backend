@@ -42,7 +42,9 @@ import adminRoutes from './presentation/routes/adminRoutes';
 import performerRoutes from './presentation/routes/performerRoutes';
 import paymentRoutes from './presentation/routes/paymentRoutes';
 import { connectDatabase } from './infrastructure/db/dbConnection';
+import { sendReminder } from "./shared/utils/reminder";
 
+const cron = require('node-cron');
 // Load environment variables
 dotenv.config();
 
@@ -60,6 +62,7 @@ const io = new Server(httpServer, {
 });
 
 // Middleware setup
+
 app.use(cookieParser());
 app.use(
   session({
@@ -69,7 +72,9 @@ app.use(
     cookie: { secure: false },
   })
 );
-
+cron.schedule('00 18 * * *', () => { 
+  sendReminder();
+});
 const allowedOrigins = ["http://localhost:3000"];
 const corsOptions = {
   origin: allowedOrigins,
@@ -104,7 +109,11 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
-
+interface Notication{
+  senderId: string;
+  receiverId: string;
+  count:number
+}
 const userSocketMap: UserSocketMap = {};
 
 io.on("connection", (socket: Socket) => {
@@ -127,7 +136,16 @@ io.on("connection", (socket: Socket) => {
       io.to(receiverSocketId).emit("receiveMessage", { senderId, message });
     }
   });
-
+  // socket.on("getOnlineUsers", () => {
+  //   const onlineUsers = Object.keys(userSocketMap);  // List of userIds of all online users
+  //   console.log("Online users: ", onlineUsers);
+    // socket.emit("onlineUsersList", onlineUsers);  // Send the list of online users back to the client
+  // });
+  // socket.on('notificationMessage',(notificationCount:Notication)=>{
+  //   console.log("😏 usesocketmap")
+  //   const { senderId, receiverId, count } = notificationCount;
+  //   console.log('count')
+  // })
   socket.on("disconnect", () => {
     for (const userId in userSocketMap) {
       if (userSocketMap[userId] === socket.id) {

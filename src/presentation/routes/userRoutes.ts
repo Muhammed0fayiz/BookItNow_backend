@@ -73,6 +73,12 @@ router.get(
   authMiddleware,
   controller.getAllPerformers.bind(controller)
 );
+router.get(
+  "/getFilteredEvents/:id",
+  authMiddleware,
+  controller.getFilteredEvents.bind(controller)
+);
+
 router.post(
   "/events/book",
   authMiddleware,
@@ -139,6 +145,7 @@ router.post(
   authMiddleware,
   controller.toggleFavoriteEvent.bind(controller)
 );
+router.get('/messageNotification/:id',controller.getMessgeNotification.bind(controller))
 router.get(
   "/userUpcomingEvents/:id",
   authMiddleware,
@@ -150,5 +157,7 @@ router.get(
   authMiddleware,
   controller.getEventHistory.bind(controller)
 );
+
+
 
 export default router;

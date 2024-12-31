@@ -14,6 +14,9 @@ import { FavoriteDocument } from "../../infrastructure/models/FavoriteScema";
 import { ChatRoomDocument } from "../../infrastructure/models/chatRoomModel";
 import { MessageDocument } from "../../infrastructure/models/messageModel";
 import { ChatRoom } from "../../domain/entities/chatRoom";
+import { Reminder } from "../../domain/entities/reminder";
+import { MessageNotification } from "../../domain/entities/messageNotification";
+
 
 export interface IuserRepository {
   userExist(email: string): Promise<User | null>;
@@ -90,6 +93,12 @@ export interface IuserRepository {
   ): Promise<{
     pastEventHistory: UpcomingEventDocument[];
   }>;
+  getFilteredEvents(
+    filterOptions: any,
+    sortOptions: any,
+    skip: number,
+    limit: number
+  ): Promise<EventDocument[] | null>;
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
   sendMessage(
     senderId: mongoose.Types.ObjectId,
@@ -107,4 +116,7 @@ favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; even
     page: number
   ): Promise<UpcomingEventDocument[]>;
 
+     getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
+ 
+  
 }

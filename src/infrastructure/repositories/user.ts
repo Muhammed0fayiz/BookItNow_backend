@@ -27,8 +27,132 @@ import { ChatRoomDocument, ChatRoomModel } from "../models/chatRoomModel";
 import { MessageDocument, MessageModel } from "../models/messageModel";
 import { ChatRoom } from "../../domain/entities/chatRoom";
 import { RatingModel } from "../models/ratingModel";
+import { Reminder } from "../../domain/entities/reminder";
+import { MessageNotification } from "../../domain/entities/messageNotification";
+
 
 export class userRepository implements IuserRepository {
+  getMessageNotification = async (
+    userId: mongoose.Types.ObjectId
+): Promise<MessageNotification | null> => {
+    try {
+   
+        const unreadMessages = await MessageModel.aggregate([
+            {
+                $match: {
+                  receiverId:userId, 
+                    read: false 
+                }
+            },
+            {
+                $group: {
+                    _id: "$senderId", 
+                    numberOfMessages: { $sum: 1 } 
+                }
+            }
+        ]);
+
+     
+        if (unreadMessages.length === 0) {
+            return null;
+        }
+
+       
+        const totalCount = unreadMessages.reduce(
+            (sum, msg) => sum + msg.numberOfMessages,
+            0
+        );
+
+    
+        const notifications = unreadMessages.map((msg) => ({
+            userId: msg._id.toString(),
+            numberOfMessages: msg.numberOfMessages
+        }));
+
+        return {
+            totalCount,
+            notifications
+        };
+    } catch (error) {
+        console.error("Error fetching message notifications:", error);
+        throw error;
+    }
+};
+
+
+  // sendReminder = async (): Promise<Reminder[]> => {
+  //   try {
+  //     const date = new Date();
+      
+   
+  //     const bookings = await BookingModel.find({
+  //       date: { $gte: date },
+  //       reminderSend: false,
+  //       bookingStatus: { $ne: 'canceled' }
+  //     }).populate(['userId', 'eventId']);
+  
+  //     const reminders:Reminder[] = [];
+  
+  //     for (const booking of bookings) {
+  //       // Type guard to check if the fields are populated
+  //       if (!('username' in booking.userId) || !('title' in booking.eventId)) {
+  //         console.error(`Booking ${booking._id} has unpopulated references`);
+  //         continue;
+  //       }
+  
+  //       const user = booking.userId as unknown as UserDocuments;
+  //       const event = booking.eventId as unknown as EventDocument;
+  
+  //       const message = `${user.username}, your event "${event.title}" is on ${booking.date.toLocaleDateString()}. Please don't miss it!`;
+  
+  //       reminders.push({
+  //         usermail: user.email,
+  //         message
+  //       });
+  
+  //       // Update the booking to mark reminder as sent
+  //       booking.reminderSend = true;
+  //       await booking.save();
+  //     }
+  
+  //     return reminders;
+  //   } catch (error) {
+  //     console.error('Error sending reminders:', error);
+  //     throw error;
+  //   }
+  // };
+
+  getFilteredEvents = async (
+    filterOptions: any,
+    sortOptions: any,
+    skip: number,
+    limit: number
+  ): Promise<EventDocument[] | null> => {
+    try {
+      const allFilteredEvents = await EventModel.find({
+        isblocked: false,
+        isperformerblockedevents: false,
+        ...filterOptions,
+      })
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit);
+  
+      const validEvents: EventDocument[] = [];
+      for (const event of allFilteredEvents) {
+        const performer = await UserModel.findById(event.userId);
+        if (performer && !performer.isPerformerBlocked) {
+          validEvents.push(event);
+        }
+      }
+  
+      return validEvents;
+    } catch (error) {
+      console.error("Error fetching filtered events:", error);
+      return null;
+    }
+  };
+  
    favaroiteEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<{ totalEvent: number; events: EventDocument[] | null }> => {
@@ -56,20 +180,20 @@ export class userRepository implements IuserRepository {
   
 
       const currentDate = new Date();
-      const pageSize = 8; // Number of events per page
-      const skip = (page - 1) * pageSize; // Skip events based on the current page
+      const pageSize = 8; 
+      const skip = (page - 1) * pageSize;
 
-      // Query to match upcoming bookings
+     
       const matchQuery = {
         userId: userId,
         date: { $gte: currentDate },
       };
 
-      // Fetch the events with pagination (skip and limit)
+     
       const bookings = await BookingModel.find(matchQuery)
-        .sort({ date: 1 }) // Sort in descending order
-        .skip(skip) // Skip the events based on page
-        .limit(pageSize) // Limit to 8 documents
+        .sort({ date: 1 }) 
+        .skip(skip) 
+        .limit(pageSize) 
         .populate({
           path: "eventId",
           model: "Event",
@@ -181,13 +305,18 @@ export class userRepository implements IuserRepository {
     anotherIdObject: mongoose.Types.ObjectId
   ): Promise<any[] | null> => {
     try {
+      await MessageModel.updateMany(
+        { receiverId: myIdObject, senderId: anotherIdObject, read: false },
+        { $set: { read: true } }
+      );
+  
       const chatMessages = await MessageModel.find({
         $or: [
           { senderId: myIdObject, receiverId: anotherIdObject },
           { senderId: anotherIdObject, receiverId: myIdObject },
         ],
       }).sort({ timestamp: 1 });
-
+  
       const messagesWithRole = chatMessages.map((message) => {
         if (message.senderId.toString() === myIdObject.toString()) {
           return { ...message.toObject(), role: "sender" };
@@ -195,12 +324,13 @@ export class userRepository implements IuserRepository {
           return { ...message.toObject(), role: "receiver" };
         }
       });
-
+  
       return messagesWithRole;
     } catch (error) {
       throw error;
     }
   };
+  
   sendMessage = async (
     senderId: mongoose.Types.ObjectId,
     receiverId: mongoose.Types.ObjectId,

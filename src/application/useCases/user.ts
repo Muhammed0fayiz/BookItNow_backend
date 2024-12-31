@@ -30,6 +30,7 @@ import { SlotModel } from "../../infrastructure/models/slotModel";
 import { FavoriteDocument } from "../../infrastructure/models/FavoriteScema";
 import { MessageDocument } from '../../infrastructure/models/messageModel';
 import { ChatRoom } from '../../domain/entities/chatRoom';
+import { MessageNotification } from '../../domain/entities/messageNotification';
 
 
 export class userUseCase implements IuserUseCase {
@@ -38,6 +39,15 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+  getMessageNotification=async(userId: mongoose.Types.ObjectId): Promise<MessageNotification | null>=> {
+    try {
+ const getMessageNotification=await this._repository.getMessageNotification(userId)
+ return  getMessageNotification
+    } catch (error) {
+      throw error
+    }
+  }
+
   favaroiteEvents=async(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null; }> =>{
     try {
       return this._repository.favaroiteEvents(id)
@@ -45,7 +55,25 @@ export class userUseCase implements IuserUseCase {
     throw error
   }
     }
-
+    getFilteredEvents = async (
+      filterOptions: any,
+      sortOptions: any,
+      skip: number,
+      limit: number
+    ): Promise<EventDocument[] | null> => {
+      try {
+        const filteredEvents = await this._repository.getFilteredEvents(
+          filterOptions,
+          sortOptions,
+          skip,
+          limit
+        );
+        return filteredEvents;
+      } catch (error) {
+        throw error;
+      }
+    };
+    
   getUpcomingEvents = async (
     userId: mongoose.Types.ObjectId,
     page: number

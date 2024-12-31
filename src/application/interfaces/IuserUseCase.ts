@@ -17,6 +17,7 @@ import { WalletDocument } from '../../infrastructure/models/walletHistory';
 import { ChatRoomDocument } from '../../infrastructure/models/chatRoomModel';
 import { MessageDocument } from '../../infrastructure/models/messageModel';
 import { ChatRoom } from '../../domain/entities/chatRoom';
+import { MessageNotification } from '../../domain/entities/messageNotification';
 export interface IuserUseCase {
 
  
@@ -44,6 +45,7 @@ export interface IuserUseCase {
 //  updateUserProfile(username: string, image: string, userId: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
 changePassword(id: mongoose.Types.ObjectId,oldPassword:string,newPassword:string): Promise<UserDocuments | null>;
 getAllEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[]| null>;
+
 getAllPerformer(id: mongoose.Types.ObjectId):Promise<Performer[]|null>
 userBookEvent(
   formData: Record<string, any>,
@@ -77,7 +79,12 @@ userWalletBookEvent(
   performerId: string,
   userId: string
 ): Promise<BookingDocument | null>;
-
+getFilteredEvents(
+  filterOptions: any,
+  sortOptions: any,
+  skip: number,
+  limit: number
+): Promise<EventDocument[] | null>;
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
 
 toggleFavoriteEvent(uid: mongoose.Types.ObjectId,eid: mongoose.Types.ObjectId): Promise<FavoriteDocument| null>;
@@ -94,6 +101,8 @@ getUpcomingEvents(userId:mongoose.Types.ObjectId,page:number): Promise<UpcomingE
   ): Promise<{
     pastEventHistory: UpcomingEventDocument[];
   }>;
+
+  getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
 
   
 }

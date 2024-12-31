@@ -218,12 +218,12 @@ export class UserController {
       const id = new mongoose.Types.ObjectId(req.params.id);
       const { currentPassword, newPassword } = req.body;
 
-      // Check if any of the required fields are missing
+
       if (!id || !currentPassword || !newPassword) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Perform the password change
+   
       const changedPassword = await this._useCase.changePassword(
         id,
         currentPassword,
@@ -313,13 +313,13 @@ export class UserController {
     } catch (error) {
       console.error("Error updating user profile:", error);
 
-      // Type guard to check if the error is an instance of Error
+  
       if (error instanceof Error) {
         res
           .status(500)
           .json({ message: "Error updating profile", error: error.message });
       } else {
-        // Fallback for unknown error types
+       
         res.status(500).json({ message: "An unknown error occurred" });
       }
     }
@@ -384,6 +384,7 @@ export class UserController {
     }
   }
 
+  
   bookEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -536,24 +537,7 @@ availableDate = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-// eventHistory = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-  
-//     const userId = req.params.id;
-//     const userObjectId = new mongoose.Types.ObjectId(userId); 
-    
-//     const eventHistory = await this._useCase.getAlleventHistory(userObjectId);
-   
-//     if (eventHistory) {
-   
-//       return res.status(200).json({ success: true, events: eventHistory });
-//     }
 
-//     return res.status(404).json({ success: false, message: 'No upcoming events found.' });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 updateBookingDate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id; 
@@ -785,5 +769,53 @@ getEventHistory = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
+getFilteredEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { category, sortBy, order, page, limit, search } = req.query;
+
+    const pageNumber = parseInt(page as string) || 1;
+    const pageSize = parseInt(limit as string) || 10;
+    const sortOrder = order === 'desc' ? -1 : 1;
+
+    const filterOptions: any = {};
+    if (category) filterOptions.category = category;
+    if (search) filterOptions.title = { $regex: search, $options: 'i' };
+
+    const skip = (pageNumber - 1) * pageSize;
+
+    const filteredEvents = await this._useCase.getFilteredEvents(
+      filterOptions,
+      { [sortBy as string || 'createdAt']: sortOrder },
+      skip,
+      pageSize
+    );
+
+    if (!filteredEvents || filteredEvents.length === 0) {
+      return res.status(204).json(null);
+    }
+
+    res.status(200).json(filteredEvents);
+  } catch (error) {
+    next(error);
+  }
+};
+getMessgeNotification = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('hleo')
+   
+    
+    const { id } = req.params;
+    console.log(id);
+    const userId = new mongoose.Types.ObjectId(id);
+
+    const messageNotification = await this._useCase.getMessageNotification(userId);
+    console.log(messageNotification,'is')
+
+    res.status(200).json({ success: true, data: messageNotification });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 }
