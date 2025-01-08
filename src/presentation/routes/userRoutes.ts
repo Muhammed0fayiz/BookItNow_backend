@@ -74,7 +74,7 @@ router.get(
   controller.getAllPerformers.bind(controller)
 );
 router.get(
-  "/getFilteredEvents/:id",
+  "/getFilteredEvents",
   authMiddleware,
   controller.getFilteredEvents.bind(controller)
 );
@@ -158,6 +158,8 @@ router.get(
   controller.getEventHistory.bind(controller)
 );
 
-
-
+router.post("/onlineUser/:userId/:anotherId",authMiddleware,
+  controller.onlineUser.bind(controller))
+  router.post("/offlineUser/:id",authMiddleware,
+    controller.offlineUser.bind(controller))
 export default router;

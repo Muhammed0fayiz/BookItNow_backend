@@ -769,43 +769,14 @@ getEventHistory = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-getFilteredEvents = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { category, sortBy, order, page, limit, search } = req.query;
 
-    const pageNumber = parseInt(page as string) || 1;
-    const pageSize = parseInt(limit as string) || 10;
-    const sortOrder = order === 'desc' ? -1 : 1;
-
-    const filterOptions: any = {};
-    if (category) filterOptions.category = category;
-    if (search) filterOptions.title = { $regex: search, $options: 'i' };
-
-    const skip = (pageNumber - 1) * pageSize;
-
-    const filteredEvents = await this._useCase.getFilteredEvents(
-      filterOptions,
-      { [sortBy as string || 'createdAt']: sortOrder },
-      skip,
-      pageSize
-    );
-
-    if (!filteredEvents || filteredEvents.length === 0) {
-      return res.status(204).json(null);
-    }
-
-    res.status(200).json(filteredEvents);
-  } catch (error) {
-    next(error);
-  }
-};
 getMessgeNotification = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('hleo')
+    
    
     
     const { id } = req.params;
-    console.log(id);
+   
     const userId = new mongoose.Types.ObjectId(id);
 
     const messageNotification = await this._useCase.getMessageNotification(userId);
@@ -816,6 +787,93 @@ getMessgeNotification = async (req: Request, res: Response, next: NextFunction) 
     next(error);
   }
 };
+
+onlineUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId,anotherId } = req.params;
+
+  
+    const uId = new mongoose.Types.ObjectId(userId);
+    const pId = new mongoose.Types.ObjectId(anotherId);
+    const result = await this._useCase.onlineUser(uId,pId);
+
+    if (result) {
+      return res.status(200).json({ message: 'User status updated.', data: result });
+    } else {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+throw error
+  }
+};
+
+offlineUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+  
+    console.log('offile');
+    
+    const { id } = req.params;
+   
+ 
+ 
+    const userId = new mongoose.Types.ObjectId(id);
+  
+    const result = await this._useCase.offlineUser(userId);
+
+    if (result) {
+      return res.status(200).json({ message: 'User status updated.', data: result });
+    } else {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+throw error
+  }
+};
+
+
+getFilteredEvents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { category, order, page, search } = req.query;
+
+    console.log('category:', category, 'order:', order, 'page:', page, 'search:', search);
+
+    const pageNumber = parseInt(page as string) || 1; 
+    const pageSize = 10; // Optional: Default page size
+
+    const filterOptions: any = {};
+    if (category) filterOptions.category = category; 
+    if (search) filterOptions.title = { $regex: search, $options: 'i' }; 
+
+    const skip = (pageNumber - 1) * pageSize;
+
+    const sortOrder = order === 'desc' ? -1 : 1; 
+    const sortField = 'createdAt'; // Default sort field
+
+    const result = await this._useCase.getFilteredEvents(
+      filterOptions,
+      { [sortField]: sortOrder },
+      skip,
+      pageSize
+    );
+console.log('result',result);
+
+    if (!result || result.events.length === 0) {
+      return res.status(204).json({ message: "No events found." });
+    }
+
+    res.status(200).json({
+      events: result.events,
+      totalCount: result.totalCount,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(result.totalCount / pageSize),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 
 
 }

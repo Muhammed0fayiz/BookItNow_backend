@@ -39,10 +39,10 @@ export interface IuserUseCase {
 
   
 
-  // getUserDetails(id: any): Promise<UserDocuments | null>;
+ 
   getUserDetails(id: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
  resendOtp(email:string,otp:string):Promise<User|null>
-//  updateUserProfile(username: string, image: string, userId: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
+
 changePassword(id: mongoose.Types.ObjectId,oldPassword:string,newPassword:string): Promise<UserDocuments | null>;
 getAllEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[]| null>;
 
@@ -84,7 +84,8 @@ getFilteredEvents(
   sortOptions: any,
   skip: number,
   limit: number
-): Promise<EventDocument[] | null>;
+): Promise<{ events: EventDocument[]; totalCount: number } | null>;
+
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
 
 toggleFavoriteEvent(uid: mongoose.Types.ObjectId,eid: mongoose.Types.ObjectId): Promise<FavoriteDocument| null>;
@@ -104,5 +105,7 @@ getUpcomingEvents(userId:mongoose.Types.ObjectId,page:number): Promise<UpcomingE
 
   getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
 
-  
+  onlineUser(uId:mongoose.Types.ObjectId,pId:mongoose.Types.ObjectId):Promise<ChatRoom|null>
+  offlineUser(userId:mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
+ 
 }

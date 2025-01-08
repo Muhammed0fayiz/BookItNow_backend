@@ -32,6 +32,63 @@ import { MessageNotification } from "../../domain/entities/messageNotification";
 
 
 export class userRepository implements IuserRepository {
+  offlineUser=async(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null> =>{
+
+
+    try {
+      console.log(userId);
+      
+      const updatedRooms = await ChatRoomModel.updateMany(
+        { participants: userId },
+        { $pull: { online: userId } },
+        { new: true }
+      );
+  console.log('up',updatedRooms);
+  
+      if (updatedRooms.modifiedCount > 0) {
+     return await ChatRoomModel.find({participants:userId})
+      }
+  
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  
+
+
+ 
+  onlineUser = async (uId: mongoose.Types.ObjectId, pId: mongoose.Types.ObjectId): Promise<any> => {
+    try {
+      const updatedRooms = await ChatRoomModel.updateMany(
+        { participants: uId },
+        { $pull: { online: uId } },
+        { new: true }
+      );
+
+      const userRoom = await ChatRoomModel.findOne({
+        participants: { $all: [uId, pId] }
+      });
+  
+      if (!userRoom) {
+        return null;
+      }
+  
+      if (userRoom.online.includes(uId)) {
+        return userRoom;
+      }
+  
+      userRoom.online.push(uId);
+      await userRoom.save();
+  
+      return userRoom;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   getMessageNotification = async (
     userId: mongoose.Types.ObjectId
 ): Promise<MessageNotification | null> => {
@@ -80,78 +137,8 @@ export class userRepository implements IuserRepository {
 };
 
 
-  // sendReminder = async (): Promise<Reminder[]> => {
-  //   try {
-  //     const date = new Date();
-      
-   
-  //     const bookings = await BookingModel.find({
-  //       date: { $gte: date },
-  //       reminderSend: false,
-  //       bookingStatus: { $ne: 'canceled' }
-  //     }).populate(['userId', 'eventId']);
-  
-  //     const reminders:Reminder[] = [];
-  
-  //     for (const booking of bookings) {
-  //       // Type guard to check if the fields are populated
-  //       if (!('username' in booking.userId) || !('title' in booking.eventId)) {
-  //         console.error(`Booking ${booking._id} has unpopulated references`);
-  //         continue;
-  //       }
-  
-  //       const user = booking.userId as unknown as UserDocuments;
-  //       const event = booking.eventId as unknown as EventDocument;
-  
-  //       const message = `${user.username}, your event "${event.title}" is on ${booking.date.toLocaleDateString()}. Please don't miss it!`;
-  
-  //       reminders.push({
-  //         usermail: user.email,
-  //         message
-  //       });
-  
-  //       // Update the booking to mark reminder as sent
-  //       booking.reminderSend = true;
-  //       await booking.save();
-  //     }
-  
-  //     return reminders;
-  //   } catch (error) {
-  //     console.error('Error sending reminders:', error);
-  //     throw error;
-  //   }
-  // };
+ 
 
-  getFilteredEvents = async (
-    filterOptions: any,
-    sortOptions: any,
-    skip: number,
-    limit: number
-  ): Promise<EventDocument[] | null> => {
-    try {
-      const allFilteredEvents = await EventModel.find({
-        isblocked: false,
-        isperformerblockedevents: false,
-        ...filterOptions,
-      })
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit);
-  
-      const validEvents: EventDocument[] = [];
-      for (const event of allFilteredEvents) {
-        const performer = await UserModel.findById(event.userId);
-        if (performer && !performer.isPerformerBlocked) {
-          validEvents.push(event);
-        }
-      }
-  
-      return validEvents;
-    } catch (error) {
-      console.error("Error fetching filtered events:", error);
-      return null;
-    }
-  };
   
    favaroiteEvents = async (
     id: mongoose.Types.ObjectId
@@ -337,39 +324,40 @@ export class userRepository implements IuserRepository {
     message: string
   ): Promise<ChatRoomDocument | null> => {
     try {
-      // Check if a chat room already exists
       let chatRoom = await ChatRoomModel.findOne({
         participants: { $all: [senderId, receiverId] },
       });
-
-      // If no room exists, create one
+  
       if (!chatRoom) {
         chatRoom = new ChatRoomModel({
           participants: [senderId, receiverId],
         });
         await chatRoom.save();
       }
+  
+      const isReceiverOnline = chatRoom.online.includes(receiverId);
 
-      // Save the message in the MessageModel
+  
       const newMessage = new MessageModel({
         roomId: chatRoom._id,
         senderId,
         receiverId,
         message,
+        read: isReceiverOnline,
       });
-
+  
       await newMessage.save();
-
-      // Optionally populate chat room details (e.g., messages)
+  
       const populatedChatRoom = await ChatRoomModel.findById(
         chatRoom._id
       ).populate("participants");
-
+  
       return populatedChatRoom;
     } catch (error) {
       throw error;
     }
   };
+  
  
   
 
@@ -1320,4 +1308,63 @@ export class userRepository implements IuserRepository {
       throw error;
     }
   };
+
+
+
+
+
+
+
+
+  getFilteredEvents = async (
+    filterOptions: any,
+    sortOptions: any,
+    skip: number,
+    limit: number
+  ): Promise<{ events: EventDocument[]; totalCount: number } | null> =>{
+    try {
+
+
+      const totalCount = await EventModel.countDocuments({
+        isblocked: false,
+        isperformerblockedevents: false,
+        ...filterOptions,
+      });
+      const allFilteredEvents = await EventModel.find({
+        isblocked: false,
+        isperformerblockedevents: false,
+        ...filterOptions,
+      })
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit);
+  
+      const validEvents: EventDocument[] = [];
+      for (const event of allFilteredEvents) {
+        const performer = await UserModel.findById(event.userId);
+        if (performer && !performer.isPerformerBlocked) {
+          validEvents.push(event);
+        }
+      }
+      return { events: validEvents, totalCount };
+     
+    } catch (error) {
+      console.error("Error fetching filtered events:", error);
+      return null;
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

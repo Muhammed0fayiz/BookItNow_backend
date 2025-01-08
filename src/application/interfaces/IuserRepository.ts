@@ -98,7 +98,7 @@ export interface IuserRepository {
     sortOptions: any,
     skip: number,
     limit: number
-  ): Promise<EventDocument[] | null>;
+  ): Promise<{ events: EventDocument[]; totalCount: number } | null>;
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
   sendMessage(
     senderId: mongoose.Types.ObjectId,
@@ -118,5 +118,6 @@ favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; even
 
      getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
  
-  
+   onlineUser(uId:mongoose.Types.ObjectId,pId:mongoose.Types.ObjectId):Promise<ChatRoom|null>
+    offlineUser(userId:mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
 }
