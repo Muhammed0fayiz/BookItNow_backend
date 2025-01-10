@@ -525,6 +525,7 @@ export class userUseCase implements IuserUseCase {
   };
 
   getFilteredEvents = async (
+    id:mongoose.Types.ObjectId,
     filterOptions: any,
     sortOptions: any,
     skip: number,
@@ -532,6 +533,7 @@ export class userUseCase implements IuserUseCase {
   ): Promise<{ events: EventDocument[]; totalCount: number } | null> => {
     try {
       const filteredEvents = await this._repository.getFilteredEvents(
+        id,
         filterOptions,
         sortOptions,
         skip,
@@ -542,4 +544,27 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
+  getFilteredPerformers = async (
+     id:mongoose.Types.ObjectId,
+    filterOptions: any,
+    sortOptions: any,
+    skip: number,
+    limit: number
+  ): Promise<{ performers: Performer[]; totalCount: number } | null> => {
+    try {
+   
+      const filteredPerformers = await this._repository.getFilteredPerformers(id,
+        filterOptions,
+        sortOptions,
+        skip,
+        limit
+      );
+      return filteredPerformers;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
+
+
+

@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Extract token from cookies or headers
-    
+          
         const token = req.cookies?.userToken;
     
         if (!token) {

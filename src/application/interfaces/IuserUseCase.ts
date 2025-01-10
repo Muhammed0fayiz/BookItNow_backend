@@ -79,12 +79,21 @@ userWalletBookEvent(
   performerId: string,
   userId: string
 ): Promise<BookingDocument | null>;
-getFilteredEvents(
+getFilteredEvents(id:mongoose.Types.ObjectId,
   filterOptions: any,
   sortOptions: any,
   skip: number,
   limit: number
 ): Promise<{ events: EventDocument[]; totalCount: number } | null>;
+
+getFilteredPerformers(
+  id:mongoose.Types.ObjectId,
+  filterOptions: any,
+  sortOptions: any,
+  skip: number,
+  limit: number
+): Promise<{ performers: Performer[]; totalCount: number } | null>;
+
 
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
 

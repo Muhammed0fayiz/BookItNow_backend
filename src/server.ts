@@ -133,6 +133,7 @@ io.on("connection", (socket: Socket) => {
     console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
 
     if (receiverSocketId) {
+      io.to(receiverSocketId).emit("yougotamsg", { senderId ,message});
       io.to(receiverSocketId).emit("receiveMessage", { senderId, message });
     }
   });

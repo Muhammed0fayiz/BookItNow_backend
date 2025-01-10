@@ -32,6 +32,7 @@ import { MessageNotification } from "../../domain/entities/messageNotification";
 
 
 export class userRepository implements IuserRepository {
+
   offlineUser=async(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null> =>{
 
 
@@ -1314,25 +1315,28 @@ export class userRepository implements IuserRepository {
 
 
 
-
+ 
 
   getFilteredEvents = async (
+    id: mongoose.Types.ObjectId,
     filterOptions: any,
     sortOptions: any,
     skip: number,
     limit: number
-  ): Promise<{ events: EventDocument[]; totalCount: number } | null> =>{
+  ): Promise<{ events: EventDocument[]; totalCount: number } | null> => {
     try {
-
-
+      console.log('id',filterOptions,'d')
       const totalCount = await EventModel.countDocuments({
         isblocked: false,
         isperformerblockedevents: false,
+        userId: { $ne: id }, 
         ...filterOptions,
       });
+  
       const allFilteredEvents = await EventModel.find({
         isblocked: false,
         isperformerblockedevents: false,
+        userId: { $ne: id },
         ...filterOptions,
       })
         .sort(sortOptions)
@@ -1346,13 +1350,14 @@ export class userRepository implements IuserRepository {
           validEvents.push(event);
         }
       }
+  
       return { events: validEvents, totalCount };
-     
     } catch (error) {
       console.error("Error fetching filtered events:", error);
       return null;
     }
   };
+  
 
 
 
@@ -1361,10 +1366,92 @@ export class userRepository implements IuserRepository {
 
 
 
+  getFilteredPerformers = async (
+    id: mongoose.Types.ObjectId,
+    searchValue: any,
+    sortOptions: any = { rating: -1 },
+    skip: number,
+    limit: number
+): Promise<{ performers: Performer[]; totalCount: number } | null> => {
+    try {
+        // Debug search value
+        console.log("Raw Search Value:", searchValue);
+        console.log("Search Value Type:", typeof searchValue);
 
+        // Convert id to ObjectId if it's a string
+        const userId = typeof id === 'string' ? new mongoose.Types.ObjectId(id) : id;
 
+        // Get blocked users
+        const blockedUsers = await UserModel.find(
+            { isPerformerBlocked: true },
+            { _id: 1 }
+        );
+        const blockedUserIds = blockedUsers.map(user => user._id);
 
+        // Build base filter
+        const combinedFilter: any = {
+            userId: {
+                $ne: userId,
+                $nin: blockedUserIds
+            }
+        };
 
+        // Enhanced search value handling
+        if (searchValue) {
+            if (typeof searchValue === 'string') {
+                // Handle string search
+                const searchStr = searchValue.trim();
+                if (searchStr) {
+                    combinedFilter.$or = [
+                        { bandName: { $regex: searchStr, $options: "i" } },
+                        { place: { $regex: searchStr, $options: "i" } },
+                    ];
+                }
+            } else if (typeof searchValue === 'object') {
+                // Handle object search value
+                if (searchValue.search) {
+                    const searchStr = searchValue.search.trim();
+                    combinedFilter.$or = [
+                        { bandName: { $regex: searchStr, $options: "i" } },
+                        { place: { $regex: searchStr, $options: "i" } },
+                    ];
+                } else if (searchValue.$or) {
+                   
+                    combinedFilter.$or = searchValue.$or;
+                }
+            }
+        }
 
+        console.log("Final Combined Filter:", JSON.stringify(combinedFilter, null, 2));
+
+       
+        console.log("Executing count query...");
+        const totalCount = await PerformerModel.countDocuments(combinedFilter);
+        console.log("Total Count:", totalCount);
+
+        console.log("Executing find query...");
+        const performers = await PerformerModel.find(combinedFilter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .select("userId bandName description profileImage place rating");
+        
+        console.log("Found Performers Count:", performers.length);
+        if (performers.length > 0) {
+            console.log("Sample Found Performer:", performers[0]);
+        }
+
+        if (!performers.length) {
+            return null;
+        }
+
+        return { performers, totalCount };
+    } catch (error) {
+        console.error("Error in getFilteredPerformers:", error);
+        throw error;
+    }
+};
+  
+  
 
 }

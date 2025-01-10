@@ -737,8 +737,6 @@ eventHistory = async (req: Request, res: Response, next: NextFunction) => {
 
 getEventHistory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
-
     const id = req.params.id;
     const userId = new mongoose.Types.ObjectId(id); 
     const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
@@ -833,12 +831,17 @@ throw error
 
 getFilteredEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
+  
+    
+    const { userId } = req.params;
+   
+    const  id= new mongoose.Types.ObjectId(userId);
     const { category, order, page, search } = req.query;
 
     console.log('category:', category, 'order:', order, 'page:', page, 'search:', search);
 
     const pageNumber = parseInt(page as string) || 1; 
-    const pageSize = 10; // Optional: Default page size
+    const pageSize = 6; // Optional: Default page size
 
     const filterOptions: any = {};
     if (category) filterOptions.category = category; 
@@ -849,7 +852,7 @@ getFilteredEvents = async (req: Request, res: Response, next: NextFunction) => {
     const sortOrder = order === 'desc' ? -1 : 1; 
     const sortField = 'createdAt'; // Default sort field
 
-    const result = await this._useCase.getFilteredEvents(
+    const result = await this._useCase.getFilteredEvents(id,
       filterOptions,
       { [sortField]: sortOrder },
       skip,
@@ -871,6 +874,65 @@ console.log('result',result);
     next(error);
   }
 };
+
+
+getFilteredPerformers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('Request to get filtered performers initiated.');
+
+    const { userId } = req.params;
+    const id = new mongoose.Types.ObjectId(userId);
+    console.log('User ID:', userId);
+
+    const { order, page, search } = req.query;
+    console.log('Query Parameters - Order:', order, 'Page:', page, 'Search:', search);
+
+    const pageNumber = parseInt(page as string) || 1;
+    const pageSize = 6;
+    const skip = (pageNumber - 1) * pageSize;
+    const sortOrder = order === 'desc' ? -1 : 1;
+    const sortField = 'rating';
+
+    const searchValue = typeof search === 'string' ? search : '';
+    const filterOptions: any = searchValue
+      ? {
+          $or: [
+            { bandName: { $regex: searchValue, $options: 'i' } },
+            { place: { $regex: searchValue, $options: 'i' } },
+          ],
+        }
+      : {};
+    console.log('Final Filter Options:', filterOptions);
+
+    const result = await this._useCase.getFilteredPerformers(
+      id,
+      filterOptions,
+      { [sortField]: sortOrder },
+      skip,
+      pageSize
+    );
+
+    console.log('Query Result:', result);
+
+    if (!result || result.performers.length === 0) {
+      console.log('No performers found.');
+      return res.status(204).json({ message: 'No performers found.' });
+    }
+
+    res.status(200).json({
+      performers: result.performers,
+      totalCount: result.totalCount,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(result.totalCount / pageSize),
+    });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    next(error);
+  }
+};
+
+
+
 
 
 
