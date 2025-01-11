@@ -111,6 +111,7 @@ getUpcomingEvents(userId:mongoose.Types.ObjectId,page:number): Promise<UpcomingE
   ): Promise<{
     pastEventHistory: UpcomingEventDocument[];
   }>;
+  CheckOnline(id: mongoose.Types.ObjectId, oId: mongoose.Types.ObjectId): Promise<boolean>
 
   getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
 

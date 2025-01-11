@@ -32,12 +32,36 @@ import { MessageNotification } from "../../domain/entities/messageNotification";
 
 
 export class userRepository implements IuserRepository {
+  CheckOnline = async (
+    id: mongoose.Types.ObjectId,
+    oId: mongoose.Types.ObjectId
+  ): Promise<boolean> => {
+    try {
+   
+      const chatRoom = await ChatRoomModel.findOne({
+        participants: { $all: [id, oId] },
+      });
+  
+      if (!chatRoom) {
+     
+        return false;
+      }
+  
+   
+      return chatRoom.online.includes(oId);
+    } catch (error) {
+
+      console.error('Error in CheckOnline:', error);
+      throw new Error('Unable to check online status.');
+    }
+  };
+  
 
   offlineUser=async(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null> =>{
 
 
     try {
-      console.log(userId);
+  
       
       const updatedRooms = await ChatRoomModel.updateMany(
         { participants: userId },

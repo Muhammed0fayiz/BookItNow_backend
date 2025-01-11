@@ -1,33 +1,4 @@
-// import app from './app'
-// import dotenv from 'dotenv'
-// import userRoutes from './presentation/routes/userRoutes'
- 
-// import { connectDatabase } from './infrastructure/db/dbConnection'
-// import adminRoutes from './presentation/routes/adminRoutes';
-// import performerRoutes from './presentation/routes/performerRoutes'
 
-// import paymentRoutes from './presentation/routes/paymentRoutes'
-// dotenv.config();
-
-// connectDatabase()
-// const port = process.env.PORT || 5001;
-
-
-// app.use('/',userRoutes)
-// app.use('/performer',performerRoutes)
-// app.use('/admin',adminRoutes)
-// app.use('/payment',paymentRoutes)
-
-
-
-// app.listen(port, () => {
-//     console.log(`Server is running on port ${port}`);
-//   });
-
-
-
-
-// server.ts
 import express from "express";
 import cors from "cors";
 import passportConfig from "./config/passport";
@@ -137,16 +108,7 @@ io.on("connection", (socket: Socket) => {
       io.to(receiverSocketId).emit("receiveMessage", { senderId, message });
     }
   });
-  // socket.on("getOnlineUsers", () => {
-  //   const onlineUsers = Object.keys(userSocketMap);  // List of userIds of all online users
-  //   console.log("Online users: ", onlineUsers);
-    // socket.emit("onlineUsersList", onlineUsers);  // Send the list of online users back to the client
-  // });
-  // socket.on('notificationMessage',(notificationCount:Notication)=>{
-  //   console.log("😏 usesocketmap")
-  //   const { senderId, receiverId, count } = notificationCount;
-  //   console.log('count')
-  // })
+
   socket.on("disconnect", () => {
     for (const userId in userSocketMap) {
       if (userSocketMap[userId] === socket.id) {

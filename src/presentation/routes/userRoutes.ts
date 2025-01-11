@@ -50,7 +50,10 @@ router.get(
   }),
   controller.googleCallback.bind(controller)
 );
-router.post("/chatWithPerformer/:userid/:performerid",controller.chatWithPerformer.bind(controller))
+router.post(
+  "/chatWithPerformer/:userid/:performerid",
+  controller.chatWithPerformer.bind(controller)
+);
 // Unprotected routes (no authMiddleware)
 router.get("/getUser/:id", controller.getUserDetails.bind(controller));
 router.put(
@@ -73,8 +76,6 @@ router.get(
   authMiddleware,
   controller.getAllPerformers.bind(controller)
 );
-
-
 
 router.post(
   "/events/book",
@@ -142,11 +143,20 @@ router.post(
   authMiddleware,
   controller.toggleFavoriteEvent.bind(controller)
 );
-router.post("/onlineUser/:userId/:anotherId",authMiddleware,
-  controller.onlineUser.bind(controller))
-  router.post("/offlineUser/:id",authMiddleware,
-    controller.offlineUser.bind(controller))
-router.get('/messageNotification/:id',controller.getMessgeNotification.bind(controller))
+router.post(
+  "/onlineUser/:userId/:anotherId",
+  authMiddleware,
+  controller.onlineUser.bind(controller)
+);
+router.post(
+  "/offlineUser/:id",
+  authMiddleware,
+  controller.offlineUser.bind(controller)
+);
+router.get(
+  "/messageNotification/:id",
+  controller.getMessgeNotification.bind(controller)
+);
 router.get(
   "/userUpcomingEvents/:id",
   authMiddleware,
@@ -158,7 +168,7 @@ router.get(
   authMiddleware,
   controller.getEventHistory.bind(controller)
 );
-
+router.get('/checkOnline/:userId/:otherId',authMiddleware,controller.checkOnlineUser.bind(controller))
 router.get(
   "/getFilteredPerformers/:userId",
   authMiddleware,
@@ -170,6 +180,5 @@ router.get(
   authMiddleware,
   controller.getFilteredEvents.bind(controller)
 );
-
 
 export default router;

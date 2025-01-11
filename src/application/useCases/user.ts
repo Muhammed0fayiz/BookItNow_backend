@@ -38,6 +38,14 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+  CheckOnline=async(id: mongoose.Types.ObjectId, oId: mongoose.Types.ObjectId): Promise<boolean>=> {
+    try {
+      return this._repository.CheckOnline(id,oId)
+    } catch (error) {
+      
+    }
+    throw new Error("Method not implemented.");
+  }
 
   offlineUser = async (
     userId: mongoose.Types.ObjectId

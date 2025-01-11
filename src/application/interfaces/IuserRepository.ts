@@ -126,7 +126,8 @@ favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; even
   ): Promise<UpcomingEventDocument[]>;
 
      getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
- 
+     CheckOnline(id: mongoose.Types.ObjectId, oId: mongoose.Types.ObjectId): Promise<boolean>
+
    onlineUser(uId:mongoose.Types.ObjectId,pId:mongoose.Types.ObjectId):Promise<ChatRoom|null>
     offlineUser(userId:mongoose.Types.ObjectId):Promise<ChatRoom[]|null>
 }
