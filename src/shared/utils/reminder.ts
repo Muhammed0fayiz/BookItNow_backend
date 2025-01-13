@@ -7,11 +7,10 @@ export const sendReminder = async (): Promise<void> => {
     try {
       const date = new Date();
       const futureDate = new Date(date);
-      futureDate.setDate(date.getDate() + 10); // Set the date to 10 days from today
+      futureDate.setDate(date.getDate() + 10); 
   
-      // Fetch bookings with criteria
       const bookings = await BookingModel.find({
-        date: { $gte: date, $lt: futureDate }, // Date should be within the next 10 days
+        date: { $gte: date, $lt: futureDate }, 
         reminderSend: false,
         bookingStatus: { $ne: "canceled" },
       }).populate(["userId", "eventId"]);
@@ -22,7 +21,7 @@ export const sendReminder = async (): Promise<void> => {
       }
   
       for (const booking of bookings) {
-        // Type guard to check populated fields
+     
         if (!("username" in booking.userId) || !("title" in booking.eventId)) {
           console.error(`Booking ${booking._id} has unpopulated references`);
           continue;

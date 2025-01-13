@@ -38,256 +38,57 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
-  CheckOnline=async(id: mongoose.Types.ObjectId, oId: mongoose.Types.ObjectId): Promise<boolean>=> {
-    try {
-      return this._repository.CheckOnline(id,oId)
-    } catch (error) {
-      
-    }
-    throw new Error("Method not implemented.");
-  }
 
-  offlineUser = async (
-    userId: mongoose.Types.ObjectId
-  ): Promise<ChatRoom[] | null> => {
+  userExist = async (email: string): Promise<User | null> => {
     try {
-      return await this._repository.offlineUser(userId);
+      return await this._repository.userExist(email);
     } catch (error) {
       throw error;
     }
   };
-  onlineUser = async (
-    uId: mongoose.Types.ObjectId,
-    pId: mongoose.Types.ObjectId
-  ): Promise<ChatRoom | null> => {
+  verifyOtp = async (email: string, otp: string): Promise<boolean> => {
     try {
-      return await this._repository.onlineUser(uId, pId);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  getMessageNotification = async (
-    userId: mongoose.Types.ObjectId
-  ): Promise<MessageNotification | null> => {
-    try {
-      const getMessageNotification =
-        await this._repository.getMessageNotification(userId);
-      return getMessageNotification;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  favaroiteEvents = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<{ totalEvent: number; events: EventDocument[] | null }> => {
-    try {
-      return this._repository.favaroiteEvents(id);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  getUpcomingEvents = async (
-    userId: mongoose.Types.ObjectId,
-    page: number
-  ): Promise<UpcomingEventDocument[]> => {
-    try {
-      const response = await this._repository.getUpcomingEvents(userId, page);
-
-      return response;
-    } catch (error) {
-      console.error("Error in getUpcomingEvents usecase:", error);
-      throw error;
-    }
-  };
-
-  chatWithPerformer = async (
-    userId: mongoose.Types.ObjectId,
-    performerId: mongoose.Types.ObjectId
-  ): Promise<ChatRoomDocument | null> => {
-    try {
-      return await this._repository.chatWithPerformer(userId, performerId);
-    } catch (error) {
-      throw error;
-    }
-  };
-  getAllChatRooms = async (
-    userId: mongoose.Types.ObjectId
-  ): Promise<ChatRoom[] | null> => {
-    try {
-      return this._repository.getAllChatRooms(userId);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  ChatWith = async (
-    myIdObject: mongoose.Types.ObjectId,
-    anotherIdObject: mongoose.Types.ObjectId
-  ): Promise<MessageDocument[] | null> => {
-    try {
-      const chatwith = await this._repository.ChatWith(
-        myIdObject,
-        anotherIdObject
-      );
-
-      return chatwith;
-    } catch (error) {
-      throw error;
-    }
-  };
-  sendMessage = async (
-    senderId: mongoose.Types.ObjectId,
-    reseverId: mongoose.Types.ObjectId,
-    message: string
-  ): Promise<ChatRoomDocument | null> => {
-    try {
-      return await this._repository.sendMessage(senderId, reseverId, message);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  toggleFavoriteEvent = async (
-    uid: mongoose.Types.ObjectId,
-    eid: mongoose.Types.ObjectId
-  ): Promise<FavoriteDocument | null> => {
-    try {
-      return this._repository.toggleFavoriteEvent(uid, eid);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  ratingAdded = async (
-    bookingId: mongoose.Types.ObjectId,
-    rating: number,
-    review: string
-  ): Promise<EventDocument | null> => {
-    try {
-      return this._repository.ratingAdded(bookingId, rating, review);
-    } catch (error) {
-      throw error;
-    }
-  };
-  availableDate(
-    formData: Record<string, any>,
-    eventId: string,
-    performerId: string
-  ): Promise<boolean> {
-    try {
-      const bookEvent = this._repository.availableDate(
-        formData,
-        eventId,
-        performerId
-      );
-      return bookEvent;
-    } catch (error) {
-      throw error;
-    }
-  }
-  walletHistory = async (
-    objectId: mongoose.Types.ObjectId
-  ): Promise<WalletDocument[] | null> => {
-    try {
-      const walletHistory = this._repository.walletHistory(objectId);
-      return walletHistory;
-    } catch (error) {
-      throw error;
-    }
-  };
-  getAllPerformer = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<Performer[] | null> => {
-    try {
-      return await this._repository.getAllPerformer(id);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  cancelEvent = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<BookingDocument | null> => {
-    try {
-      return await this._repository.cancelEvent(id);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  getAllEvents = async (
-    id: mongoose.Types.ObjectId
-  ): Promise<EventDocument[] | null> => {
-    try {
-      return this._repository.getAllEvents(id);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  changePassword = async (
-    id: mongoose.Types.ObjectId,
-    oldPassword: string,
-    newPassword: string
-  ): Promise<UserDocuments | null> => {
-    try {
-      const user = await this._repository.getUserDetails(id);
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch) {
-        throw new Error("Old password is incorrect");
-      }
-
-      const hashedNewPassword = await this.bcrypt(newPassword);
-
-      user.password = hashedNewPassword;
-      const updatedUser = await this._repository.updateUserPassword(
-        id,
-        newPassword
-      );
-
-      return updatedUser;
-    } catch (error) {
-      console.error("Error changing password :", error);
-      throw error;
-    }
-  };
-
-  resendOtp = async (email: string, otp: string): Promise<User | null> => {
-    try {
-      console.log(email, otp, "otp sent");
-
-      const otpUser = await this._repository.resendOtp(email, otp);
+      const otpUser = await tempUserModel.findOne({ email, otp });
 
       if (otpUser) {
-        this.sendmail(email, otp);
-        console.log("otp user", otpUser);
+        return true;
       }
-      return otpUser ? otpUser : null;
+
+      return false;
     } catch (error) {
-      console.log(error);
       throw error;
     }
   };
-
-  getUserDetails = async (id: any) => {
+  bcrypt = async (password: string): Promise<string> => {
     try {
-      const response = await this._repository.getUserDetails(id);
-
-      return response ? response : null;
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      return hashedPassword;
     } catch (error) {
-      console.error("error occured");
-
-      return null;
+      throw error;
     }
   };
+  jwt = async (payload: User): Promise<string | null> => {
+    try {
+      const token = jwt.sign(
+        {
+          id: payload._id,
+          username: payload.username,
+          email: payload.email,
+          role: "user",
+        },
+        "loginsecrit",
+        { expiresIn: "2h" }
+      );
 
+      if (token) {
+        return token;
+      }
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  };
   loginUser = async (
     email: string,
     password: string
@@ -305,7 +106,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   checkOtp = async (user: checkOtp): Promise<User | null> => {
     try {
       const insertUser = await this.repository.checkOtp(user);
@@ -314,7 +114,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   otpUser = async (
     email: string,
     otp: string,
@@ -338,7 +137,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   sendmail = async (email: string, otp: string): Promise<string> => {
     try {
       console.log("otp send mailer is", otp);
@@ -388,61 +186,105 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
-  bcrypt = async (password: string): Promise<string> => {
+  resendOtp = async (email: string, otp: string): Promise<User | null> => {
     try {
-      const saltRounds = 10; // Adjust this value as needed
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      return hashedPassword;
+      console.log(email, otp, "otp sent");
+
+      const otpUser = await this._repository.resendOtp(email, otp);
+
+      if (otpUser) {
+        this.sendmail(email, otp);
+        console.log("otp user", otpUser);
+      }
+      return otpUser ? otpUser : null;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
+  walletHistory = async (
+    objectId: mongoose.Types.ObjectId
+  ): Promise<WalletDocument[] | null> => {
+    try {
+      const walletHistory = this._repository.walletHistory(objectId);
+      return walletHistory;
     } catch (error) {
       throw error;
     }
   };
-  jwt = async (payload: User): Promise<string | null> => {
+  changePassword = async (
+    id: mongoose.Types.ObjectId,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<UserDocuments | null> => {
     try {
-      // Create the JWT with the user ID included in the payload
-      const token = jwt.sign(
-        {
-          id: payload._id,
-          username: payload.username,
-          email: payload.email,
-          role: "user",
-        },
-        "loginsecrit",
-        { expiresIn: "2h" }
+      const user = await this._repository.getUserDetails(id);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        throw new Error("Old password is incorrect");
+      }
+
+      const hashedNewPassword = await this.bcrypt(newPassword);
+
+      user.password = hashedNewPassword;
+      const updatedUser = await this._repository.updateUserPassword(
+        id,
+        newPassword
       );
 
-      if (token) {
-        return token;
-      }
+      return updatedUser;
+    } catch (error) {
+      console.error("Error changing password :", error);
+      throw error;
+    }
+  };
+  getUserDetails = async (id: any) => {
+    try {
+      const response = await this._repository.getUserDetails(id);
+
+      return response ? response : null;
+    } catch (error) {
+      console.error("error occured");
+
       return null;
-    } catch (error) {
-      throw error;
     }
   };
 
-  userExist = async (email: string): Promise<User | null> => {
+  getAllEvents = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<EventDocument[] | null> => {
     try {
-      return await this._repository.userExist(email);
+      return this._repository.getAllEvents(id);
     } catch (error) {
       throw error;
     }
   };
-  verifyOtp = async (email: string, otp: string): Promise<boolean> => {
+  toggleFavoriteEvent = async (
+    uid: mongoose.Types.ObjectId,
+    eid: mongoose.Types.ObjectId
+  ): Promise<FavoriteDocument | null> => {
     try {
-      const otpUser = await tempUserModel.findOne({ email, otp });
-
-      // Check if the OTP matches and the entry exists
-      if (otpUser) {
-        return true; // OTP is valid
-      }
-
-      return false; // OTP is invalid
+      return this._repository.toggleFavoriteEvent(uid, eid);
     } catch (error) {
       throw error;
     }
   };
-
+  ratingAdded = async (
+    bookingId: mongoose.Types.ObjectId,
+    rating: number,
+    review: string
+  ): Promise<EventDocument | null> => {
+    try {
+      return this._repository.ratingAdded(bookingId, rating, review);
+    } catch (error) {
+      throw error;
+    }
+  };
   userBookEvent = async (
     formData: Record<string, any>,
     eventId: string,
@@ -461,7 +303,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   userWalletBookEvent = async (
     formData: Record<string, any>,
     eventId: string,
@@ -480,7 +321,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<{
@@ -497,7 +337,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   getAllEventHistory = async (
     id: mongoose.Types.ObjectId
   ): Promise<{
@@ -514,7 +353,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   getEventHistory = async (
     userId: mongoose.Types.ObjectId,
     page: number
@@ -531,9 +369,8 @@ export class userUseCase implements IuserUseCase {
       throw error; // Propagate the error to be handled by the caller
     }
   };
-
   getFilteredEvents = async (
-    id:mongoose.Types.ObjectId,
+    id: mongoose.Types.ObjectId,
     filterOptions: any,
     sortOptions: any,
     skip: number,
@@ -552,16 +389,48 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
+  favaroiteEvents = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<{ totalEvent: number; events: EventDocument[] | null }> => {
+    try {
+      return this._repository.favaroiteEvents(id);
+    } catch (error) {
+      throw error;
+    }
+  };
+  getUpcomingEvents = async (
+    userId: mongoose.Types.ObjectId,
+    page: number
+  ): Promise<UpcomingEventDocument[]> => {
+    try {
+      const response = await this._repository.getUpcomingEvents(userId, page);
+
+      return response;
+    } catch (error) {
+      console.error("Error in getUpcomingEvents usecase:", error);
+      throw error;
+    }
+  };
+  cancelEvent = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<BookingDocument | null> => {
+    try {
+      return await this._repository.cancelEvent(id);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   getFilteredPerformers = async (
-     id:mongoose.Types.ObjectId,
+    id: mongoose.Types.ObjectId,
     filterOptions: any,
     sortOptions: any,
     skip: number,
     limit: number
   ): Promise<{ performers: Performer[]; totalCount: number } | null> => {
     try {
-   
-      const filteredPerformers = await this._repository.getFilteredPerformers(id,
+      const filteredPerformers = await this._repository.getFilteredPerformers(
+        id,
         filterOptions,
         sortOptions,
         skip,
@@ -572,7 +441,114 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
+  availableDate(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string
+  ): Promise<boolean> {
+    try {
+      const bookEvent = this._repository.availableDate(
+        formData,
+        eventId,
+        performerId
+      );
+      return bookEvent;
+    } catch (error) {
+      throw error;
+    }
+  }
+  getAllPerformer = async (
+    id: mongoose.Types.ObjectId
+  ): Promise<Performer[] | null> => {
+    try {
+      return await this._repository.getAllPerformer(id);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  CheckOnline = async (
+    id: mongoose.Types.ObjectId,
+    oId: mongoose.Types.ObjectId
+  ): Promise<boolean> => {
+    try {
+      return this._repository.CheckOnline(id, oId);
+    } catch (error) {}
+    throw new Error("Method not implemented.");
+  };
+  offlineUser = async (
+    userId: mongoose.Types.ObjectId
+  ): Promise<ChatRoom[] | null> => {
+    try {
+      return await this._repository.offlineUser(userId);
+    } catch (error) {
+      throw error;
+    }
+  };
+  onlineUser = async (
+    uId: mongoose.Types.ObjectId,
+    pId: mongoose.Types.ObjectId
+  ): Promise<ChatRoom | null> => {
+    try {
+      return await this._repository.onlineUser(uId, pId);
+    } catch (error) {
+      throw error;
+    }
+  };
+  getMessageNotification = async (
+    userId: mongoose.Types.ObjectId
+  ): Promise<MessageNotification | null> => {
+    try {
+      const getMessageNotification =
+        await this._repository.getMessageNotification(userId);
+      return getMessageNotification;
+    } catch (error) {
+      throw error;
+    }
+  };
+  chatWithPerformer = async (
+    userId: mongoose.Types.ObjectId,
+    performerId: mongoose.Types.ObjectId
+  ): Promise<ChatRoomDocument | null> => {
+    try {
+      return await this._repository.chatWithPerformer(userId, performerId);
+    } catch (error) {
+      throw error;
+    }
+  };
+  getAllChatRooms = async (
+    userId: mongoose.Types.ObjectId
+  ): Promise<ChatRoom[] | null> => {
+    try {
+      return this._repository.getAllChatRooms(userId);
+    } catch (error) {
+      throw error;
+    }
+  };
+  ChatWith = async (
+    myIdObject: mongoose.Types.ObjectId,
+    anotherIdObject: mongoose.Types.ObjectId
+  ): Promise<MessageDocument[] | null> => {
+    try {
+      const chatwith = await this._repository.ChatWith(
+        myIdObject,
+        anotherIdObject
+      );
+
+      return chatwith;
+    } catch (error) {
+      throw error;
+    }
+  };
+  sendMessage = async (
+    senderId: mongoose.Types.ObjectId,
+    reseverId: mongoose.Types.ObjectId,
+    message: string
+  ): Promise<ChatRoomDocument | null> => {
+    try {
+      return await this._repository.sendMessage(senderId, reseverId, message);
+    } catch (error) {
+      throw error;
+    }
+  };
 }
-
-
-

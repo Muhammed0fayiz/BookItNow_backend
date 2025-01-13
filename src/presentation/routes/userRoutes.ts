@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
   },
 });
 
-// Initialize multer with the defined storage
+
 const upload = multer({ storage: storage });
 
 // Authentication-related routes
@@ -50,10 +50,15 @@ router.get(
   }),
   controller.googleCallback.bind(controller)
 );
-router.post(
-  "/chatWithPerformer/:userid/:performerid",
-  controller.chatWithPerformer.bind(controller)
+router.get(
+  "/getWalletHistory/:id",
+  authMiddleware,
+  controller.walletHistory.bind(controller)
 );
+
+
+
+
 // Unprotected routes (no authMiddleware)
 router.get("/getUser/:id", controller.getUserDetails.bind(controller));
 router.put(
@@ -66,17 +71,16 @@ router.put(
   authMiddleware,
   controller.changePassword.bind(controller)
 );
+
+
+
+
+
 router.get(
   "/getAllEvents/:id",
   authMiddleware,
   controller.getAllEvents.bind(controller)
 );
-router.get(
-  "/getperformers/:id",
-  authMiddleware,
-  controller.getAllPerformers.bind(controller)
-);
-
 router.post(
   "/events/book",
   authMiddleware,
@@ -93,40 +97,79 @@ router.post(
   controller.cancelEventByUser.bind(controller)
 );
 router.get(
-  "/getWalletHistory/:id",
+  "/userUpcomingEvents/:id",
   authMiddleware,
-  controller.walletHistory.bind(controller)
-);
-router.post(
-  "/handleSendMessage/:sender/:receiver",
-  authMiddleware,
-  controller.sendMessage.bind(controller)
-);
-router.post("/ed/:id", controller.updateBookingDate.bind(controller));
-router.post(
-  "/checkavailable",
-  authMiddleware,
-  controller.availableDate.bind(controller)
+  controller.getUpcomingEvents.bind(controller)
 );
 router.get(
   "/eventhistory/:id",
   authMiddleware,
   controller.eventHistory.bind(controller)
 );
+router.get(
+  "/userEventHistory/:id",
+  authMiddleware,
+  controller.getEventHistory.bind(controller)
+);
+router.get(
+  "/getFilteredEvents/:userId",
+  authMiddleware,
+  controller.getFilteredEvents.bind(controller)
+);
 router.post(
   "/add-rating/:id",
   authMiddleware,
   controller.addRating.bind(controller)
+);
+router.get(
+  "/favorites/:id",
+  authMiddleware,
+  controller.getFavoriteEvents.bind(controller)
+);
+router.post(
+  "/toggleFavoriteEvent/:userId/:eventId",
+  authMiddleware,
+  controller.toggleFavoriteEvent.bind(controller)
 );
 router.post(
   "/walletPayment",
   authMiddleware,
   controller.walletPayment.bind(controller)
 );
+//debug
+router.post("/ed/:id", controller.updateBookingDate.bind(controller));
+
+
+
 router.get(
-  "/favorites/:id",
+  "/getperformers/:id",
   authMiddleware,
-  controller.getFavoriteEvents.bind(controller)
+  controller.getAllPerformers.bind(controller)
+);
+router.post(
+  "/checkavailable",
+  authMiddleware,
+  controller.availableDate.bind(controller)
+);
+router.get(
+  "/getFilteredPerformers/:userId",
+  authMiddleware,
+  controller.getFilteredPerformers.bind(controller)
+);
+
+
+
+
+
+
+router.post(
+  "/handleSendMessage/:sender/:receiver",
+  authMiddleware,
+  controller.sendMessage.bind(controller)
+);
+router.post(
+  "/chatWithPerformer/:userid/:performerid",
+  controller.chatWithPerformer.bind(controller)
 );
 router.get(
   "/chat-with/:myId/:anotherId",
@@ -137,11 +180,6 @@ router.get(
   "/chatrooms/:id",
   authMiddleware,
   controller.getAllChatRooms.bind(controller)
-);
-router.post(
-  "/toggleFavoriteEvent/:userId/:eventId",
-  authMiddleware,
-  controller.toggleFavoriteEvent.bind(controller)
 );
 router.post(
   "/onlineUser/:userId/:anotherId",
@@ -158,27 +196,11 @@ router.get(
   controller.getMessgeNotification.bind(controller)
 );
 router.get(
-  "/userUpcomingEvents/:id",
+  "/checkOnline/:userId/:otherId",
   authMiddleware,
-  controller.getUpcomingEvents.bind(controller)
+  controller.checkOnlineUser.bind(controller)
 );
 
-router.get(
-  "/userEventHistory/:id",
-  authMiddleware,
-  controller.getEventHistory.bind(controller)
-);
-router.get('/checkOnline/:userId/:otherId',authMiddleware,controller.checkOnlineUser.bind(controller))
-router.get(
-  "/getFilteredPerformers/:userId",
-  authMiddleware,
-  controller.getFilteredPerformers.bind(controller)
-);
 
-router.get(
-  "/getFilteredEvents/:userId",
-  authMiddleware,
-  controller.getFilteredEvents.bind(controller)
-);
 
 export default router;

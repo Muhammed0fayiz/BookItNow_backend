@@ -15,26 +15,35 @@ import { AdminDocument } from "../../infrastructure/models/adminModel";
 import { AdminDetails } from "../../domain/entities/adminDetails";
 export interface IadminRepository {
 
-  getAllUser(): Promise<UserDocument[]>;
 
-  userStatusChange(id: string, isblocked: boolean): Promise<User>;
+
+  getAdminDetails():Promise<AdminDetails>
+  getReport(startDate: Date,endDate: Date): Promise<AdminDetails>
+  adminWallet():Promise<AdminDocument[]|null>
+
+
+  getTempPerformer():Promise<TempPerformerDocument[]|null>
+  grantedPermission(id:string): Promise<Performer>;
+  rejectedPermission(id:string): Promise<TempPerformer>;
+  
+
+
+  
+  getAllPerformer():Promise<Performer[]|null>
   performerStatusChange(
     id: string,
     isblocked: boolean,
     isPerfomerBlock: boolean
-  ): Promise<User>; // Include isverified
+  ): Promise<User>; 
 
 
 
-  getTempPerformer():Promise<TempPerformerDocument[]|null>
-  // resendOtp(email:string):Promise<OtpUser>
+  getAllUser(): Promise<UserDocument[]>;
+  userStatusChange(id: string, isblocked: boolean): Promise<User>;
 
-  grantedPermission(id:string): Promise<Performer>; // Ensure this method takes an argument
-  rejectedPermission(id:string): Promise<TempPerformer>;
-  getAllPerformer():Promise<Performer[]|null>
+
   getAllEvents(): Promise<EventDocument[]| null>;
   toggleBlockStatus(id:string):Promise<EventDocument|null>
-  adminWallet():Promise<AdminDocument[]|null>
-  getAdminDetails():Promise<AdminDetails>
-  getReport(startDate: Date,endDate: Date): Promise<AdminDetails>
+
+
 }

@@ -19,33 +19,40 @@ import { MessageNotification } from "../../domain/entities/messageNotification";
 
 
 export interface IuserRepository {
+
+  loginUser(email: string, password: string): Promise<User | null | string>;
+  tempUserExist(email: string): Promise<OtpUser | null>;
+  checkOtp(user: checkOtp): Promise<User | null>;
+  resendOtp(email: string, otp: string): Promise<User | null>;
   userExist(email: string): Promise<User | null>;
-  insertUser(
-    mail: string,
-    password: string,
-    username: string
-  ): Promise<User | null>;
   OtpUser(
     mail: string,
     otp: string,
     username: string,
     password: string
   ): Promise<OtpUser | null>;
+  insertUser(
+    mail: string,
+    password: string,
+    username: string
+  ): Promise<User | null>;
 
-  checkOtp(user: checkOtp): Promise<User | null>;
-  tempUserExist(email: string): Promise<OtpUser | null>;
-  loginUser(email: string, password: string): Promise<User | null | string>;
 
+
+
+ 
   // getUserDetails(id: any): Promise<UserDocuments | null>;
   getUserDetails(id: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
-  resendOtp(email: string, otp: string): Promise<User | null>;
   updateUserPassword(
     id: mongoose.Types.ObjectId,
     newPassword: string
   ): Promise<UserDocuments | null>;
+  walletHistory(
+    objectId: mongoose.Types.ObjectId
+  ): Promise<WalletDocument[] | null>;
+
 
   getAllEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
-  getAllPerformer(id: mongoose.Types.ObjectId): Promise<Performer[] | null>;
   userBookEvent(
     formData: Record<string, any>,
     eventId: string,
@@ -55,34 +62,9 @@ export interface IuserRepository {
   getAllUpcomingEvents(
     id: mongoose.Types.ObjectId
   ): Promise<{ totalCount: number; upcomingEvents: UpcomingEventDocument[] }>;
-
   cancelEvent(
     objectId: mongoose.Types.ObjectId
   ): Promise<BookingDocument | null>;
-  walletHistory(
-    objectId: mongoose.Types.ObjectId
-  ): Promise<WalletDocument[] | null>;
-  availableDate(
-    formData: Record<string, any>,
-    eventId: string,
-    performerId: string
-  ): Promise<boolean>;
-
-  ratingAdded(
-    bookingId: mongoose.Types.ObjectId,
-    rating: number,
-    review: string
-  ): Promise<EventDocument | null>;
-  userWalletBookEvent(
-    formData: Record<string, any>,
-    eventId: string,
-    performerId: string,
-    userId: string
-  ): Promise<BookingDocument | null>;
-  toggleFavoriteEvent(
-    uid: mongoose.Types.ObjectId,
-    eid: mongoose.Types.ObjectId
-  ): Promise<FavoriteDocument | null>;
   getAllEventHistory(id: mongoose.Types.ObjectId): Promise<{
     totalCount: number;
     pastEventHistory: UpcomingEventDocument[];
@@ -100,6 +82,21 @@ export interface IuserRepository {
     skip: number,
     limit: number
   ): Promise<{ events: EventDocument[]; totalCount: number } | null>;
+  ratingAdded(
+    bookingId: mongoose.Types.ObjectId,
+    rating: number,
+    review: string
+  ): Promise<EventDocument | null>;
+  userWalletBookEvent(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string,
+    userId: string
+  ): Promise<BookingDocument | null>;
+  toggleFavoriteEvent(
+    uid: mongoose.Types.ObjectId,
+    eid: mongoose.Types.ObjectId
+  ): Promise<FavoriteDocument | null>;
   getFilteredPerformers(
  id:mongoose.Types.ObjectId,
     filterOptions: any,
@@ -107,8 +104,22 @@ export interface IuserRepository {
     skip: number,
     limit: number
   ): Promise<{ performers: Performer[]; totalCount: number } | null>;
-  
 favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; events: EventDocument[] | null }>;
+getUpcomingEvents(
+  userId: mongoose.Types.ObjectId,
+  page: number
+): Promise<UpcomingEventDocument[]>;
+
+
+
+  getAllPerformer(id: mongoose.Types.ObjectId): Promise<Performer[] | null>;
+  availableDate(
+    formData: Record<string, any>,
+    eventId: string,
+    performerId: string
+  ): Promise<boolean>;
+
+ 
   sendMessage(
     senderId: mongoose.Types.ObjectId,
     receiverId: mongoose.Types.ObjectId,
@@ -120,11 +131,6 @@ favaroiteEvents(id: mongoose.Types.ObjectId): Promise<{ totalEvent: number; even
   ): Promise<MessageDocument[] | null>;
   getAllChatRooms(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null>;
   chatWithPerformer(userId:mongoose.Types.ObjectId, performerId:mongoose.Types.ObjectId):Promise<ChatRoomDocument|null>
-  getUpcomingEvents(
-    userId: mongoose.Types.ObjectId,
-    page: number
-  ): Promise<UpcomingEventDocument[]>;
-
      getMessageNotification(userId:mongoose.Types.ObjectId):Promise<MessageNotification|null>
      CheckOnline(id: mongoose.Types.ObjectId, oId: mongoose.Types.ObjectId): Promise<boolean>
 

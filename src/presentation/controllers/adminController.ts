@@ -11,7 +11,7 @@ import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
 import { IadminUseCase } from "../../application/interfaces/IadminUseCase";
 import mongoose from "mongoose";
 import { AdminModel } from "../../infrastructure/models/adminModel";
-const ExcelJS = require('exceljs');
+const ExcelJS = require("exceljs");
 
 import bcrypt from "bcrypt";
 export class adminController {
@@ -21,184 +21,22 @@ export class adminController {
     this._useCase = useCase;
   }
 
-  allUsers = async (req: Request, res: Response, next: NextFunction) => {
+  loginpost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const users = await this._useCase.getAllUser();
+      const hashedPassword = await bcrypt.hash("123", 10);
 
-      if (!users || users.length === 0) {
-        return res
-          .status(ResponseStatus.NotFound)
-          .json({ message: "No users found." });
-      }
+      await AdminModel.insertMany([
+        {
+          email: "admin@gmail.com",
+          password: hashedPassword,
+        },
+      ]);
 
-      res.status(ResponseStatus.OK).json(users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      next(error);
-    }
-  };
-
-  blockunblockuser = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const id: string = req.params.id;
-
-      const { isblocked }: { isblocked: boolean } = req.body;
-
-      const userStatusChange = await this._useCase.userStatusChange(
-        id,
-        isblocked
-      );
-
-      res.status(200).json({ success: true, user: userStatusChange });
+      res.status(201).json({ message: "Admin inserted successfully" });
     } catch (error) {
       next(error);
     }
   };
-
-  blockunblockperformer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const userId: string = req.params.id;
-
-      if (!userId) {
-        return res
-          .status(400)
-          .json({ success: false, message: "User ID is required" });
-      }
-
-      const {
-        isblocked,
-        isPerfomerBlock,
-      }: { isblocked: boolean; isPerfomerBlock: boolean } = req.body;
-
-      // Call the use case with both statuses
-      const performerStatusChange = await this._useCase.performerStatusChange(
-        userId,
-        isblocked,
-        isPerfomerBlock
-      );
-
-      res.status(200).json({ success: true, user: performerStatusChange });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(500).json({ success: false, message: error.message });
-      } else {
-        res
-          .status(500)
-          .json({ success: false, message: "An unknown error occurred" });
-      }
-    }
-  };
-
-  // Inside your controller
-  allTempPerformers = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const tempPerformers = await this.useCase.getTempPerformer();
-
-      if (tempPerformers) {
-        res.status(200).json({ success: true, data: tempPerformers });
-      }
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  grandedPermission = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const id: string = req.params.id;
-
-      if (!id) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid ID provided" });
-      }
-
-      const permitedUser = await this.useCase.grantedPermission(id);
-
-      if (permitedUser) {
-        return res.status(200).json({ success: true, data: permitedUser });
-      } else {
-        return res.status(404).json({
-          success: false,
-          message: "Performer not found or permission not granted",
-        });
-      }
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  rejectedPermission = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const id: string = req.params.id;
-    const  rejectReason=req.body.rejectReason;
-   
-      // Validate ID format
-      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid ID provided" });
-      }
-
-      const permitedUser = await this.useCase.rejectedPermission(id,rejectReason);
-
-      if (permitedUser) {
-        return res.status(200).json({
-          success: true,
-          data: permitedUser,
-          message: "Permission rejected successfully",
-        });
-      } else {
-        return res.status(404).json({
-          success: false,
-          message: "Performer not found or permission not granted",
-        });
-      }
-    } catch (error) {
-      console.error("Error in rejectedPermission controller:", error);
-      next(error);
-    }
-  };
-
-  getAllPerformers = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const performers = await this._useCase.getAllPerformer();
-
-      if (!performers || performers.length === 0) {
-        return res.status(404).json({ message: "No performers found." });
-      }
-
-      // Respond with the fetched performers
-      res.status(200).json({ success: true, data: performers });
-    } catch (error) {
-      console.error("Error fetching performers:", error);
-      next(error); // Pass the error to the error handling middleware
-    }
-  };
-
   adminLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
@@ -264,6 +102,116 @@ export class adminController {
     }
   };
 
+  isSessionExist = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (req.session?.admin) {
+        return res.status(200).json({
+          sessionExists: true,
+          message: "A session exists",
+        });
+      } else {
+        return res.status(200).json({
+          sessionExists: false,
+          message: "No active session",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking if session exists:", error);
+      return res.status(500).json({
+        sessionExists: false,
+        message: "Server error while checking session existence",
+      });
+    }
+  };
+  getAdminDetails = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this._useCase.getAdminDetails();
+
+      return res.status(200).json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch admin details. Please try again later.",
+      });
+    }
+  };
+  downloadReport = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      // Validate dates
+      const start = startDate ? new Date(startDate as string) : null;
+      const end = endDate ? new Date(endDate as string) : null;
+
+      if (!(start instanceof Date) || isNaN(start.getTime())) {
+        return res.status(400).json({ error: "Invalid startDate" });
+      }
+
+      if (!(end instanceof Date) || isNaN(end.getTime())) {
+        return res.status(400).json({ error: "Invalid endDate" });
+      }
+
+      // Get report data
+      const report = await this._useCase.getReport(start, end);
+
+      // Generate Excel report
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Admin Report");
+
+      worksheet.columns = [
+        { header: "Metric", key: "metric", width: 25 },
+        { header: "Value", key: "value", width: 50 },
+      ];
+
+      worksheet.addRow({ metric: "Wallet Amount", value: report.walletAmount });
+      worksheet.addRow({ metric: "Wallet Transaction History", value: "" });
+
+      Object.entries(report.performerRegistrationHistory).forEach(
+        ([date, count]) => {
+          worksheet.addRow({ metric: `  - ${date}`, value: count });
+        }
+      );
+
+      worksheet.addRow({ metric: "Total Users", value: report.totalUsers });
+      worksheet.addRow({
+        metric: "Total Performers",
+        value: report.totalPerformers,
+      });
+
+      worksheet.addRow({ metric: "User Registration History", value: "" });
+      Object.entries(report.userRegistrationHistory).forEach(
+        ([date, count]) => {
+          worksheet.addRow({ metric: `  - ${date}`, value: count });
+        }
+      );
+
+      worksheet.addRow({ metric: "Performer Registration History", value: "" });
+      Object.entries(report.performerRegistrationHistory).forEach(
+        ([date, count]) => {
+          worksheet.addRow({ metric: `  - ${date}`, value: count });
+        }
+      );
+
+      // Set response headers for Excel file download
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=Admin_Report_${startDate}_to_${endDate}.xlsx`
+      );
+
+      // Write workbook to response stream
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      next(error);
+    }
+  };
   adminLogout = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (req.session?.admin) {
@@ -287,28 +235,198 @@ export class adminController {
       return res.status(500).json({ success: false, message: "Server error" });
     }
   };
-  isSessionExist = async (req: Request, res: Response, next: NextFunction) => {
+
+
+
+
+
+  allTempPerformers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      if (req.session?.admin) {
-        return res.status(200).json({
-          sessionExists: true,
-          message: "A session exists",
-        });
+      const tempPerformers = await this.useCase.getTempPerformer();
+
+      if (tempPerformers) {
+        res.status(200).json({ success: true, data: tempPerformers });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+  grandedPermission = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id: string = req.params.id;
+
+      if (!id) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid ID provided" });
+      }
+
+      const permitedUser = await this.useCase.grantedPermission(id);
+
+      if (permitedUser) {
+        return res.status(200).json({ success: true, data: permitedUser });
       } else {
-        return res.status(200).json({
-          sessionExists: false,
-          message: "No active session",
+        return res.status(404).json({
+          success: false,
+          message: "Performer not found or permission not granted",
         });
       }
     } catch (error) {
-      console.error("Error checking if session exists:", error);
-      return res.status(500).json({
-        sessionExists: false,
-        message: "Server error while checking session existence",
-      });
+      next(error);
+    }
+  };
+  rejectedPermission = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id: string = req.params.id;
+      const rejectReason = req.body.rejectReason;
+
+      // Validate ID format
+      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid ID provided" });
+      }
+
+      const permitedUser = await this.useCase.rejectedPermission(
+        id,
+        rejectReason
+      );
+
+      if (permitedUser) {
+        return res.status(200).json({
+          success: true,
+          data: permitedUser,
+          message: "Permission rejected successfully",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Performer not found or permission not granted",
+        });
+      }
+    } catch (error) {
+      console.error("Error in rejectedPermission controller:", error);
+      next(error);
     }
   };
 
+
+
+
+
+
+  getAllPerformers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const performers = await this._useCase.getAllPerformer();
+
+      if (!performers || performers.length === 0) {
+        return res.status(404).json({ message: "No performers found." });
+      }
+
+      // Respond with the fetched performers
+      res.status(200).json({ success: true, data: performers });
+    } catch (error) {
+      console.error("Error fetching performers:", error);
+      next(error); // Pass the error to the error handling middleware
+    }
+  };
+  blockunblockperformer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId: string = req.params.id;
+
+      if (!userId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "User ID is required" });
+      }
+
+      const {
+        isblocked,
+        isPerfomerBlock,
+      }: { isblocked: boolean; isPerfomerBlock: boolean } = req.body;
+
+      // Call the use case with both statuses
+      const performerStatusChange = await this._useCase.performerStatusChange(
+        userId,
+        isblocked,
+        isPerfomerBlock
+      );
+
+      res.status(200).json({ success: true, user: performerStatusChange });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ success: false, message: error.message });
+      } else {
+        res
+          .status(500)
+          .json({ success: false, message: "An unknown error occurred" });
+      }
+    }
+  };
+
+
+
+
+  allUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const users = await this._useCase.getAllUser();
+
+      if (!users || users.length === 0) {
+        return res
+          .status(ResponseStatus.NotFound)
+          .json({ message: "No users found." });
+      }
+
+      res.status(ResponseStatus.OK).json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      next(error);
+    }
+  };
+  blockunblockuser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id: string = req.params.id;
+
+      const { isblocked }: { isblocked: boolean } = req.body;
+
+      const userStatusChange = await this._useCase.userStatusChange(
+        id,
+        isblocked
+      );
+
+      res.status(200).json({ success: true, user: userStatusChange });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+
+ 
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const allEvents = await this._useCase.getAllEvents();
@@ -330,7 +448,6 @@ export class adminController {
   ) => {
     try {
       const { id } = req.params;
-
 
       if (!id || typeof id !== "string") {
         return res
@@ -357,97 +474,6 @@ export class adminController {
     }
   };
 
-  loginpost = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const hashedPassword = await bcrypt.hash("123", 10);
 
-      await AdminModel.insertMany([
-        {
-          email: "admin@gmail.com",
-          password: hashedPassword,
-        },
-      ]);
-
-      res.status(201).json({ message: "Admin inserted successfully" });
-    } catch (error) {
-      next(error);
-    }
-  };
-  getAdminDetails = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const response = await this._useCase.getAdminDetails();
-
-      return res.status(200).json({
-        success: true,
-        data: response,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch admin details. Please try again later.",
-      });
-    }
-  };
-  downloadReport = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { startDate, endDate } = req.query;
-  
-      // Validate dates
-      const start = startDate ? new Date(startDate as string) : null;
-      const end = endDate ? new Date(endDate as string) : null;
-  
-      if (!(start instanceof Date) || isNaN(start.getTime())) {
-        return res.status(400).json({ error: 'Invalid startDate' });
-      }
-  
-      if (!(end instanceof Date) || isNaN(end.getTime())) {
-        return res.status(400).json({ error: 'Invalid endDate' });
-      }
-  
-  
-      // Get report data
-      const report = await this._useCase.getReport(start, end);
-  
-      // Generate Excel report
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Admin Report');
-  
-      worksheet.columns = [
-        { header: 'Metric', key: 'metric', width: 25 },
-        { header: 'Value', key: 'value', width: 50 },
-      ];
-  
-      worksheet.addRow({ metric: 'Wallet Amount', value: report.walletAmount });
-      worksheet.addRow({ metric: 'Wallet Transaction History', value: '' });
-  
-         Object.entries(report.performerRegistrationHistory).forEach(([date, count]) => {
-      worksheet.addRow({ metric: `  - ${date}`, value: count });
-    });
-  
-      worksheet.addRow({ metric: 'Total Users', value: report.totalUsers });
-      worksheet.addRow({ metric: 'Total Performers', value: report.totalPerformers });
-  
-      worksheet.addRow({ metric: 'User Registration History', value: '' });
-      Object.entries(report.userRegistrationHistory).forEach(([date, count]) => {
-        worksheet.addRow({ metric: `  - ${date}`, value: count });
-      });
-  
-      worksheet.addRow({ metric: 'Performer Registration History', value: '' });
-      Object.entries(report.performerRegistrationHistory).forEach(([date, count]) => {
-        worksheet.addRow({ metric: `  - ${date}`, value: count });
-      });
-  
-      // Set response headers for Excel file download
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename=Admin_Report_${startDate}_to_${endDate}.xlsx`);
-  
-      // Write workbook to response stream
-      await workbook.xlsx.write(res);
-      res.end();
-    } catch (error) {
-      next(error);
-    }
-  };
-  
-  
+ 
 }

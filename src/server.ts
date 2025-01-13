@@ -1,21 +1,20 @@
-
 import express from "express";
 import cors from "cors";
 import passportConfig from "./config/passport";
 import passport from "passport";
 import session from "express-session";
-import cookieParser from 'cookie-parser';
-import { createServer } from 'http';
+import cookieParser from "cookie-parser";
+import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import dotenv from 'dotenv';
-import userRoutes from './presentation/routes/userRoutes';
-import adminRoutes from './presentation/routes/adminRoutes';
-import performerRoutes from './presentation/routes/performerRoutes';
-import paymentRoutes from './presentation/routes/paymentRoutes';
-import { connectDatabase } from './infrastructure/db/dbConnection';
+import dotenv from "dotenv";
+import userRoutes from "./presentation/routes/userRoutes";
+import adminRoutes from "./presentation/routes/adminRoutes";
+import performerRoutes from "./presentation/routes/performerRoutes";
+import paymentRoutes from "./presentation/routes/paymentRoutes";
+import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
 
-const cron = require('node-cron');
+const cron = require("node-cron");
 // Load environment variables
 dotenv.config();
 
@@ -37,15 +36,16 @@ const io = new Server(httpServer, {
 app.use(cookieParser());
 app.use(
   session({
-    secret: 'your-secret-key',
+    secret: "your-secret-key",
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false },
   })
 );
-cron.schedule('00 18 * * *', () => { 
+cron.schedule("06 12 * * *", () => {
   sendReminder();
 });
+
 const allowedOrigins = ["http://localhost:3000"];
 const corsOptions = {
   origin: allowedOrigins,
@@ -61,14 +61,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use((req, res, next) => {
-  req.io = io
-  next()
-})
+  req.io = io;
+  next();
+});
 // Routes
-app.use('/', userRoutes);
-app.use('/performer', performerRoutes);
-app.use('/admin', adminRoutes);
-app.use('/payment', paymentRoutes);
+app.use("/", userRoutes);
+app.use("/performer", performerRoutes);
+app.use("/admin", adminRoutes);
+app.use("/payment", paymentRoutes);
 
 // Socket.IO logic
 interface UserSocketMap {
@@ -80,10 +80,10 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
-interface Notication{
+interface Notication {
   senderId: string;
   receiverId: string;
-  count:number
+  count: number;
 }
 const userSocketMap: UserSocketMap = {};
 
@@ -92,19 +92,19 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("userConnected", (userId: string) => {
     userSocketMap[userId] = socket.id;
-    console.log("🆔 map ",userSocketMap)
+    console.log("🆔 map ", userSocketMap);
     console.log(`User connected: ${userId} with socket ID: ${socket.id}`);
   });
 
   socket.on("sendMessage", (messageData: MessageData) => {
-    console.log("😏 yup success")
+    console.log("😏 yup success");
     const { senderId, receiverId, message } = messageData;
-    console.log("msg data 🤖",messageData)
+    console.log("msg data 🤖", messageData);
     const receiverSocketId = userSocketMap[receiverId];
     console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
 
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("yougotamsg", { senderId ,message});
+      io.to(receiverSocketId).emit("yougotamsg", { senderId, message });
       io.to(receiverSocketId).emit("receiveMessage", { senderId, message });
     }
   });
@@ -123,13 +123,15 @@ io.on("connection", (socket: Socket) => {
 // Connect to database and start server
 const port = process.env.PORT || 5001;
 
-connectDatabase().then(() => {
-  httpServer.listen(port, () => {
-    console.log(`Server and Socket.IO are running on port ${port}`);
+connectDatabase()
+  .then(() => {
+    httpServer.listen(port, () => {
+      console.log(`Server and Socket.IO are running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to database:", err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('Failed to connect to database:', err);
-  process.exit(1);
-});
 
 export { app, io, httpServer };

@@ -15,89 +15,43 @@ import { EventDocument } from "../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../infrastructure/models/adminModel";
 import bcrypt from "bcrypt";
 import { AdminDetails } from "../../domain/entities/adminDetails";
-const ExcelJS = require('exceljs');
-const path=require('path')
+const ExcelJS = require("exceljs");
+const path = require("path");
 export class adminUseCase implements IadminUseCase {
   private _repository: IadminRepository;
 
   constructor(private repository: IadminRepository) {
     this._repository = repository;
   }
-  getReport = async (startdate: Date, endingdate: Date): Promise<AdminDetails> => {
+
+
+
+
+
+
+  getAdminDetails = async (): Promise<AdminDetails> => {
+    try {
+      const adminDetail = await this._repository.getAdminDetails();
+
+      return adminDetail;
+    } catch (error) {
+      throw error;
+    }
+  };
+  getReport = async (
+    startdate: Date,
+    endingdate: Date
+  ): Promise<AdminDetails> => {
     const report = await this._repository.getReport(startdate, endingdate);
- 
 
     return report;
   };
-  
-
-  adminWallet=async(): Promise<AdminDocument []| null>=> {
-    const adminWallet=await this._repository.adminWallet()
-    return adminWallet
-  }
-
-  rejectedPermission = async (id: string,rejectReason:string): Promise<TempPerformer> => {
-    try {
-      // Fetch rejected performer data
-      const tempPerformer = await this._repository.rejectedPermission(id);
-
-      if (tempPerformer) {
-        const user = await UserModel.findById(tempPerformer.user_id);
-
-        if (user) {
-    
-
-          // Send rejection email
-          try {
-            const rejectionMessage = await this.sendRejectionEmail(user.email,rejectReason);
-         
-          } catch (error) {
-            console.error("Error sending rejection email:", error);
-          }
-        }
-      }
-
-      return tempPerformer;
-    } catch (error) {
-      throw error;
-    }
-  };
-  getAllPerformer = async (): Promise<Performer[] | null> => {
-    try {
-    
-      return await this._repository.getAllPerformer();
-    } catch (error) {
-      throw error;
-    }
-  };
-  grantedPermission = async (id: string): Promise<Performer> => {
-    // Fetch performer data or handle logic here
-
-
-    const performer = await this._repository.grantedPermission(id);
-
-    if (performer) {
-      const user = await UserModel.findById(performer.userId); // Declare user here
-
-      if (user) {
-  
-
-        // Send congratulatory email
-        try {
-          const successMessage = await this.sendCongratulatoryEmail(user.email);
-       
-        } catch (error) {
-          console.error("Error sending congratulatory email:", error);
-        }
-      }
-    }
-
-    return performer as unknown as Performer;
+  adminWallet = async (): Promise<AdminDocument[] | null> => {
+    const adminWallet = await this._repository.adminWallet();
+    return adminWallet;
   };
 
-  getUserDetails(id: string): unknown {
-    throw new Error("Method not implemented.");
-  }
+
 
   getTempPerformer = async (): Promise<any[] | null> => {
     try {
@@ -106,36 +60,25 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
+  grantedPermission = async (id: string): Promise<Performer> => {
+ 
 
-  userStatusChange = async (id: string, isblocked: boolean): Promise<User> => {
-    try {
-      return await this._repository.userStatusChange(id, isblocked);
-    } catch (error) {
-      throw error;
-    }
-  };
-  performerStatusChange = async (
-    id: string,
-    isblocked: boolean,
-    isverified: boolean
-  ): Promise<User> => {
-    try {
+    const performer = await this._repository.grantedPermission(id);
 
-      return await this._repository.performerStatusChange(
-        id,
-        isblocked,
-        isverified
-      );
-    } catch (error) {
-      throw error;
+    if (performer) {
+      const user = await UserModel.findById(performer.userId); // Declare user here
+
+      if (user) {
+      
+        try {
+          const successMessage = await this.sendCongratulatoryEmail(user.email);
+        } catch (error) {
+          console.error("Error sending congratulatory email:", error);
+        }
+      }
     }
-  };
-  getAllUser = async (): Promise<UserDocument[]> => {
-    try {
-      return await this._repository.getAllUser();
-    } catch (error) {
-      throw error;
-    }
+
+    return performer as unknown as Performer;
   };
   sendCongratulatoryEmail = async (email: string): Promise<string> => {
     try {
@@ -181,11 +124,45 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
+  rejectedPermission = async (
+    id: string,
+    rejectReason: string
+  ): Promise<TempPerformer> => {
+    try {
+      // Fetch rejected performer data
+      const tempPerformer = await this._repository.rejectedPermission(id);
 
-  sendRejectionEmail = async (email: string, rejectReason: string): Promise<string> => {
+      if (tempPerformer) {
+        const user = await UserModel.findById(tempPerformer.user_id);
+
+        if (user) {
+          // Send rejection email
+          try {
+            const rejectionMessage = await this.sendRejectionEmail(
+              user.email,
+              rejectReason
+            );
+          } catch (error) {
+            console.error("Error sending rejection email:", error);
+          }
+        }
+      }
+
+      return tempPerformer;
+    } catch (error) {
+      throw error;
+    }
+  };
+  sendRejectionEmail = async (
+    email: string,
+    rejectReason: string
+  ): Promise<string> => {
     try {
       console.log("Sending rejection email...");
-      const sendEmail = async (email: string, rejectReason: string): Promise<string> => {
+      const sendEmail = async (
+        email: string,
+        rejectReason: string
+      ): Promise<string> => {
         return new Promise((resolve, reject) => {
           const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -227,33 +204,69 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
-   
-  getAllEvents=async(): Promise<EventDocument[]| null> =>{
-    try {
-       return this._repository.getAllEvents()
-    } catch (error) {
-      throw error
-    }
-    }
 
 
-    toggleBlockStatus=async(id: string): Promise<EventDocument | null>=> {
-     try {
-      return this._repository.toggleBlockStatus(id)
-     } catch (error) {
-      throw error
-      
-     }
-    }
-    getAdminDetails=async(): Promise<AdminDetails>=> {
-      try {
-       const adminDetail= await this._repository.getAdminDetails()
 
-     
-       return adminDetail
-      } catch (error) {
-        throw error
-      }
-    }
   
+  getAllPerformer = async (): Promise<Performer[] | null> => {
+    try {
+      return await this._repository.getAllPerformer();
+    } catch (error) {
+      throw error;
+    }
+  };
+  performerStatusChange = async (
+    id: string,
+    isblocked: boolean,
+    isverified: boolean
+  ): Promise<User> => {
+    try {
+      return await this._repository.performerStatusChange(
+        id,
+        isblocked,
+        isverified
+      );
+    } catch (error) {
+      throw error;
+    }
+  };
+
+
+
+  
+  getAllUser = async (): Promise<UserDocument[]> => {
+    try {
+      return await this._repository.getAllUser();
+    } catch (error) {
+      throw error;
+    }
+  };
+  userStatusChange = async (id: string, isblocked: boolean): Promise<User> => {
+    try {
+      return await this._repository.userStatusChange(id, isblocked);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+
+
+
+  getAllEvents = async (): Promise<EventDocument[] | null> => {
+    try {
+      return this._repository.getAllEvents();
+    } catch (error) {
+      throw error;
+    }
+  };
+  toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
+    try {
+      return this._repository.toggleBlockStatus(id);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+ 
+
 }
