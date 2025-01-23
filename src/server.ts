@@ -10,9 +10,20 @@ import dotenv from "dotenv";
 import userRoutes from "./presentation/routes/userRoutes";
 import adminRoutes from "./presentation/routes/adminRoutes";
 import performerRoutes from "./presentation/routes/performerRoutes";
+import performerEventRoutes from "./presentation/routes/performerEvent"
 import paymentRoutes from "./presentation/routes/paymentRoutes";
+import chatRoutes from "./presentation/routes/chatRoutes";
+import userEvent from "./presentation/routes/userEvent"
+
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
+import { userEventRepository } from "./infrastructure/repositories/user/event";
+
+
+
+
+
+
 
 const cron = require("node-cron");
 // Load environment variables
@@ -42,7 +53,7 @@ app.use(
     cookie: { secure: false },
   })
 );
-cron.schedule("06 12 * * *", () => {
+cron.schedule("11 15 * * *", () => {
   sendReminder();
 });
 
@@ -65,11 +76,13 @@ app.use((req, res, next) => {
   next();
 });
 // Routes
+app.use('/chat',chatRoutes)
 app.use("/", userRoutes);
 app.use("/performer", performerRoutes);
 app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
-
+app.use("/userEvent",userEvent)
+app.use("/performerEvent",performerEventRoutes)
 // Socket.IO logic
 interface UserSocketMap {
   [userId: string]: string;

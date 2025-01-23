@@ -1,18 +1,18 @@
-import { TempPerformerDocument } from "./../../infrastructure/models/tempPerformer";
-import { OtpUser } from "./../../domain/entities/otpUser";
-import { User, UserDocument } from "../../domain/entities/user";
-import { checkOtp } from "../../domain/entities/checkOtp";
-import { UserDocuments } from "../../infrastructure/models/userModel";
+import { TempPerformerDocument } from "./../../../infrastructure/models/tempPerformer";
+import { OtpUser } from "./../../../domain/entities/otpUser";
+import { User, UserDocument } from "../../../domain/entities/user";
+import { checkOtp } from "../../../domain/entities/checkOtp";
+import { UserDocuments } from "../../../infrastructure/models/userModel";
 import mongoose, { Types } from "mongoose";
-import { Performer } from "../../domain/entities/performer";
+import { Performer } from "../../../domain/entities/performer";
 
 import {
   TempPerformer,
 
-} from "../../domain/entities/tempPerformer";
-import { EventDocument } from "../../infrastructure/models/eventsModel";
-import { AdminDocument } from "../../infrastructure/models/adminModel";
-import { AdminDetails } from "../../domain/entities/adminDetails";
+} from "../../../domain/entities/tempPerformer";
+import { EventDocument } from "../../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../../infrastructure/models/adminModel";
+import { AdminDetails } from "../../../domain/entities/adminDetails";
 export interface IadminRepository {
 
 

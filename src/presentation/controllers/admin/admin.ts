@@ -1,16 +1,16 @@
 import { Response, Request, NextFunction } from "express";
-import { isValidEmail } from "../../shared/utils/validEmail";
-import { ResponseStatus } from "../../constants/responseStatus";
-import { IuserUseCase } from "../../application/interfaces/IuserUseCase";
-import { User } from "../../domain/entities/user";
-import { isValidPassword } from "../../shared/utils/validPassword";
-import { isValidFullName } from "../../shared/utils/validName";
-import { generateOTP } from "../../shared/utils/generateOtp";
-import { TempPerformer } from "../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../infrastructure/models/tempPerformer";
-import { IadminUseCase } from "../../application/interfaces/IadminUseCase";
+import { isValidEmail } from "../../../shared/utils/validEmail";
+import { ResponseStatus } from "../../../constants/responseStatus";
+import { IuserUseCase } from "../../../application/interfaces/user/useCase/user";
+import { User } from "../../../domain/entities/user";
+import { isValidPassword } from "../../../shared/utils/validPassword";
+import { isValidFullName } from "../../../shared/utils/validName";
+import { generateOTP } from "../../../shared/utils/generateOtp";
+import { TempPerformer } from "../../../domain/entities/tempPerformer";
+import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
+import { IadminUseCase } from "../../../application/interfaces/admin/IadminUseCase";
 import mongoose from "mongoose";
-import { AdminModel } from "../../infrastructure/models/adminModel";
+import { AdminModel } from "../../../infrastructure/models/adminModel";
 const ExcelJS = require("exceljs");
 
 import bcrypt from "bcrypt";

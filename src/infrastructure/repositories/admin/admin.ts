@@ -1,23 +1,23 @@
-import { TempPerformerDocument } from "./../models/tempPerformer";
+import { TempPerformerDocument } from "../../models/tempPerformer";
 
-import { IadminRepository } from "../../application/interfaces/IadminRepository";
-import { User, UserDocument } from "../../domain/entities/user";
-import { OtpUser } from "../../domain/entities/otpUser";
+import { IadminRepository } from "../../../application/interfaces/admin/IadminRepository";
+import { User, UserDocument } from "../../../domain/entities/user";
+import { OtpUser } from "../../../domain/entities/otpUser";
 
-import { UserDocuments, UserModel } from "../models/userModel";
+import { UserDocuments, UserModel } from "../../models/userModel";
 
 import bcrypt from "bcrypt";
 
-import { TempPerformerModel } from "../models/tempPerformer";
-import { TempPerformer } from "../../domain/entities/tempPerformer";
-import { generateOTP } from "../../shared/utils/generateOtp";
-import { tempUserModel } from "../models/tempUser";
+import { TempPerformerModel } from "../../models/tempPerformer";
+import { TempPerformer } from "../../../domain/entities/tempPerformer";
+import { generateOTP } from "../../../shared/utils/generateOtp";
+import { tempUserModel } from "../../models/tempUser";
 import { Types } from "mongoose";
-import { Performer } from "../../domain/entities/performer";
-import { PerformerModel } from "../models/performerModel";
-import { EventDocument, EventModel } from "../models/eventsModel";
-import { AdminDocument, AdminModel } from "../models/adminModel";
-import { AdminDetails } from "../../domain/entities/adminDetails";
+import { Performer } from "../../../domain/entities/performer";
+import { PerformerModel } from "../../models/performerModel";
+import { EventDocument, EventModel } from "../../models/eventsModel";
+import { AdminDocument, AdminModel } from "../../models/adminModel";
+import { AdminDetails } from "../../../domain/entities/adminDetails";
 export class adminRepository implements IadminRepository {
 
 
@@ -150,26 +150,9 @@ export class adminRepository implements IadminRepository {
   }
 
 
-  // getAllTempPerformers = async (): Promise<any[]> => {
-  //   try {
-  //     const tempPerformers = await TempPerformerModel.find().lean();
-
-  //     return tempPerformers.map((performer) => ({
-  //       ...performer,
-  //       _id: performer._id.toString(),
-  //     })) as any[];
-  //   } catch (error) {
-  //     console.error("Error fetching temp performers:", error);
-  //     return [];
-  //   }
-  // };
-
-
-  
-
   getTempPerformer = async (): Promise<TempPerformerDocument[] | null> => {
     try {
-      const tmp = await TempPerformerModel.find();
+      const tmp = await TempPerformerModel.find().sort({ _id: -1 });
       if (tmp) {
         return tmp;
       }
@@ -233,12 +216,9 @@ export class adminRepository implements IadminRepository {
   };
 
 
-
-
-
   getAllPerformer = async (): Promise<Performer[] | null> => {
     try {
-      const performers = await PerformerModel.find();
+      const performers = await PerformerModel.find().sort({ _id: -1 });;
 
       return performers;
     } catch (error) {
@@ -275,11 +255,10 @@ export class adminRepository implements IadminRepository {
   };
 
 
-
-
   getAllUser = async (): Promise<UserDocument[]> => {
     try {
-      const users = await UserModel.find().lean();
+      const users = await UserModel.find().sort({ _id: -1 }).lean();
+
 
       return users.map((user) => ({
         ...user,
@@ -326,7 +305,7 @@ export class adminRepository implements IadminRepository {
 
   getAllEvents = async (): Promise<EventDocument[] | null> => {
     try {
-      const allEvents = await EventModel.find();
+      const allEvents = await EventModel.find().sort({ _id: -1 });
       return allEvents;
     } catch (error) {
       console.error("Error fetching events:", error);

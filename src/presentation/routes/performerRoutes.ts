@@ -1,11 +1,14 @@
 import { Router } from "express";
-import { UserController } from "../controllers/userController";
-import { userRepository } from "../../infrastructure/repositories/user";
-import { userUseCase } from "../../application/useCases/user";
+import { UserController } from "../controllers/user/user";
+import { userRepository } from "../../infrastructure/repositories/user/user";
+import { userUseCase } from "../../application/useCases/user/user";
 import authenticateJWT from "../../shared/middlewares/authentication";
-import { performerRepository } from "../../infrastructure/repositories/performer";
-import { performerUseCase } from "../../application/useCases/performer";
-import { performerController } from "../controllers/performerController";
+
+
+
+import { performerRepository } from "../../infrastructure/repositories/performer/performer";
+import { performerUseCase } from "../../application/useCases/performer/performer";
+import { performerController } from "../controllers/performer/performer";
 import path from "path";
 import multer from "multer";
 import authMiddleware from "../../shared/middlewares/authMiddleware";
@@ -62,52 +65,7 @@ router.get(
   controller.getAllUsers.bind(controller)
 );
 
-router.post("/uploadEvents/:id", controller.uploadEvents.bind(controller));
-router.put(
-  "/editEvents/:id/:eid",
-  authMiddleware,
-  controller.editEvents.bind(controller)
-);
-router.get(
-  "/getPerformerEvents/:id",
-  authMiddleware,
-  controller.getPerformerEvents.bind(controller)
-);
-router.delete(
-  "/deleteEvent/:id",
-  authMiddleware,
-  controller.deleteEvent.bind(controller)
-);
-router.put(
-  "/blockUnblockEvents/:id",
-  authMiddleware,
-  controller.toggleBlockStatus.bind(controller)
-);
-router.get(
-  "/upcomingevents/:id",
-  authMiddleware,
-  controller.upcomingEvents.bind(controller)
-);
-router.post(
-  "/cancelevent/:id",
-  authMiddleware,
-  controller.cancelEventByUser.bind(controller)
-);
-router.get(
-  "/eventhistory/:id",
-  authMiddleware,
-  controller.eventHistory.bind(controller)
-);
-router.put(
-  "/changeEventStatus",
-  authMiddleware,
-  controller.changeEventStatus.bind(controller)
-);
-router.get(
-  "/performerUpcomingEvents/:id",
-  authMiddleware,
-  controller.getUpcomingEvents.bind(controller)
-);
+
 
 router.post(
   "/updateSlotStatus/:id",

@@ -1,20 +1,20 @@
-import { User, UserDocument } from "../../domain/entities/user";
+import { User, UserDocument } from "../../../domain/entities/user";
 
 import {
   TempPerformerDocument,
   TempPerformer,
-} from "../../domain/entities/tempPerformer";
+} from "../../../domain/entities/tempPerformer";
 
-import { IadminUseCase } from "../interfaces/IadminUseCase";
-import { IadminRepository } from "../interfaces/IadminRepository";
+import { IadminUseCase } from "../../interfaces/admin/IadminUseCase";
+import { IadminRepository } from "../../interfaces/admin/IadminRepository";
 import { Types } from "mongoose";
-import { Performer } from "../../domain/entities/performer";
+import { Performer } from "../../../domain/entities/performer";
 import nodemailer from "nodemailer";
-import { UserModel } from "../../infrastructure/models/userModel";
-import { EventDocument } from "../../infrastructure/models/eventsModel";
-import { AdminDocument } from "../../infrastructure/models/adminModel";
+import { UserModel } from "../../../infrastructure/models/userModel";
+import { EventDocument } from "../../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../../infrastructure/models/adminModel";
 import bcrypt from "bcrypt";
-import { AdminDetails } from "../../domain/entities/adminDetails";
+import { AdminDetails } from "../../../domain/entities/adminDetails";
 const ExcelJS = require("exceljs");
 const path = require("path");
 export class adminUseCase implements IadminUseCase {

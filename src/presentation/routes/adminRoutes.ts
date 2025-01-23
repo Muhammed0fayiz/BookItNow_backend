@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { adminController } from "../controllers/adminController";
-import { adminUseCase } from "../../application/useCases/admin";
-import { adminRepository } from "../../infrastructure/repositories/admin";
+import { adminController } from "../controllers/admin/admin";
+import { adminUseCase } from "../../application/useCases/admin/admin";
+import { adminRepository } from "../../infrastructure/repositories/admin/admin";
 import { adminAuth } from "../../shared/middlewares/adminauth";
 
 const session = require("express-session");

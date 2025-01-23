@@ -1,17 +1,17 @@
 import { getNameOfJSDocTypedef } from "typescript";
-import { OtpUser } from "../../domain/entities/otpUser";
-import { User, UserDocument } from "../../domain/entities/user";
-import { checkOtp } from "../../domain/entities/checkOtp";
+import { OtpUser } from "../../../domain/entities/otpUser";
+import { User, UserDocument } from "../../../domain/entities/user";
+import { checkOtp } from "../../../domain/entities/checkOtp";
 import {
   TempPerformer,
   TempPerformerDocument,
-} from "../../domain/entities/tempPerformer";
-import { UserDocuments } from "../../infrastructure/models/userModel";
-import { Performer } from "../../domain/entities/performer";
+} from "../../../domain/entities/tempPerformer";
+import { UserDocuments } from "../../../infrastructure/models/userModel";
+import { Performer } from "../../../domain/entities/performer";
 import mongoose, { Types } from "mongoose";
-import { EventDocument } from "../../infrastructure/models/eventsModel";
-import { AdminDocument } from "../../infrastructure/models/adminModel";
-import { AdminDetails } from "../../domain/entities/adminDetails";
+import { EventDocument } from "../../../infrastructure/models/eventsModel";
+import { AdminDocument } from "../../../infrastructure/models/adminModel";
+import { AdminDetails } from "../../../domain/entities/adminDetails";
 
 
 Performer

@@ -1,8 +1,9 @@
-import { EventDocument } from './../../infrastructure/models/eventsModel';
-
+import { PerformerModel } from './../../infrastructure/models/performerModel';
+import { EventModel } from './../../infrastructure/models/eventsModel';
 import { BookingModel } from "../../infrastructure/models/bookingEvents";
-import { UserModel, UserDocuments } from '../../infrastructure/models/userModel';
+import { UserModel } from '../../infrastructure/models/userModel';
 import nodemailer from "nodemailer";
+
 export const sendReminder = async (): Promise<void> => {
     try {
       const date = new Date();
@@ -13,7 +14,7 @@ export const sendReminder = async (): Promise<void> => {
         date: { $gte: date, $lt: futureDate }, 
         reminderSend: false,
         bookingStatus: { $ne: "canceled" },
-      }).populate(["userId", "eventId"]);
+      });
   
       if (!bookings || bookings.length === 0) {
         console.log("No reminders to send.");
@@ -21,23 +22,45 @@ export const sendReminder = async (): Promise<void> => {
       }
   
       for (const booking of bookings) {
-     
-        if (!("username" in booking.userId) || !("title" in booking.eventId)) {
-          console.error(`Booking ${booking._id} has unpopulated references`);
-          continue;
+        try {
+          // Find performer model first
+          const performerModel = await PerformerModel.findById(booking.performerId);
+          
+          if (!performerModel) {
+            console.error(`Performer model not found for booking: ${booking._id}`);
+            continue;
+          }
+
+          // Find performer user
+          const performer = await UserModel.findById(performerModel.userId);
+
+          // Find user and event
+          const user = await UserModel.findById(booking.userId);
+          const event = await EventModel.findById(booking.eventId);
+  
+          if (!performer || !user || !event) {
+            console.error(`Missing performer, user, or event for booking: ${booking._id}`);
+            continue;
+          }
+    
+          // Message for user
+          const userMessage = `Hey ${user.username}, your event "${event.title}" is on ${booking.date.toLocaleDateString()}. Please don't miss it!`;
+          
+          // Message for performer
+          const performerMessage = `Hey ${performer.username}, you have an upcoming event "${event.title}" on ${booking.date.toLocaleDateString()}. Don't forget to prepare!`;
+    
+          // Send emails to both user and performer
+          await Promise.all([
+            sendEmail(user.email, userMessage),
+            sendEmail(performer.email, performerMessage)
+          ]);
+    
+          // Update booking to mark reminder as sent
+          booking.reminderSend = true;
+          await booking.save();
+        } catch (bookingError) {
+          console.error(`Error processing booking ${booking._id}:`, bookingError);
         }
-  
-       const user = booking.userId as unknown as UserDocuments;
-             const event = booking.eventId as unknown as EventDocument;
-  
-        const message = `${user.username}, your event "${event.title}" is on ${booking.date.toLocaleDateString()}. Please don't miss it!`;
-  
-        // Send email
-        await sendEmail(user.email, message);
-  
-        // Update booking to mark reminder as sent
-        booking.reminderSend = true;
-        await booking.save();
       }
   
       console.log("All reminders sent successfully.");
@@ -51,8 +74,8 @@ export const sendReminder = async (): Promise<void> => {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: process.env.EMAIL_ADDRESS, // Your email address
-          pass: process.env.EMAIL_PASSWORD, // Your email password or app password
+          user: process.env.EMAIL_ADDRESS,
+          pass: process.env.EMAIL_PASSWORD,
         },
       });
   
@@ -75,6 +98,3 @@ export const sendReminder = async (): Promise<void> => {
       console.error("Error in sending email:", error);
     }
   };
-
-
-
