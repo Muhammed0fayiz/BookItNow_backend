@@ -1,52 +1,19 @@
-import { IChatUseCase } from '../../../application/interfaces/chat/IchatUseCase';
-import { IChatRepository } from '../../../application/interfaces/chat/IchatRepositary';
-import { UpcomingEvent } from "../../../domain/entities/performerupcomingevent";
-
-import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-import { TempPerformerDocument } from "../../models/tempPerformer";
-
-import { IuserRepository } from "../../../application/interfaces/user/repositary/user";
-import { User, UserDocument } from "../../../domain/entities/user";
-import { OtpUser } from "../../../domain/entities/otpUser";
+import { IChatRepository } from "../../../application/interfaces/chat/IchatRepositary";
 
 import { UserDocuments, UserModel } from "../../models/userModel";
-import bcrypt from "bcrypt";
 
-import { TempPerformerModel } from "../../models/tempPerformer";
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { tempUserModel } from "../../models/tempUser";
 import mongoose, { Types } from "mongoose";
-import { EventDocument, EventModel } from "../../models/eventsModel";
+
 import { PerformerModel } from "../../models/performerModel";
-import { Performer } from "../../../domain/entities/performer";
-import { BookingDocument, BookingModel } from "../../models/bookingEvents";
-import { AdminModel } from "../../models/adminModel";
-import { WalletDocument, WalletModel } from "../../models/walletHistory";
-import { SlotModel } from "../../models/slotModel";
+
 import { FavoriteDocument, FavoriteModel } from "../../models/FavoriteScema";
 import { ChatRoomDocument, ChatRoomModel } from "../../models/chatRoomModel";
 import { MessageDocument, MessageModel } from "../../models/messageModel";
 import { ChatRoom } from "../../../domain/entities/chatRoom";
-import { RatingModel } from "../../models/ratingModel";
-import { Reminder } from "../../../domain/entities/reminder";
+
 import { MessageNotification } from "../../../domain/entities/messageNotification";
-import { eventRating } from "../../../domain/entities/eventRating";
 
 export class chatRepository implements IChatRepository {
-
-
-
-
-
-
-
-
-
-
-
-  
-
   chatWithPerformer = async (
     userId: mongoose.Types.ObjectId,
     performerId: mongoose.Types.ObjectId

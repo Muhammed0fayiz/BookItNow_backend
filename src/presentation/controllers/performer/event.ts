@@ -25,23 +25,20 @@ export class performerEventController {
     this._useCase = useCase;
   }
 
-
-
   uploadEvents = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response<any> | void> => {
     try {
-      console.log('uplaod eventdf adlskfj');
-      console.log(req.body,'id');
-      
+      console.log("uplaod eventdf adlskfj");
+      console.log(req.body, "id");
+
       const id = req.params.id;
 
       if (!req.body) {
         return res.status(400).json({ message: "No event data provided." });
-        console.log('this error');
-        
+        console.log("this error");
       }
 
       const event = {
@@ -68,8 +65,7 @@ export class performerEventController {
         !event.description
       ) {
         return res.status(400).json({ message: "All fields are required." });
-        console.log('no errr');
-        
+        console.log("no errr");
       }
 
       if (event.title.length < 2) {
@@ -96,7 +92,7 @@ export class performerEventController {
       // Upload event details
       const uploadedEvent = await this._useCase.uploadEvents(event);
 
-      console.log('id',uploadedEvent,'id')
+      console.log("id", uploadedEvent, "id");
       if (uploadedEvent) {
         return res.status(201).json({
           message: "Event uploaded successfully",
@@ -160,11 +156,10 @@ export class performerEventController {
     next: NextFunction
   ): Promise<Response<any> | void> => {
     try {
-      console.log('edi ts fdsalfdlssd');
-      
+      console.log("edi ts fdsalfdlssd");
+
       const userId = req.params.id;
       const eventId = req.params.eid;
-      
 
       if (!req.body) {
         return res.status(400).json({ message: "No event data provided." });
@@ -192,8 +187,7 @@ export class performerEventController {
         description: req.body.description ? req.body.description.trim() : "",
       };
 
-      console.log('evenssss',event);
-      
+      console.log("evenssss", event);
 
       if (
         !event.title ||
@@ -202,20 +196,21 @@ export class performerEventController {
         !event.teamLeader ||
         !event.teamLeaderNumber ||
         !event.description
-      ) { console.log('errr1');
+      ) {
+        console.log("errr1");
         return res.status(400).json({ message: "All fields are required." });
       }
 
       const updatedEvent = await this._useCase.editEvents(eventId, event);
-      console.log('updated',updatedEvent);
-      
+      console.log("updated", updatedEvent);
+
       if (updatedEvent) {
         return res
           .status(200)
           .json({ message: "Event updated successfully", event: updatedEvent });
       } else {
-        console.log('errr2');
-        
+        console.log("errr2");
+
         return res.status(404).json({ message: "Event not found." });
       }
     } catch (error) {
@@ -265,7 +260,7 @@ export class performerEventController {
       const upcomingEvents = await this._useCase.getAllUpcomingEvents(
         userObjectId
       );
-   
+
       if (upcomingEvents?.upcomingEvents?.length > 0) {
         return res.status(200).json({
           success: true,
@@ -318,7 +313,7 @@ export class performerEventController {
     try {
       const userId = req.params.id;
       const userObjectId = new mongoose.Types.ObjectId(userId);
-  
+
       const result = await this._useCase.getAlleventHistory(userObjectId);
       if (result.eventHistory?.length > 0) {
         return res.status(200).json({
@@ -327,7 +322,7 @@ export class performerEventController {
           events: result.eventHistory,
         });
       }
-  
+
       return res
         .status(404)
         .json({ success: false, message: "No past events found." });
@@ -335,7 +330,6 @@ export class performerEventController {
       next(error);
     }
   };
-  
 
   changeEventStatus = async (
     req: Request,
@@ -366,20 +360,37 @@ export class performerEventController {
       next(error);
     }
   };
-  getEvent = async (
+
+  appealBlockedEvent = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
- 
-      
+      const { id, email } = req.params;
+      const { appealMessage } = req.body;
+
+      const eventId = new mongoose.Types.ObjectId(id);
+      const appeal = await this._useCase.appealSend(
+        eventId,
+        email,
+        appealMessage
+      );
+
+      res.status(200).json({ message: "Appeal sent successfully", appeal });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
       const { id } = req.params;
-      console.log('is ok',id);
+
       const eventid = new mongoose.Types.ObjectId(id);
       const event = await this._useCase.getEvent(eventid);
-  console.log('event',event);
-  
+      console.log("event", event);
+
       if (event) {
         res.status(200).json({
           success: true,
@@ -395,9 +406,7 @@ export class performerEventController {
       res.status(500).json({
         success: false,
         message: "Internal server error",
-        
       });
     }
   };
-
 }

@@ -24,7 +24,7 @@ const UserSchema: Schema<UserDocuments> = new Schema({
   isPerformerBlocked: { type: Boolean, default: false },
   walletBalance: { type: Number, default: 0 },
   waitingPermission: { type: Boolean, default: false },
-  // role: { type: String, enum: ['user', 'performer', 'admin'], default: 'user' },  // New field for role
+
   profileImage: { type: String, default: 'http://i.pravatar.cc/250?img=58' },
 }, { timestamps: true });
 

@@ -435,8 +435,6 @@ export class performerController {
     }
   };
 
-  
-
   updateSlotStatus = async (
     req: Request,
     res: Response,

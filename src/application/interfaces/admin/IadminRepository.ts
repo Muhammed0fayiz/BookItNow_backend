@@ -13,6 +13,7 @@ import {
 import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../../infrastructure/models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
+import { AdminRevenue } from "../../../domain/entities/adminRevenue";
 export interface IadminRepository {
 
 
@@ -43,7 +44,11 @@ export interface IadminRepository {
 
 
   getAllEvents(): Promise<EventDocument[]| null>;
-  toggleBlockStatus(id:string):Promise<EventDocument|null>
-
+  toggleBlockStatus(
+    id: string,
+    blockingDetails?: { reason: string; duration: number | string }
+  ): Promise<EventDocument | null>;
+  getRevenue(offset: number,
+    pageSize: number):Promise<{ totalCount: number; adminRevinue: AdminRevenue[] }|null>
 
 }

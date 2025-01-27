@@ -15,6 +15,7 @@ import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../../infrastructure/models/adminModel";
 import bcrypt from "bcrypt";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
+import { AdminRevenue } from "../../../domain/entities/adminRevenue";
 const ExcelJS = require("exceljs");
 const path = require("path");
 export class adminUseCase implements IadminUseCase {
@@ -23,6 +24,15 @@ export class adminUseCase implements IadminUseCase {
   constructor(private repository: IadminRepository) {
     this._repository = repository;
   }
+  getRevenue=async(offset: number, pageSize: number): Promise<{ totalCount: number; adminRevinue: AdminRevenue[]; } | null> =>{
+   try {
+     return await this._repository.getRevenue(offset,pageSize)
+   } catch (error) {
+    throw error
+   }
+  }
+
+
 
 
 
@@ -259,14 +269,35 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
-  toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
+  toggleBlockStatus = async (
+    id: string,
+    blockingDetails?: { reason: string; duration: number | string }
+  ): Promise<EventDocument | null> => {
     try {
-      return this._repository.toggleBlockStatus(id);
+      console.log('hari', blockingDetails?.reason, blockingDetails?.duration);
+      
+      if (!id) {
+        throw new Error("Invalid or missing ID parameter.");
+      }
+  
+      if (blockingDetails) {
+        const { reason, duration } = blockingDetails;
+  
+        if (!reason || typeof reason !== "string") {
+          throw new Error("Blocking reason must be a valid string.");
+        }
+  
+        if (!duration || (typeof duration !== "number" && typeof duration !== "string")) {
+          throw new Error("Blocking duration must be a valid number or string.");
+        }
+      }
+    
+      return await this._repository.toggleBlockStatus(id, blockingDetails);
     } catch (error) {
+      console.error("Error in toggleBlockStatus use case:", error);
       throw error;
     }
   };
-
  
 
 }

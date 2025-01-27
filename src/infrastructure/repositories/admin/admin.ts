@@ -18,7 +18,52 @@ import { PerformerModel } from "../../models/performerModel";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { AdminDocument, AdminModel } from "../../models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
+import { AdminRevenue } from "../../../domain/entities/adminRevenue";
+import { BookingModel } from "../../models/bookingEvents";
 export class adminRepository implements IadminRepository {
+  getRevenue = async (
+    offset: number,
+    pageSize: number
+  ): Promise<{ totalCount: number; adminRevinue: AdminRevenue[] } | null> => {
+    try {
+      const bookings = await BookingModel.find()
+        .skip(offset)
+        .limit(pageSize)
+        .sort({ _id: -1 }) 
+        .populate('eventId');
+  
+      const totalCount = await BookingModel.countDocuments();
+  
+      const adminRevinue: AdminRevenue[] = [];
+  
+      for (const booking of bookings) {
+        const performer = await PerformerModel.findById(booking.performerId);
+      
+        const user = await UserModel.findById(booking.userId);
+  
+        if (user && performer && booking.eventId) {
+          adminRevinue.push({
+            userName: user.username,
+            performerName: performer.bandName, // performer username
+            eventName: (booking.eventId as any).title,
+            status: booking.bookingStatus,
+            place: booking.place,
+            date: booking.createdAt.toISOString(),
+          });
+        }
+      }
+  
+      return {
+        totalCount,
+        adminRevinue,
+      };
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  
+
 
 
   getAdminDetails = async (): Promise<AdminDetails> => {
@@ -312,17 +357,57 @@ export class adminRepository implements IadminRepository {
       return null;
     }
   };
-  toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
+
+  toggleBlockStatus = async (
+    id: string,
+    blockingDetails?: { reason: string; duration: string }
+  ): Promise<EventDocument | null> => {
     try {
       const event = await EventModel.findById(id);
       if (!event) return null;
+  
       event.isblocked = !event.isblocked;
+  
+      if (event.isblocked && blockingDetails) {
+        const { reason, duration } = blockingDetails;
+        const blockingEndDate = new Date();
+  
+        switch (duration) {
+          case '1week':
+            blockingEndDate.setDate(blockingEndDate.getDate() + 7);
+            break;
+          case '1month':
+            blockingEndDate.setMonth(blockingEndDate.getMonth() + 1);
+            break;
+          case '1year':
+            blockingEndDate.setFullYear(blockingEndDate.getFullYear() + 1);
+            break;
+          case '10year':
+            blockingEndDate.setFullYear(blockingEndDate.getFullYear() + 10);
+            break;
+          default:
+            throw new Error('Invalid blocking duration');
+        }
+  
+        event.blockingReason = reason;
+        event.blockingPeriod = blockingEndDate;
+      } else {
+        event.blockingReason = "";
+        event.blockingPeriod = null;
+      }
+  
       const updatedEvent = await event.save();
       return updatedEvent;
     } catch (error) {
+      console.error("Error toggling block status:", error);
       throw error;
     }
   };
+  
+
+  }
+
+  
 
 
-}
+

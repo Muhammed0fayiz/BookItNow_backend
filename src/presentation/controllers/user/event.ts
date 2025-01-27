@@ -1,23 +1,10 @@
 import { Response, Request, NextFunction } from "express";
-import { isValidEmail } from "../../../shared/utils/validEmail";
-import { ResponseStatus } from "../../../constants/responseStatus";
-import { IuserEventUseCase } from "../../../application/interfaces/user/useCase/event";
-import { User } from "../../../domain/entities/user";
-import { isValidPassword } from "../../../shared/utils/validPassword";
-import { isValidFullName } from "../../../shared/utils/validName";
 
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
+import { IuserEventUseCase } from "../../../application/interfaces/user/useCase/event";
+
 import mongoose, { Types } from "mongoose";
 
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
-
 import { BookingModel } from "../../../infrastructure/models/bookingEvents";
-import { log } from "console";
-import { generateOTP } from "../../../shared/utils/generateOtp";
 
 export class UserEventController {
   private _useCase: IuserEventUseCase;
@@ -28,8 +15,6 @@ export class UserEventController {
 
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
-      
       const id = new mongoose.Types.ObjectId(req.params.id);
       const allEvents = await this._useCase.getAllEvents(id);
 
@@ -78,8 +63,6 @@ export class UserEventController {
   };
   upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
-
-      
       const userId = req.params.id;
 
       if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -239,7 +222,7 @@ export class UserEventController {
       );
 
       const pageNumber = parseInt(page as string) || 1;
-      const pageSize = 6; // Optional: Default page size
+      const pageSize = 6;
 
       const filterOptions: any = {};
       if (category) filterOptions.category = category;
@@ -248,7 +231,7 @@ export class UserEventController {
       const skip = (pageNumber - 1) * pageSize;
 
       const sortOrder = order === "desc" ? -1 : 1;
-      const sortField = "createdAt"; // Default sort field
+      const sortField = "price";
 
       const result = await this._useCase.getFilteredEvents(
         id,
@@ -325,6 +308,7 @@ export class UserEventController {
   getEventRating = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
+      console.log("hellerowaeoreero", id);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "Invalid event ID" });
@@ -332,13 +316,13 @@ export class UserEventController {
 
       const eventId = new mongoose.Types.ObjectId(id);
       const eventRatings = await this._useCase.getEventRating(eventId);
-
+      console.log(eventRatings);
       if (!eventRatings || eventRatings.length === 0) {
         return res
           .status(404)
           .json({ message: "No ratings found for this event." });
       }
-
+      console.log("fayid", eventRatings);
       return res.status(200).json({ ratings: eventRatings });
     } catch (error) {
       console.error("Error fetching event ratings:", error);
@@ -522,7 +506,6 @@ export class UserEventController {
             ],
           }
         : {};
-      console.log("Final Filter Options:", filterOptions);
 
       const result = await this._useCase.getFilteredPerformers(
         id,
@@ -551,5 +534,38 @@ export class UserEventController {
     }
   };
 
-  
+  getTopRatedEvent = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("Fetching top-rated events...");
+      const { id } = req.params;
+      const userId = new mongoose.Types.ObjectId(id);
+
+      const topRatedEvents = await this._useCase.getTopRatedEvent(userId);
+
+      if (topRatedEvents) {
+        console.log("Top-rated events fetched:", topRatedEvents);
+        return res.status(200).json({
+          success: true,
+          message: "Top-rated events fetched successfully.",
+          data: topRatedEvents,
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "No top-rated events found.",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching top-rated events:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching top-rated events.",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
 }

@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { UserEventController } from "../controllers/user/event";
 // import { Event } from "../../infrastructure/repositories/user/event";
@@ -31,11 +30,7 @@ const storage = multer.diskStorage({
   },
 });
 
-
 const upload = multer({ storage: storage });
-
-
-
 
 router.get(
   "/getAllEvents/:id",
@@ -82,11 +77,12 @@ router.post(
   authMiddleware,
   controller.addRating.bind(controller)
 );
-router.get('/eventrating/:id',authMiddleware,
-  controller.getEventRating.bind(controller))
+router.get(
+  "/eventrating/:id",
+  authMiddleware,
+  controller.getEventRating.bind(controller)
+);
 
-
- 
 router.get(
   "/favorites/:id",
   authMiddleware,
@@ -120,13 +116,10 @@ router.get(
   authMiddleware,
   controller.getFilteredPerformers.bind(controller)
 );
-
-
-
-
-
-
-
-
+router.get(
+  "/top-rated-event/:id",
+  authMiddleware,
+  controller.getTopRatedEvent.bind(controller)
+);
 
 export default router;

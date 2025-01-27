@@ -1,26 +1,8 @@
 import { Response, Request, NextFunction } from "express";
-import { isValidEmail } from "../../../shared/utils/validEmail";
-import { ResponseStatus } from "../../../constants/responseStatus";
+
 import { IChatUseCase } from "../../../application/interfaces/chat/IchatUseCase";
-import { User } from "../../../domain/entities/user";
-import { isValidPassword } from "../../../shared/utils/validPassword";
-import { isValidFullName } from "../../../shared/utils/validName";
 
-
-
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
 import mongoose, { Types } from "mongoose";
-
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
-
-import { BookingModel } from "../../../infrastructure/models/bookingEvents";
-import { log } from "console";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-
 
 export class ChatController {
   private _useCase: IChatUseCase;
@@ -29,7 +11,6 @@ export class ChatController {
     this._useCase = useCase;
   }
 
- 
   sendMessage = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { sender, receiver } = req.params;

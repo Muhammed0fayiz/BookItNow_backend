@@ -1,19 +1,15 @@
-import { UpcomingEvent } from "../../../domain/entities/performerupcomingevent";
+
 
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-import { TempPerformerDocument } from "../../models/tempPerformer";
+
 
 import { IuserEventRepository } from "../../../application/interfaces/user/repositary/event";
-import { User, UserDocument } from "../../../domain/entities/user";
-import { OtpUser } from "../../../domain/entities/otpUser";
+
 
 import { UserDocuments, UserModel } from "../../models/userModel";
-import bcrypt from "bcrypt";
 
-import { TempPerformerModel } from "../../models/tempPerformer";
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { tempUserModel } from "../../models/tempUser";
+
+
 import mongoose, { Types } from "mongoose";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { PerformerModel } from "../../models/performerModel";
@@ -23,15 +19,37 @@ import { AdminModel } from "../../models/adminModel";
 import { WalletDocument, WalletModel } from "../../models/walletHistory";
 import { SlotModel } from "../../models/slotModel";
 import { FavoriteDocument, FavoriteModel } from "../../models/FavoriteScema";
-import { ChatRoomDocument, ChatRoomModel } from "../../models/chatRoomModel";
-import { MessageDocument, MessageModel } from "../../models/messageModel";
-import { ChatRoom } from "../../../domain/entities/chatRoom";
 import { RatingModel } from "../../models/ratingModel";
-import { Reminder } from "../../../domain/entities/reminder";
-import { MessageNotification } from "../../../domain/entities/messageNotification";
 import { eventRating } from "../../../domain/entities/eventRating";
 
 export class userEventRepository implements IuserEventRepository {
+  getTopRatedEvent = async (userId:mongoose.Types.ObjectId): Promise<EventDocument[] | null> => {
+    try {
+      const allEvents = await EventModel.find({
+        isblocked: false,
+        isperformerblockedevents: false,
+        userId: { $ne: userId},
+      });
+
+  
+      const validEvents: EventDocument[] = [];
+      for (const event of allEvents) {
+        const performer = await UserModel.findById(event.userId);
+        if (performer && !performer.isPerformerBlocked) {
+          validEvents.push(event);
+        }
+      }
+  
+      validEvents.sort((a, b) => b.rating - a.rating);
+
+
+      return validEvents.slice(0, 3);
+    } catch (error) {
+      console.error("Error fetching top-rated events:", error);
+      return null;
+    }
+  };
+  
 
 
 
@@ -113,7 +131,7 @@ export class userEventRepository implements IuserEventRepository {
         }
       );
 
-      return upcomingEvents; // Return the events for the given page
+      return upcomingEvents; 
     } catch (error) {
       console.error("Error in getUpcomingEvents:", error);
       throw error;
@@ -442,7 +460,7 @@ export class userEventRepository implements IuserEventRepository {
     limit: number
   ): Promise<{ events: EventDocument[]; totalCount: number } | null> => {
     try {
-      console.log("id", filterOptions, "d");
+
       const totalCount = await EventModel.countDocuments({
         isblocked: false,
         isperformerblockedevents: false,
@@ -460,7 +478,7 @@ export class userEventRepository implements IuserEventRepository {
         .skip(skip)
         .limit(limit);
 
-      console.log("fay", allFilteredEvents);
+
 
       const validEvents: EventDocument[] = [];
       for (const event of allFilteredEvents) {
@@ -567,11 +585,17 @@ export class userEventRepository implements IuserEventRepository {
   ): Promise<eventRating[] | null> => {
     try {
       const ratings = await RatingModel.find({ eventId })
-        .populate<{ userId: { username: string } }>('userId', 'username')
+        .sort({ _id: -1 })
+        .limit(50)
+        .populate<{ userId: { username: string; profileImage: string } }>(
+          'userId',
+          'username profileImage'
+        )
         .lean();
   
       const eventRatings: eventRating[] = ratings.map((rating) => ({
         userName: rating.userId.username,
+        profilePicture: rating.userId.profileImage,
         rating: rating.rating,
         review: rating.review,
         Date: rating.createdAt,
@@ -582,6 +606,8 @@ export class userEventRepository implements IuserEventRepository {
       throw error;
     }
   };
+  
+  
   getAllUpcomingEvents = async (
     id: mongoose.Types.ObjectId
   ): Promise<{

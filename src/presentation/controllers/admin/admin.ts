@@ -1,12 +1,7 @@
 import { Response, Request, NextFunction } from "express";
-import { isValidEmail } from "../../../shared/utils/validEmail";
+
 import { ResponseStatus } from "../../../constants/responseStatus";
-import { IuserUseCase } from "../../../application/interfaces/user/useCase/user";
-import { User } from "../../../domain/entities/user";
-import { isValidPassword } from "../../../shared/utils/validPassword";
-import { isValidFullName } from "../../../shared/utils/validName";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
+
 import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
 import { IadminUseCase } from "../../../application/interfaces/admin/IadminUseCase";
 import mongoose from "mongoose";
@@ -236,10 +231,6 @@ export class adminController {
     }
   };
 
-
-
-
-
   allTempPerformers = async (
     req: Request,
     res: Response,
@@ -322,11 +313,6 @@ export class adminController {
     }
   };
 
-
-
-
-
-
   getAllPerformers = async (
     req: Request,
     res: Response,
@@ -384,9 +370,6 @@ export class adminController {
     }
   };
 
-
-
-
   allUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await this._useCase.getAllUser();
@@ -424,9 +407,6 @@ export class adminController {
     }
   };
 
-
-
- 
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const allEvents = await this._useCase.getAllEvents();
@@ -448,6 +428,7 @@ export class adminController {
   ) => {
     try {
       const { id } = req.params;
+      const { reason, duration, action } = req.body;
 
       if (!id || typeof id !== "string") {
         return res
@@ -455,7 +436,21 @@ export class adminController {
           .json({ message: "Invalid or missing ID parameter" });
       }
 
-      const changedEvent = await this._useCase.toggleBlockStatus(id);
+      if (action === "block" && (!reason || !duration)) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Blocking reason and duration are required for blocking an event.",
+          });
+      }
+
+      const blockingDetails =
+        action === "block" ? { reason, duration } : undefined;
+      const changedEvent = await this._useCase.toggleBlockStatus(
+        id,
+        blockingDetails
+      );
 
       if (!changedEvent) {
         return res
@@ -464,16 +459,38 @@ export class adminController {
       }
 
       res.status(200).json({
-        message: "Block status toggled successfully",
+        message: `Event successfully ${
+          action === "block" ? "blocked" : "unblocked"
+        }`,
         data: changedEvent,
       });
     } catch (error) {
-      // Error handling
       console.error("Error toggling block status:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   };
+  getRevenue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { page } = req.query;
+      const pageNumber = parseInt(page as string) || 1;
+      const pageSize = 10;
 
+      const offset = (pageNumber - 1) * pageSize;
 
- 
+      const revenueData = await this._useCase.getRevenue(offset, pageSize);
+
+      if (!revenueData) {
+        return res.status(404).json({ message: "No revenue data found." });
+      }
+
+      return res.status(200).json({
+        totalCount: revenueData.totalCount,
+        adminRevinue: revenueData.adminRevinue,
+        currentPage: pageNumber,
+        totalPages: Math.ceil(revenueData.totalCount / pageSize),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

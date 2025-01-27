@@ -23,20 +23,15 @@ const controller = new adminController(useCase);
 
 // // Public route for admin login
 
-
-
 router.post("/loginpost", controller.loginpost.bind(controller));
 router.post("/adminLogin", controller.adminLogin.bind(controller));
 router.get("/checkSession", controller.checkSession.bind(controller));
 router.get("/session-exists", controller.isSessionExist.bind(controller));
 router.get("/details", controller.getAdminDetails.bind(controller));
-router.get('/downloadReport', controller.downloadReport.bind(controller));
+router.get("/downloadReport", controller.downloadReport.bind(controller));
 router.post("/adminLogout", controller.adminLogout.bind(controller));
 
-
 router.use(adminAuth);
-
-
 
 router.get("/getTempPerformers", controller.allTempPerformers.bind(controller));
 router.post(
@@ -48,20 +43,11 @@ router.post(
   controller.rejectedPermission.bind(controller)
 );
 
-
-
-
-
-
-
 router.get("/performers", controller.getAllPerformers.bind(controller));
 router.post(
   "/updatePerformerStatus/:id",
   controller.blockunblockperformer.bind(controller)
 );
-
-
-
 
 router.get("/getUsers", controller.allUsers.bind(controller));
 router.post(
@@ -69,16 +55,12 @@ router.post(
   controller.blockunblockuser.bind(controller)
 );
 
-
 router.get("/getAllEvents", controller.getAllEvents.bind(controller));
 router.post(
   "/blockUnblockEvents/:id",
   controller.toggleBlockStatus.bind(controller)
 );
 
-
-
-
-
+router.get("/getRevenue", controller.getRevenue.bind(controller));
 
 export default router;

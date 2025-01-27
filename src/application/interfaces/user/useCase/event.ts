@@ -90,6 +90,6 @@ export interface IuserEventUseCase {
     skip: number,
     limit: number
   ): Promise<{ performers: Performer[]; totalCount: number } | null>;
-
+  getTopRatedEvent(userId:mongoose.Types.ObjectId):Promise<EventDocument[]|null >
 
 }

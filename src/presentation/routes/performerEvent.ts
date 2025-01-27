@@ -4,7 +4,6 @@ import { userRepository } from "../../infrastructure/repositories/user/user";
 import { userUseCase } from "../../application/useCases/user/user";
 import authenticateJWT from "../../shared/middlewares/authentication";
 
-
 import { performerEventRepository } from "../../infrastructure/repositories/performer/event";
 import { performerEventUseCase } from "../../application/useCases/performer/event";
 import { performerController } from "../controllers/performer/performer";
@@ -22,8 +21,6 @@ const repository = new performerEventRepository();
 const useCase = new performerEventUseCase(repository);
 
 const controller = new performerEventController(useCase);
-
-
 
 router.post("/uploadEvents/:id", controller.uploadEvents.bind(controller));
 router.put(
@@ -72,8 +69,10 @@ router.get(
   controller.getUpcomingEvents.bind(controller)
 );
 
-
 router.get("/getEvent/:id", controller.getEvent.bind(controller));
-
+router.post(
+  "/appealBlockedEvent/:id/:email",
+  controller.appealBlockedEvent.bind(controller)
+);
 
 export default router;

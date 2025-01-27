@@ -94,6 +94,6 @@ getUpcomingEvents(
     performerId: string
   ): Promise<boolean>;
 
-
+  getTopRatedEvent(userId:mongoose.Types.ObjectId):Promise<EventDocument[]|null >
  
 }

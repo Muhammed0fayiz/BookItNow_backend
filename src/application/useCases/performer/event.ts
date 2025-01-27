@@ -2,7 +2,7 @@ import { IperformerEventRepository } from './../../interfaces/performer/reposita
 import { IperformerEventUseCase } from './../../interfaces/performer/useCase/event';
 import { OtpUser } from "../../../domain/entities/otpUser";
 // import { OtpModel } from "../../infrastructure/models/otpSession";
-
+import nodemailer from "nodemailer";
 import {
   UserDocuments,
   UserModel,
@@ -38,7 +38,42 @@ export class performerEventUseCase implements IperformerEventUseCase {
   constructor(private repository: IperformerEventRepository) {
     this._repository = repository;
   }
+  appealSend = async (
+    eventId: mongoose.Types.ObjectId,
+    email: string,
+    appealMessage: string
+  ): Promise<EventDocument | null> => {
+    try {
+      const event: EventDocument | null = await this._repository.getEvent(eventId);
 
+      if (!event) {
+        throw new Error('Event not found');
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_ADDRESS,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      const mailOptions = {
+        from: email,
+        to: 'fayiz149165@gmail.com', 
+        subject: `Appeal for Event: ${event.title}`,
+        text: `Hi Admin,\n\nI am the founder of the event titled "${event.title}".\n\n"${appealMessage}"\n\nPlease consider this appeal and let me know if there is anything I can do.\n\nThank you.`,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Email sent: ', info.response);
+
+      return event;
+    } catch (error) {
+      console.error('Error sending appeal:', error);
+      throw error;
+    }
+  };
  
 
 

@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 router.post("/create-payment-intent", async (req, res) => {
   try {
-    console.log("heyll", req.body);
+   
     const { amount } = req.body;
     console.log("maraynalsd");
     console.log("🚀 ~ router.post ~ amount in payment route:", amount);

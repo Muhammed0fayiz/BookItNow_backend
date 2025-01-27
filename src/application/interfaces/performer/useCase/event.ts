@@ -49,7 +49,7 @@ export interface IperformerEventUseCase {
   changeEventStatus():Promise<BookingDocument[]|null>
     getUpcomingEvents(performerId:mongoose.Types.ObjectId,page:number): Promise<UpcomingEventDocument[]>;
     getEvent(eventId: mongoose.Types.ObjectId):Promise<EventDocument|null>
-
+    appealSend(eventId:mongoose.Types.ObjectId,email:string,appealMessage:string):Promise<EventDocument|null>
 
 }
 

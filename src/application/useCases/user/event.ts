@@ -44,6 +44,18 @@ export class userEventUseCase implements IuserEventUseCase {
   constructor(private repository:  IuserEventRepository) {
     this._repository = repository;
   }
+  getTopRatedEvent=async(userId:mongoose.Types.ObjectId): Promise<EventDocument[] | null>=>{
+   try {
+
+    const ratedEvent=await this._repository.getTopRatedEvent(userId)
+
+
+    
+     return ratedEvent
+   } catch (error) {
+    throw error
+   }
+  }
 
  
 

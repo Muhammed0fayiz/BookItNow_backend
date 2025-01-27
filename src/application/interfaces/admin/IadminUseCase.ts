@@ -12,6 +12,7 @@ import mongoose, { Types } from "mongoose";
 import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../../infrastructure/models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
+import { AdminRevenue } from "../../../domain/entities/adminRevenue";
 
 
 Performer
@@ -51,9 +52,12 @@ export interface IadminUseCase {
 
 
   getAllEvents(): Promise<EventDocument[]| null>;
-  toggleBlockStatus(id:string):Promise<EventDocument|null>
-  
-
+  toggleBlockStatus(
+    id: string,
+    blockingDetails?: { reason: string; duration: number | string  }
+  ): Promise<EventDocument | null>;
+  getRevenue(offset: number,
+    pageSize: number):Promise<{ totalCount: number; adminRevinue: AdminRevenue[] }|null>
   
 
 }

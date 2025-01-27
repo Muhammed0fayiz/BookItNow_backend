@@ -31,8 +31,9 @@ export interface IperformerUseCase {
 
     performerAllDetails(id: mongoose.Types.ObjectId): Promise<performerAllDetails| null>;
 
-    updateslot(id: mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null |string>;
-    slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
+    updateslot(id:mongoose.Types.ObjectId, date: Date): Promise<SlotDocuments | null |string>;
+    slotDetails(id:mongoose.Types.ObjectId): Promise<SlotMangement | null>;
+   
 }
 
 

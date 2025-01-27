@@ -18,6 +18,7 @@ import userEvent from "./presentation/routes/userEvent"
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
 import { userEventRepository } from "./infrastructure/repositories/user/event";
+import { unblockExpiredEvents } from "./shared/utils/eventunblock";
 
 
 
@@ -26,10 +27,10 @@ import { userEventRepository } from "./infrastructure/repositories/user/event";
 
 
 const cron = require("node-cron");
-// Load environment variables
+
 dotenv.config();
 
-// Initialize express app
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -53,9 +54,11 @@ app.use(
     cookie: { secure: false },
   })
 );
-cron.schedule("11 15 * * *", () => {
+cron.schedule("13 18 * * *", () => {
   sendReminder();
+  unblockExpiredEvents()
 });
+
 
 const allowedOrigins = ["http://localhost:3000"];
 const corsOptions = {
@@ -83,6 +86,7 @@ app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/userEvent",userEvent)
 app.use("/performerEvent",performerEventRoutes)
+
 // Socket.IO logic
 interface UserSocketMap {
   [userId: string]: string;

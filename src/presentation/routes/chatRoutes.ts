@@ -1,11 +1,7 @@
-
-
-// import { chatRepository } from './../../infrastructure/repositories/chat/chat';
 import { Router } from "express";
 import { ChatController } from "../controllers/chat/chat";
 
-
-import { chatRepository} from "../../infrastructure/repositories/chat/chat";
+import { chatRepository } from "../../infrastructure/repositories/chat/chat";
 
 import { chatUseCase } from "../../application/useCases/chat/chat";
 import authenticateJWT from "../../shared/middlewares/authentication";
@@ -13,7 +9,7 @@ import multer from "multer";
 import path from "path";
 import passport from "passport";
 import authMiddleware from "../../shared/middlewares/authMiddleware";
-chatRepository
+chatRepository;
 
 const router = Router();
 
@@ -21,15 +17,10 @@ const repository = new chatRepository();
 const useCase = new chatUseCase(repository);
 const controller = new ChatController(useCase);
 
-
-
-
-
-
 router.post(
   "/handleSendMessage/:sender/:receiver",
   authMiddleware,
-  
+
   controller.sendMessage.bind(controller)
 );
 router.post(
@@ -65,7 +56,5 @@ router.get(
   authMiddleware,
   controller.checkOnlineUser.bind(controller)
 );
-
-
 
 export default router;

@@ -4,8 +4,6 @@ import { userRepository } from "../../infrastructure/repositories/user/user";
 import { userUseCase } from "../../application/useCases/user/user";
 import authenticateJWT from "../../shared/middlewares/authentication";
 
-
-
 import { performerRepository } from "../../infrastructure/repositories/performer/performer";
 import { performerUseCase } from "../../application/useCases/performer/performer";
 import { performerController } from "../controllers/performer/performer";
@@ -64,8 +62,6 @@ router.get(
   authMiddleware,
   controller.getAllUsers.bind(controller)
 );
-
-
 
 router.post(
   "/updateSlotStatus/:id",

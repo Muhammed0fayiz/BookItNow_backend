@@ -1,31 +1,21 @@
 import { IperformerEventRepository } from './../../../application/interfaces/performer/repositary/event';
-import { SlotDocuments, SlotModel } from "../../models/slotModel";
+
 import { PerformerDocuments, PerformerModel } from "../../models/performerModel";
-import { TempPerformerDocument } from "../../models/tempPerformer";
+
 import mongoose from "mongoose";
-import { IperformerRepository } from "../../../application/interfaces/performer/repositary/performer";
-import { User, UserDocument } from "../../../domain/entities/user";
-import { OtpUser } from "../../../domain/entities/otpUser";
+
 
 
 import { UserDocuments, UserModel } from "../../models/userModel";
 
-import bcrypt from "bcrypt";
 
-import { TempPerformerModel } from "../../models/tempPerformer";
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { tempUserModel } from "../../models/tempUser";
-import { asPerformer } from "../../../domain/entities/asPerformer";
 import { Types } from "mongoose";
 import { performerDocument } from "../../../domain/entities/performer";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
 import { BookingDocument, BookingModel } from "../../models/bookingEvents";
 import { WalletModel } from "../../models/walletHistory";
-import { SlotMangement } from "../../../domain/entities/slot";
-import { performerAllDetails } from "../../../domain/entities/performerAllDetails";
-import { PerformerReport } from "../../../domain/entities/performerReport";
+
 export class performerEventRepository implements IperformerEventRepository {
 
  
