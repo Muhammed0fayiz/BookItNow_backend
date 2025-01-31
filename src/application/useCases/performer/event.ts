@@ -38,6 +38,38 @@ export class performerEventUseCase implements IperformerEventUseCase {
   constructor(private repository: IperformerEventRepository) {
     this._repository = repository;
   }
+  uploadedEvents = async (event: {
+    imageUrl: string;
+    title: string;
+    category: string;
+    userId: Types.ObjectId;
+    price: number;
+    teamLeader: string;
+    teamLeaderNumber: string;
+    description: string;
+  }): Promise<EventDocument | null | string> => {
+    try {
+      const existingEvent = await EventModel.findOne({
+        title: event.title,
+        userId: event.userId,
+        category: event.category,
+        price: event.price,
+      });
+  
+      if (existingEvent) {
+        return "Event already exists";
+      }
+  
+      const events = await EventModel.insertMany([event]);
+  
+      return events.length > 0 ? events[0] : null;
+    } catch (error) {
+      console.error("Error inserting event:", error);
+      throw error;
+    }
+  };
+  
+
   appealSend = async (
     eventId: mongoose.Types.ObjectId,
     email: string,
@@ -79,27 +111,6 @@ export class performerEventUseCase implements IperformerEventUseCase {
 
 
 
-  uploadEvents = async (event: {
-    id: string;
-    imageUrl: string;
-    title: string;
-    category: string;
-    userId: Types.ObjectId;
-    price: number;
-    teamLeader: string;
-    teamLeaderNumber: number;
-    description: string;
-  }): Promise<EventDocument | null> => {
-    try {
-      console.log('upldo use c');
-      
-      const uploadedEvent = await this._repository.uploadedEvent(event);
-
-      return uploadedEvent ? uploadedEvent : null;
-    } catch (error) {
-      throw error;
-    }
-  };
   editEvents = async (
     eventId: string,
     event: {
@@ -112,7 +123,7 @@ export class performerEventUseCase implements IperformerEventUseCase {
       teamLeaderNumber: number;
       description: string;
     }
-  ): Promise<EventDocument | null> => {
+  ): Promise<EventDocument | null | string> => {
     try {
       console.log('use case`');
       

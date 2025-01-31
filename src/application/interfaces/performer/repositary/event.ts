@@ -16,9 +16,8 @@ import { PerformerReport } from "../../../../domain/entities/performerReport";
 
 export interface IperformerEventRepository {
   getEvent(eventId: mongoose.Types.ObjectId):Promise<EventDocument|null>
-  uploadedEvent(event: {
+  uploadedEvents(event: {
     imageUrl: any;
-    id: any;
     title: any;
     category: any;
     userId: any;
@@ -26,7 +25,7 @@ export interface IperformerEventRepository {
     teamLeader: any;
     teamLeaderNumber: any;
     description: any;
-  }): Promise<EventDocument | null>;
+  }): Promise<EventDocument | null | string>;
   getPerformerEvents(id: string): Promise<EventDocument[] | null>;
   deleteEvent(id: string): Promise<EventDocument | null>;
   editEvents(
@@ -41,7 +40,7 @@ export interface IperformerEventRepository {
       teamLeaderNumber: number;
       description: string;
     }
-  ): Promise<EventDocument | null>;
+  ): Promise<EventDocument | null | string>;
   toggleBlockStatus(id: string): Promise<EventDocument | null>;
   getAllUpcomingEvents(
     id: mongoose.Types.ObjectId

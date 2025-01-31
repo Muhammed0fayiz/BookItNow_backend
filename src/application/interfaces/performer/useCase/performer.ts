@@ -23,7 +23,7 @@ import { PerformerReport } from '../../../../domain/entities/performerReport';
 
 export interface IperformerUseCase {
   jwt(payload: asPerformer): Promise<string | null>;
-  loginPerformer(email: string, password: string): Promise<asPerformer| null|string>;
+  loginPerformer(email: string, password: string): Promise<asPerformer| null | string>;
   getPerformerDetails(id: mongoose.Types.ObjectId): Promise<performerDocument | null>;
   videoUpload(bandName:string,mobileNumber:string,description:string,user_id:mongoose.Types.ObjectId,video:any): Promise<TempPerformerDocument | null>;
   getAllUsers(id: mongoose.Types.ObjectId):Promise<UserDocuments[]|null>

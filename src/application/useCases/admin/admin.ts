@@ -24,6 +24,7 @@ export class adminUseCase implements IadminUseCase {
   constructor(private repository: IadminRepository) {
     this._repository = repository;
   }
+
   getRevenue=async(offset: number, pageSize: number): Promise<{ totalCount: number; adminRevinue: AdminRevenue[]; } | null> =>{
    try {
      return await this._repository.getRevenue(offset,pageSize)

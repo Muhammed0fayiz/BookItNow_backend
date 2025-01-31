@@ -148,13 +148,14 @@ export class ChatController {
   ) => {
     try {
       const { id } = req.params;
-
+      console.log('id',id);
+      
       const userId = new mongoose.Types.ObjectId(id);
 
       const messageNotification = await this._useCase.getMessageNotification(
         userId
       );
-      console.log(messageNotification, "is");
+      console.log(messageNotification, "idfdffdfds");
 
       res.status(200).json({ success: true, data: messageNotification });
     } catch (error) {

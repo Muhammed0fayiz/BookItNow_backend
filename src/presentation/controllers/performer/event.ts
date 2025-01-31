@@ -31,8 +31,7 @@ export class performerEventController {
     next: NextFunction
   ): Promise<Response<any> | void> => {
     try {
-      console.log("uplaod eventdf adlskfj");
-      console.log(req.body, "id");
+
 
       const id = req.params.id;
 
@@ -45,12 +44,12 @@ export class performerEventController {
         imageUrl: req.body.imageUrl ? req.body.imageUrl.trim() : null,
         title: req.body.title ? req.body.title.trim() : null,
         category: req.body.category ? req.body.category.trim() : null,
-        userId: new Types.ObjectId(id), // Convert userId to ObjectId
-        price: req.body.price ? parseFloat(req.body.price) : null, // Convert price to number
+        userId: new Types.ObjectId(id),
+        price: req.body.price ? parseFloat(req.body.price) : null, 
         teamLeader: req.body.teamLeader ? req.body.teamLeader.trim() : null,
         teamLeaderNumber: req.body.teamLeaderNumber
           ? parseInt(req.body.teamLeaderNumber, 10)
-          : null, // Convert teamLeaderNumber to number
+          : null, 
         description: req.body.description ? req.body.description.trim() : null,
       };
 
@@ -90,9 +89,17 @@ export class performerEventController {
       }
 
       // Upload event details
-      const uploadedEvent = await this._useCase.uploadEvents(event);
+      const uploadedEvent = await this._useCase.uploadedEvents(event);
+      if (uploadedEvent === "Event already exists") {
+        return res.status(409).json({
+          message: "An event with the same category, title, and price already exists.",
+        });
+      }
+      
 
-      console.log("id", uploadedEvent, "id");
+
+
+     
       if (uploadedEvent) {
         return res.status(201).json({
           message: "Event uploaded successfully",
@@ -156,7 +163,7 @@ export class performerEventController {
     next: NextFunction
   ): Promise<Response<any> | void> => {
     try {
-      console.log("edi ts fdsalfdlssd");
+    
 
       const userId = req.params.id;
       const eventId = req.params.eid;
@@ -187,7 +194,7 @@ export class performerEventController {
         description: req.body.description ? req.body.description.trim() : "",
       };
 
-      console.log("evenssss", event);
+ 
 
       if (
         !event.title ||
@@ -202,14 +209,23 @@ export class performerEventController {
       }
 
       const updatedEvent = await this._useCase.editEvents(eventId, event);
-      console.log("updated", updatedEvent);
-
+      console.log('updated event',updatedEvent);
+      
+      if (updatedEvent === "Event already exists" || updatedEvent === "Event not found") {
+        const status = updatedEvent === "Event already exists" ? 409 : 404;
+        const message = updatedEvent === "Event already exists" 
+          ? "An event with the same category, title, and price already exists."
+          : "Event not found.";
+  
+        return res.status(status).json({ message });
+      }
+     
       if (updatedEvent) {
         return res
           .status(200)
           .json({ message: "Event updated successfully", event: updatedEvent });
       } else {
-        console.log("errr2");
+      
 
         return res.status(404).json({ message: "Event not found." });
       }

@@ -3,40 +3,13 @@ import { IChatRepository } from './../../interfaces/chat/IchatRepositary';
 
 
 import { ChatRoomDocument } from "../../../infrastructure/models/chatRoomModel";
-import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-import { Response } from "express";
-import { User, UserDocument } from "../../../domain/entities/user";
-// import { IuserRepository } from "../interfaces/user/";
-import { IuserRepository } from '../../interfaces/user/repositary/user';
-import { IuserUseCase } from "../../interfaces/user/useCase/user";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import nodemailer from "nodemailer";
 
-import { OtpUser } from "../../../domain/entities/otpUser";
-
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
-import { checkOtp } from "../../../domain/entities/checkOtp";
-import {
-  TempPerformerDocument,
-  TempPerformer,
-} from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
-import { tempUserModel } from "../../../infrastructure/models/tempUser";
 import mongoose, { Types } from "mongoose";
-import { EventDocument } from "../../../infrastructure/models/eventsModel";
-import { Performer } from "../../../domain/entities/performer";
-import { BookingDocument } from "../../../infrastructure/models/bookingEvents";
-import { WalletDocument } from "../../../infrastructure/models/walletHistory";
-import { SlotModel } from "../../../infrastructure/models/slotModel";
-import { FavoriteDocument } from "../../../infrastructure/models/FavoriteScema";
+
 import { MessageDocument } from "../../../infrastructure/models/messageModel";
 import { ChatRoom } from "../../../domain/entities/chatRoom";
 import { MessageNotification } from "../../../domain/entities/messageNotification";
-import { eventRating } from "../../../domain/entities/eventRating";
+
 
 export class chatUseCase implements IChatUseCase {
   private _repository: IChatRepository;

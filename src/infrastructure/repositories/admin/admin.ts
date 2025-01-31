@@ -21,6 +21,7 @@ import { AdminDetails } from "../../../domain/entities/adminDetails";
 import { AdminRevenue } from "../../../domain/entities/adminRevenue";
 import { BookingModel } from "../../models/bookingEvents";
 export class adminRepository implements IadminRepository {
+
   getRevenue = async (
     offset: number,
     pageSize: number

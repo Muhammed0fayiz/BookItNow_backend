@@ -18,6 +18,7 @@ import { WalletModel } from "../../models/walletHistory";
 
 export class performerEventRepository implements IperformerEventRepository {
 
+
  
 
   deleteEvent = async (id: string): Promise<EventDocument | null> => {
@@ -37,9 +38,8 @@ export class performerEventRepository implements IperformerEventRepository {
       throw error;
     }
   };
-  uploadedEvent = async (event: {
+  uploadedEvents = async (event: {
     imageUrl: string;
-    id: string;
     title: string;
     category: string;
     userId: Types.ObjectId;
@@ -47,17 +47,26 @@ export class performerEventRepository implements IperformerEventRepository {
     teamLeader: string;
     teamLeaderNumber: string;
     description: string;
-  }): Promise<EventDocument | null> => {
+  }): Promise<EventDocument | null | string> => {
     try {
-      console.log('upload')
+      const existingEvent = await EventModel.findOne({
+        title: event.title,
+        userId: event.userId,
+      });
+  
+      if (existingEvent) {
+        return "Event already exists";
+      }
+  
       const events = await EventModel.insertMany([event]);
-
+  
       return events.length > 0 ? events[0] : null;
     } catch (error) {
       console.error("Error inserting event:", error);
       throw error;
     }
   };
+  
   editEvents = async (
     eventId: string,
     event: {
@@ -70,20 +79,37 @@ export class performerEventRepository implements IperformerEventRepository {
       teamLeaderNumber: number;
       description: string;
     }
-  ): Promise<EventDocument | null> => {
+  ): Promise<EventDocument | null | string> => {
     try {
+      const existingEvent = await EventModel.findById(eventId);
+      if (!existingEvent) {
+        return "Event not found";
+      }
+  
+      const duplicateEvent = await EventModel.findOne({
+        _id: { $ne: eventId },
+        title: event.title,
+        category: event.category,
+        price: event.price,
+      });
+  
+      if (duplicateEvent) {
+        return "Event already exists";
+      }
+  
       const updatedEvent = await EventModel.findByIdAndUpdate(
         eventId,
         { $set: event },
         { new: true }
       );
-
+  
       return updatedEvent;
     } catch (error) {
       console.error("Error updating event:", error);
       throw error;
     }
   };
+  
   toggleBlockStatus = async (id: string): Promise<EventDocument | null> => {
     try {
       const event = await EventModel.findById(id);

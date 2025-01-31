@@ -469,6 +469,8 @@ export class adminController {
       res.status(500).json({ message: "Internal server error" });
     }
   };
+  
+
   getRevenue = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { page } = req.query;
@@ -493,4 +495,5 @@ export class adminController {
       next(error);
     }
   };
+
 }
