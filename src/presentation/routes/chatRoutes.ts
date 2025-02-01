@@ -20,7 +20,6 @@ const controller = new ChatController(useCase);
 router.post(
   "/handleSendMessage/:sender/:receiver",
   authMiddleware,
-
   controller.sendMessage.bind(controller)
 );
 router.post(

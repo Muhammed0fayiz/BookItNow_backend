@@ -6,15 +6,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 router.post("/create-payment-intent", async (req, res) => {
   try {
-   
     const { amount } = req.body;
-    console.log("maraynalsd");
-    console.log("🚀 ~ router.post ~ amount in payment route:", amount);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100,
       currency: "usd",
-      // receipt_email:"fhyvhh091@gmail.com"
     });
     console.log("🚀 ~ router.post ~ paymentIntent:", paymentIntent);
 

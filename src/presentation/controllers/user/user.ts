@@ -1,3 +1,4 @@
+
 import { Response, Request, NextFunction } from "express";
 import { isValidEmail } from "../../../shared/utils/validEmail";
 import { ResponseStatus } from "../../../constants/responseStatus";
@@ -6,6 +7,8 @@ import { User } from "../../../domain/entities/user";
 import { isValidPassword } from "../../../shared/utils/validPassword";
 import { isValidFullName } from "../../../shared/utils/validName";
 
+
+
 import mongoose, { Types } from "mongoose";
 
 import {
@@ -13,6 +16,7 @@ import {
   UserModel,
 } from "../../../infrastructure/models/userModel";
 import { generateOTP } from "../../../shared/utils/generateOtp";
+import { MessageConstants, OTPMessages, UserMessages } from "../../../shared/utils/constant";
 
 export class UserController {
   private _useCase: IuserUseCase;
@@ -26,25 +30,22 @@ export class UserController {
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "No User Data Provided" });
+          .json({ message: UserMessages.NO_USER_DATA });
       }
-
       const user = {
         email: req.body.email ? req.body.email.trim() : null,
         password: req.body.password ? req.body.password.trim() : null,
       };
-
       if (!user.password || !user.email) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "password or email is required" });
+          .json({ message: UserMessages.PASSWORD_EMAIL_REQUIRED });
       }
       if (!isValidEmail(user.email)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid email format" });
+          .json({ message: UserMessages.INVALID_EMAIL });
       }
-
       const loginUser = await this._useCase.loginUser(
         user.email,
         user.password
@@ -63,7 +64,7 @@ export class UserController {
       } else {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "User not found" });
+          .json({ message: UserMessages.USER_NOT_FOUND });
       }
     } catch (error) {
       console.log(error);
@@ -74,15 +75,13 @@ export class UserController {
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "No User Data Provided" });
+          .json({ message: UserMessages.NO_USER_DATA });
       }
-
       const user = {
         email: req.body.email ? req.body.email.trim() : null,
         password: req.body.password ? req.body.password.trim() : null,
         username: req.body.fullName,
       };
-
       if (!user.password || !user.email || !user.username) {
         return res
           .status(ResponseStatus.BadRequest)
@@ -91,31 +90,31 @@ export class UserController {
       if (!isValidEmail(user.email)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid email format" });
+          .json({ message: UserMessages.INVALID_EMAIL });
       }
       if (!isValidPassword(user.password)) {
         return res.status(ResponseStatus.BadRequest).json({
           message:
-            "Password must include at least 1 uppercase letter, 1 number, and be at least 5 characters long.",
+           UserMessages.INVALID_PASSWORD,
         });
       }
       const tempMailExist = await this.useCase.tempUserExist(user.email);
 
       if (tempMailExist) {
         return res
-          .status(401)
-          .json({ message: "OTP already sent. Please wait 15 minutes." });
+          .status(ResponseStatus.Unauthorized)
+          .json({ message: OTPMessages.OTP_ALREADY_SENT });
       }
 
       const mailExist = await this._useCase.userExist(user.email);
       if (mailExist) {
-        return res.status(401).json({ message: "email already exist" });
+        return res.status(ResponseStatus.Unauthorized).json({ message: UserMessages.EMAIL_EXISTS });
       }
 
       if (!isValidFullName(user.username)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Full name must be at least 3 characters long." });
+          .json({ message: UserMessages.INVALID_FULLNAME });
       }
 
       const hashedPassword = await this._useCase.bcrypt(user.password);
@@ -132,11 +131,11 @@ export class UserController {
         console.log("otp", otp);
         return res
           .status(ResponseStatus.Created)
-          .json({ message: "otp generate", tempUser });
+          .json({ message: OTPMessages.OTP_GENERATED, tempUser });
       }
       return res
         .status(ResponseStatus.BadRequest)
-        .json({ message: "user not created" });
+        .json({ message: UserMessages.USER_NOT_CREATED});
     } catch (error) {
       next(error);
     }
@@ -147,32 +146,28 @@ export class UserController {
         email: req.body.email,
         otp: req.body.otp,
       };
-
       const otpCheck = await this._useCase.checkOtp(user);
 
       if (otpCheck === null) {
         console.log("Null result: OTP check failed.");
-        return res.status(400).json({ message: "Invalid OTP." });
+        return res.status(ResponseStatus.BadRequest).json({ message: OTPMessages.INVALID_OTP });
       }
-
-      res.status(200).json({ message: "OTP verified successfully." });
+      res.status(ResponseStatus.OK).json({ message: OTPMessages.OTP_VERIFIED });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Internal server error." });
+      res.status(ResponseStatus.InternalSeverError).json({ message: MessageConstants.INTERANAL_SERVER_ERROR });
     }
   };
   resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const email = req.params.email;
-
       if (email) {
         const otp = generateOTP();
         const otpUser = await this._useCase.resendOtp(email, otp);
-
-        res.status(200).json({ message: "resend otp successfull" });
+        res.status(ResponseStatus.OK).json({ message: "resend otp successfull" });
       }
     } catch (error) {
-      res.status(500).json({ message: "internal server error" });
+      res.status(ResponseStatus.InternalSeverError).json({ message: "internal server error" });
     }
   };
   async googleCallback(req: Request, res: Response, next: NextFunction) {
@@ -199,28 +194,24 @@ export class UserController {
       res.redirect("http://localhost:3000/error");
     }
   }
-
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = req.params.id;
-
+    const {id}=req.params
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid user ID format" });
+          .json({ message: UserMessages.INVALID_USER_ID});
       }
-
       const objectId = new mongoose.Types.ObjectId(id);
-
       const response = await this._useCase.getUserDetails(objectId);
       if (response) {
         return res
           .status(ResponseStatus.Accepted)
-          .json({ message: "User Details Fetched Successfully", response });
+          .json({ message: UserMessages.USER_DETAILS_SUCCESS, response });
       } else {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "User Details Fetch Failed" });
+          .json({ message: UserMessages.USER_DETAILS_FAILED });
       }
     } catch (error) {
       next(error);
@@ -233,11 +224,8 @@ export class UserController {
   ): Promise<void> => {
     try {
       const { username } = req.body;
-
       const userId = new mongoose.Types.ObjectId(req.params.id);
-
       const image = req.file ? `/uploads/${req.file.filename}` : null;
-
       const updateData: { username: string; profileImage?: string | null } = {
         username,
       };
@@ -254,20 +242,20 @@ export class UserController {
 
       if (updatedUser) {
         res
-          .status(200)
-          .json({ message: "Profile updated successfully", updatedUser });
+          .status(ResponseStatus.OK)
+          .json({ message: UserMessages.PROFILE_UPDATE_SUCCESS, updatedUser });
       } else {
-        res.status(404).json({ message: "User not found" });
+        res.status(ResponseStatus.NotFound).json({ message: UserMessages.USER_NOT_FOUND });
       }
     } catch (error) {
       console.error("Error updating user profile:", error);
 
       if (error instanceof Error) {
         res
-          .status(500)
-          .json({ message: "Error updating profile", error: error.message });
+          .status(ResponseStatus.InternalSeverError)
+          .json({ message: UserMessages.ERROR_UPDATING_PROFILE, error: error.message });
       } else {
-        res.status(500).json({ message: "An unknown error occurred" });
+        res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR });
       }
     }
   };
@@ -275,29 +263,26 @@ export class UserController {
     try {
       const id = new mongoose.Types.ObjectId(req.params.id);
       const { currentPassword, newPassword } = req.body;
-
       if (!id || !currentPassword || !newPassword) {
-        return res.status(400).json({ message: "Missing required fields" });
+        return res.status(ResponseStatus.BadRequest).json({ message:UserMessages.MISSING_FIELDS });
       }
-
       const changedPassword = await this._useCase.changePassword(
         id,
         currentPassword,
         newPassword
       );
-
       // Send the success response
-      return res.status(200).json({ success: true, user: changedPassword });
+      return res.status(ResponseStatus.OK).json({ success: true, user: changedPassword });
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === "Old password is incorrect") {
-          return res.status(400).json({ message: error.message });
+        if (error.message === UserMessages.PASSWORD_CHANGE_FAILED) {
+          return res.status(ResponseStatus.BadRequest).json({ message: error.message });
         }
         return res
-          .status(500)
-          .json({ message: "An error occurred", error: error.message });
+          .status(ResponseStatus.InternalSeverError)
+          .json({ message: MessageConstants.ERROR_OCCURRED, error: error.message });
       }
-      return res.status(500).json({ message: "An unknown error occurred" });
+      return res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR });
     }
   };
   walletHistory = async (req: Request, res: Response, next: NextFunction) => {
@@ -306,7 +291,7 @@ export class UserController {
       const objectId = new mongoose.Types.ObjectId(id);
 
       const walletHistory = await this._useCase.walletHistory(objectId);
-      res.status(200).json({ success: true, data: walletHistory });
+      res.status(ResponseStatus.OK).json({ success: true, data: walletHistory });
     } catch (error) {
       next(error);
     }

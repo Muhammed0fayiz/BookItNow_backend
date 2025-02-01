@@ -2,21 +2,14 @@ import { loginpefomer } from "../../../../../frontend/src/datas/logindatas";
 import { Response, Request, NextFunction } from "express";
 import { isValidEmail } from "../../../shared/utils/validEmail";
 import { ResponseStatus } from "../../../constants/responseStatus";
-import { IuserUseCase } from "../../../application/interfaces/user/useCase/user";
-import { User } from "../../../domain/entities/user";
-import { isValidPassword } from "../../../shared/utils/validPassword";
-import { isValidFullName } from "../../../shared/utils/validName";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
 import { IperformerUseCase } from "../../../application/interfaces/performer/useCase/performer";
 import { asPerformer } from "../../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
+import { MessageConstants, OTPMessages, UserMessages,ErrorMessages, PerformerMessages} from "../../../shared/utils/constant";
 import {
   PerformerDocuments,
   PerformerModel,
 } from "../../../infrastructure/models/performerModel";
-import { EventDocument } from "../../../infrastructure/models/eventsModel";
 const ExcelJS = require("exceljs");
 export class performerController {
   private _useCase: IperformerUseCase;
@@ -24,7 +17,6 @@ export class performerController {
   constructor(private useCase: IperformerUseCase) {
     this._useCase = useCase;
   }
-
   addTempPerformer = async (
     req: Request,
     res: Response,
@@ -32,7 +24,6 @@ export class performerController {
   ) => {
     try {
       const { bandName, mobileNumber, description, user_id } = req.body;
-
       const video = req.file;
       const response = await this._useCase.videoUpload(
         bandName,
@@ -52,12 +43,10 @@ export class performerController {
     try {
       const id = new mongoose.Types.ObjectId(req.params.id);
       const users = await this._useCase.getAllUsers(id);
-
       if (!users || users.length === 0) {
-        return res.status(404).json({ message: "No users found." });
+        return res.status(ResponseStatus.NotFound).json({ message: ErrorMessages.NO_USERS_FOUND });
       }
-
-      res.status(200).json({ success: true, data: users });
+      res.status(ResponseStatus.OK).json({ success: true, data: users });
     } catch (error) {
       console.error("Error fetching users:", error);
       next(error);
@@ -69,17 +58,15 @@ export class performerController {
     next: NextFunction
   ) => {
     try {
-      const Id = req.params.id;
-
-      if (!Id) {
-        return res.status(400).json({ error: "Invalid performer ID" });
+const {id}=req.params
+      if (!id) {
+        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid performer ID" });
       }
-      const performerId = new mongoose.Types.ObjectId(Id);
+      const performerId = new mongoose.Types.ObjectId(id);
       const performerDetails = await this._useCase.performerAllDetails(
         performerId
       );
-
-      res.status(200).json({ performerDetails });
+      res.status(ResponseStatus.OK).json({ performerDetails });
     } catch (error) {
       next(error);
     }
@@ -89,31 +76,27 @@ export class performerController {
       if (!req.body) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "No Performer Data Provided" });
+          .json({ message: ErrorMessages.NO_PERFORMER_FOUND });
       }
-
       const performer = {
         email: req.body.email ? req.body.email.trim() : null,
         password: req.body.password ? req.body.password.trim() : null,
       };
-
       if (!performer.password || !performer.email) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Password or email is required" });
+          .json({ message: UserMessages.PASSWORD_EMAIL_REQUIRED });
       }
 
       if (!isValidEmail(performer.email)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid email format" });
+          .json({ message: UserMessages.INVALID_EMAIL });
       }
-
       const loginPerformer = await this._useCase.loginPerformer(
         performer.email,
         performer.password
       );
-
       if (loginPerformer) {
         if (typeof loginPerformer === "string") {
           return res
@@ -125,7 +108,7 @@ export class performerController {
       } else {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Performer not found or blocked/unverified" });
+          .json({ message: PerformerMessages.PERFORMER_NOT_FOUND});
       }
     } catch (error) {
       console.log(error);
@@ -137,28 +120,23 @@ export class performerController {
     next: NextFunction
   ) => {
     try {
-      const id = req.params.id;
-
-      // Check if the ID is a valid ObjectId
+ const {id}=req.params
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "Invalid user ID format" });
+          .json({ message: UserMessages.INVALID_USER_ID });
       }
-
-      const objectId = new mongoose.Types.ObjectId(id); // Convert to ObjectId
-
-      // Fetch performer details using userId
+      const objectId = new mongoose.Types.ObjectId(id); 
       const response = await this._useCase.getPerformerDetails(objectId);
 
       if (response) {
         return res
           .status(ResponseStatus.Accepted)
-          .json({ message: "User Details Fetched Successfully", response });
+          .json({ message: UserMessages.USER_DETAILS_SUCCESS, response });
       } else {
         return res
           .status(ResponseStatus.BadRequest)
-          .json({ message: "User Details Fetch Failed" });
+          .json({ message: UserMessages.USER_DETAILS_FAILED });
       }
     } catch (error) {
       next(error); // Pass the error to the next middleware
@@ -171,11 +149,8 @@ export class performerController {
   ): Promise<void> => {
     try {
       const id = req.params.id;
-
       const { bandName, mobileNumber, place } = req.body;
-
       const image = req.file ? `/uploads/${req.file.filename}` : null;
-
       const updateData: {
         bandName?: string;
         mobileNumber?: string;
@@ -196,46 +171,43 @@ export class performerController {
 
       if (updatedPerformer.modifiedCount > 0) {
         res
-          .status(200)
-          .json({ message: "Profile updated successfully", updatedPerformer });
+          .status(ResponseStatus.OK)
+          .json({ message: UserMessages.PROFILE_UPDATE_SUCCESS, updatedPerformer });
       } else {
-        res.status(404).json({ message: "User not found or no changes made" });
+        res.status(ResponseStatus.NotFound).json({ message: UserMessages.USER_NOT_FOUND_UPDATE });
       }
     } catch (error) {
       console.error("Error updating user profile:", error);
 
       if (error instanceof Error) {
         res
-          .status(500)
+          .status(ResponseStatus.InternalSeverError)
           .json({ message: "Error updating profile", error: error.message });
       } else {
-        res.status(500).json({ message: "An unknown error occurred" });
+        res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR});
       }
     }
   };
   downloadReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { startDate, endDate } = req.query;
-      const Id = req.params.id;
-      const performerId = new mongoose.Types.ObjectId(Id);
-
+      const {id}=req.params;
+      const performerId = new mongoose.Types.ObjectId(id);
       // Validate and parse startDate and endDate
       const start = startDate ? new Date(startDate as string) : null;
       const end = endDate ? new Date(endDate as string) : null;
-
       if (!(start instanceof Date) || isNaN(start.getTime())) {
-        return res.status(400).json({ error: "Invalid startDate" });
+        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid startDate" });
       }
-
       if (!(end instanceof Date) || isNaN(end.getTime())) {
-        return res.status(400).json({ error: "Invalid endDate" });
+        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid endDate" });
       }
 
       // Fetch report data
       const report = await this._useCase.getReport(performerId, start, end);
 
       if (!report) {
-        return res.status(404).json({ error: "Report not found" });
+        return res.status(ResponseStatus.NotFound).json({ error: "Report not found" });
       }
 
       // Initialize Excel Workbook and Worksheet
@@ -441,29 +413,25 @@ export class performerController {
     next: NextFunction
   ) => {
     try {
-      const id = req.params.id;
+const {id}=req.params
       const objectid = new mongoose.Types.ObjectId(id);
-
       const date = req.body.date;
-
       if (!date) {
-        return res.status(400).json({ message: "Date is required" });
+        return res.status(ResponseStatus.BadRequest).json({ message:UserMessages.NO_DATA });
       }
-
       const parsedDate = new Date(date);
       if (isNaN(parsedDate.getTime())) {
-        return res.status(400).json({ message: "Invalid date format" });
+        return res.status(ResponseStatus.BadRequest).json({ message: PerformerMessages.INVALID_DATE});
       }
-
       const updatedSlot = await this._useCase.updateslot(objectid, parsedDate);
       if (updatedSlot) {
         if (typeof updatedSlot === "string") {
-          return res.status(403).json({ message: updatedSlot });
+          return res.status(ResponseStatus.Forbidden).json({ message: updatedSlot });
         }
       }
 
       return res
-        .status(200)
+        .status(ResponseStatus.OK)
         .json({ message: "Slot updated successfully", data: updatedSlot });
     } catch (error) {
       next(error);
@@ -471,20 +439,16 @@ export class performerController {
   };
   getslotDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = req.params.id;
-
+    const {id}=req.params;
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({
+        return res.status(ResponseStatus.BadRequest).json({
           success: false,
-          message: "Invalid performer ID format",
+          message:PerformerMessages.INVALID_PERFORMER_ID,
         });
       }
-
       const objectid = new mongoose.Types.ObjectId(id);
-
       const slotDetails = await this._useCase.slotDetails(objectid);
-
-      return res.status(200).json({
+      return res.status(ResponseStatus.OK).json({
         success: true,
         data: slotDetails,
       });
@@ -492,15 +456,15 @@ export class performerController {
       console.error(`[getslotDetails]: Error - ${error}`);
 
       if (error instanceof mongoose.Error.CastError) {
-        return res.status(400).json({
+        return res.status(ResponseStatus.BadRequest).json({
           success: false,
-          message: "Invalid performer ID",
+          message:PerformerMessages.INVALID_PERFORMER_ID,
         });
       }
 
-      return res.status(500).json({
+      return res.status(ResponseStatus.InternalSeverError).json({
         success: false,
-        message: "Internal server error",
+        message: MessageConstants.INTERANAL_SERVER_ERROR,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

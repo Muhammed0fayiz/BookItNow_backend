@@ -54,7 +54,10 @@ router.get(
   controller.walletHistory.bind(controller)
 );
 
-router.get("/getUser/:id", controller.getUserDetails.bind(controller));
+router.get(
+  "/getUser/:id",
+  controller.getUserDetails.bind(controller)
+);
 router.put(
   "/updateUserProfile/:id",
   upload.single("profilePic"),

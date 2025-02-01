@@ -1,14 +1,8 @@
 import { TempPerformerDocument } from "../../../../infrastructure/models/tempPerformer";
-import { OtpUser } from "../../../../domain/entities/otpUser";
-import { User, UserDocument } from "../../../../domain/entities/user";
-import { checkOtp } from "../../../../domain/entities/checkOtp";
 import { UserDocuments } from "../../../../infrastructure/models/userModel";
 import { asPerformer } from "../../../../domain/entities/asPerformer";
 import mongoose, { Types } from "mongoose";
 import { performerDocument } from "../../../../domain/entities/performer";
-import { EventDocument } from "../../../../infrastructure/models/eventsModel";
-import { UpcomingEventDocument } from "../../../../domain/entities/upcomingevent";
-import { BookingDocument } from "../../../../infrastructure/models/bookingEvents";
 import { SlotDocuments } from "../../../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../../../domain/entities/slot";
 import { performerAllDetails } from "../../../../domain/entities/performerAllDetails";

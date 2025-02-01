@@ -22,7 +22,11 @@ const useCase = new performerEventUseCase(repository);
 
 const controller = new performerEventController(useCase);
 
-router.post("/uploadEvents/:id", controller.uploadEvents.bind(controller));
+router.post(
+  "/uploadEvents/:id",
+  authMiddleware,
+  controller.uploadEvents.bind(controller)
+);
 router.put(
   "/editEvent/:id/:eid",
   authMiddleware,

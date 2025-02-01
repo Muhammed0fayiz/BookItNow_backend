@@ -19,7 +19,6 @@ export class adminController {
   loginpost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const hashedPassword = await bcrypt.hash("123", 10);
-
       await AdminModel.insertMany([
         {
           email: "admin@gmail.com",
@@ -35,32 +34,25 @@ export class adminController {
   adminLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
-
       if (!email || !password) {
         return res.status(400).json({
           success: false,
           message: "Email and Password are required",
         });
       }
-
       const admin = await AdminModel.findOne({ email });
-
       if (!admin) {
         return res
           .status(401)
           .json({ success: false, message: "Invalid credentials" });
       }
-
       const isPasswordCorrect = await bcrypt.compare(password, admin.password);
-
       if (!isPasswordCorrect) {
         return res
           .status(401)
           .json({ success: false, message: "Invalid credentials" });
       }
-
       req.session.admin = { email: admin.email };
-
       return res.status(200).json({
         success: true,
         message: "Login successful",
@@ -74,7 +66,6 @@ export class adminController {
       return res.status(500).json({ success: false, message: "Server error" });
     }
   };
-
   checkSession = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (req.session?.admin) {
@@ -96,7 +87,6 @@ export class adminController {
       });
     }
   };
-
   isSessionExist = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (req.session?.admin) {
@@ -121,7 +111,6 @@ export class adminController {
   getAdminDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = await this._useCase.getAdminDetails();
-
       return res.status(200).json({
         success: true,
         data: response,
@@ -136,60 +125,48 @@ export class adminController {
   downloadReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { startDate, endDate } = req.query;
-
       // Validate dates
       const start = startDate ? new Date(startDate as string) : null;
       const end = endDate ? new Date(endDate as string) : null;
-
       if (!(start instanceof Date) || isNaN(start.getTime())) {
         return res.status(400).json({ error: "Invalid startDate" });
       }
-
       if (!(end instanceof Date) || isNaN(end.getTime())) {
         return res.status(400).json({ error: "Invalid endDate" });
       }
-
       // Get report data
       const report = await this._useCase.getReport(start, end);
-
       // Generate Excel report
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Admin Report");
-
       worksheet.columns = [
         { header: "Metric", key: "metric", width: 25 },
         { header: "Value", key: "value", width: 50 },
       ];
-
       worksheet.addRow({ metric: "Wallet Amount", value: report.walletAmount });
       worksheet.addRow({ metric: "Wallet Transaction History", value: "" });
-
       Object.entries(report.performerRegistrationHistory).forEach(
         ([date, count]) => {
           worksheet.addRow({ metric: `  - ${date}`, value: count });
         }
       );
-
       worksheet.addRow({ metric: "Total Users", value: report.totalUsers });
       worksheet.addRow({
         metric: "Total Performers",
         value: report.totalPerformers,
       });
-
       worksheet.addRow({ metric: "User Registration History", value: "" });
       Object.entries(report.userRegistrationHistory).forEach(
         ([date, count]) => {
           worksheet.addRow({ metric: `  - ${date}`, value: count });
         }
       );
-
       worksheet.addRow({ metric: "Performer Registration History", value: "" });
       Object.entries(report.performerRegistrationHistory).forEach(
         ([date, count]) => {
           worksheet.addRow({ metric: `  - ${date}`, value: count });
         }
       );
-
       // Set response headers for Excel file download
       res.setHeader(
         "Content-Type",
@@ -199,7 +176,6 @@ export class adminController {
         "Content-Disposition",
         `attachment; filename=Admin_Report_${startDate}_to_${endDate}.xlsx`
       );
-
       // Write workbook to response stream
       await workbook.xlsx.write(res);
       res.end();
@@ -238,7 +214,6 @@ export class adminController {
   ) => {
     try {
       const tempPerformers = await this.useCase.getTempPerformer();
-
       if (tempPerformers) {
         res.status(200).json({ success: true, data: tempPerformers });
       }
@@ -252,16 +227,13 @@ export class adminController {
     next: NextFunction
   ) => {
     try {
-      const id: string = req.params.id;
-
+      const {id}=req.params
       if (!id) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid ID provided" });
       }
-
       const permitedUser = await this.useCase.grantedPermission(id);
-
       if (permitedUser) {
         return res.status(200).json({ success: true, data: permitedUser });
       } else {
@@ -280,16 +252,14 @@ export class adminController {
     next: NextFunction
   ) => {
     try {
-      const id: string = req.params.id;
+ const {id} =req.params
       const rejectReason = req.body.rejectReason;
-
       // Validate ID format
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
         return res
           .status(400)
           .json({ success: false, message: "Invalid ID provided" });
       }
-
       const permitedUser = await this.useCase.rejectedPermission(
         id,
         rejectReason
@@ -324,7 +294,6 @@ export class adminController {
       if (!performers || performers.length === 0) {
         return res.status(404).json({ message: "No performers found." });
       }
-
       // Respond with the fetched performers
       res.status(200).json({ success: true, data: performers });
     } catch (error) {
@@ -373,13 +342,11 @@ export class adminController {
   allUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await this._useCase.getAllUser();
-
       if (!users || users.length === 0) {
         return res
           .status(ResponseStatus.NotFound)
           .json({ message: "No users found." });
       }
-
       res.status(ResponseStatus.OK).json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -392,10 +359,8 @@ export class adminController {
     next: NextFunction
   ) => {
     try {
-      const id: string = req.params.id;
-
+     const {id}=req.params
       const { isblocked }: { isblocked: boolean } = req.body;
-
       const userStatusChange = await this._useCase.userStatusChange(
         id,
         isblocked
@@ -410,11 +375,9 @@ export class adminController {
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const allEvents = await this._useCase.getAllEvents();
-
       if (!allEvents || allEvents.length === 0) {
         return res.status(204).json(null);
       }
-
       res.status(200).json(allEvents);
     } catch (error) {
       console.error("Error fetching events:", error);

@@ -36,20 +36,27 @@ const storage = multer.diskStorage({
 
 const uploads = multer({ storage: storage });
 
+router.post("/performerlogin", controller.performerLogin.bind(controller));
 router.post(
   "/tempPerformer",
   upload.single("video"),
+  authMiddleware,
   controller.addTempPerformer.bind(controller)
 );
-router.post("/performerlogin", controller.performerLogin.bind(controller));
 router.get(
   "/getPerformer/:id",
+  authMiddleware,
   controller.getPerformerDetails.bind(controller)
 );
-router.get("/downloadReport/:id", controller.downloadReport.bind(controller));
+router.get(
+  "/downloadReport/:id",
+  authMiddleware,
+  controller.downloadReport.bind(controller)
+);
 router.put(
   "/updatePerformerProfile/:id",
   uploads.single("image"),
+  authMiddleware,
   controller.updatePerformerProfile.bind(controller)
 );
 router.get(
