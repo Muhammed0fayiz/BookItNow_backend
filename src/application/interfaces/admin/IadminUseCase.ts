@@ -1,21 +1,20 @@
-import { getNameOfJSDocTypedef } from "typescript";
-import { OtpUser } from "../../../domain/entities/otpUser";
+
 import { User, UserDocument } from "../../../domain/entities/user";
-import { checkOtp } from "../../../domain/entities/checkOtp";
+
 import {
   TempPerformer,
   TempPerformerDocument,
 } from "../../../domain/entities/tempPerformer";
-import { UserDocuments } from "../../../infrastructure/models/userModel";
+
 import { Performer } from "../../../domain/entities/performer";
-import mongoose, { Types } from "mongoose";
+
 import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../../infrastructure/models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
 import { AdminRevenue } from "../../../domain/entities/adminRevenue";
+import mongoose from "mongoose";
 
 
-Performer
 export interface IadminUseCase {
 
   
@@ -28,7 +27,7 @@ export interface IadminUseCase {
 
 
   getTempPerformer():Promise<TempPerformerDocument[]|null>
-  grantedPermission(id: string): Promise<Performer>; 
+  grantedPermission(id: mongoose.Types.ObjectId): Promise<Performer>; 
   rejectedPermission(id: string,rejectReason:string): Promise<TempPerformer>; 
 
   

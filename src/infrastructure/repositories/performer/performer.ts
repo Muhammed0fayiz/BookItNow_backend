@@ -16,11 +16,12 @@ import { Types } from "mongoose";
 
 import { EventDocument, EventModel } from "../../models/eventsModel";
 
-import { BookingDocument, BookingModel } from "../../models/bookingEvents";
+import {BookingModel } from "../../models/bookingEvents";
 import { WalletModel } from "../../models/walletHistory";
 import { SlotMangement } from "../../../domain/entities/slot";
 import { performerAllDetails } from "../../../domain/entities/performerAllDetails";
 import { PerformerReport } from "../../../domain/entities/performerReport";
+
 export class performerRepository implements IperformerRepository {
 
   getReport = async (
@@ -50,7 +51,8 @@ export class performerRepository implements IperformerRepository {
       const performerRegistrationHistory: Record<string, number> = {};
       const upcomingEvent: PerformerReport["upcomingEvent"] = [];
       const eventHistory: PerformerReport["eventHistory"] = [];
-
+    console.log(totalEventsHistory);
+    
       for (const booking of bookings) {
         const event = booking.eventId as unknown as EventDocument;
 
@@ -149,10 +151,10 @@ export class performerRepository implements IperformerRepository {
     mobileNumber: string,
     description: string,
     user_id: mongoose.Types.ObjectId,
-    s3Location: any
+    s3Location: string
   ): Promise<TempPerformerDocument | null> => {
     try {
-      const user = await UserModel.findByIdAndUpdate(user_id, {
+     await UserModel.findByIdAndUpdate(user_id, {
         waitingPermission: true,
       });
 

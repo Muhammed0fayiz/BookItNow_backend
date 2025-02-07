@@ -3,7 +3,7 @@ import { IperformerEventUseCase } from "../../../application/interfaces/performe
 import { ResponseStatus } from "../../../constants/responseStatus";
 import mongoose, { Types } from "mongoose";
 import { ErrorMessages, EventMessages, MessageConstants } from "../../../shared/utils/constant";
-const ExcelJS = require("exceljs");
+
 export class performerEventController {
   private _useCase: IperformerEventUseCase;
 
@@ -15,23 +15,33 @@ export class performerEventController {
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response<any> | void> => {
+  ) => {
     try {
-     const {id}=req.params
+      const userId = req.params.id;
       if (!req.body) {
         return res.status(ResponseStatus.BadRequest).json({ message: ErrorMessages.NO_EVENT_FOUND });
       }
-      const event = {
-        imageUrl: req.body.imageUrl ? req.body.imageUrl.trim() : null,
-        title: req.body.title ? req.body.title.trim() : null,
-        category: req.body.category ? req.body.category.trim() : null,
-        userId: new Types.ObjectId(id),
-        price: req.body.price ? parseFloat(req.body.price) : null, 
-        teamLeader: req.body.teamLeader ? req.body.teamLeader.trim() : null,
+      
+      const event: {
+        imageUrl: string;
+        title: string;
+        category: string;
+        userId: Types.ObjectId;
+        price: number;
+        teamLeader: string;
+        teamLeaderNumber: number;
+        description: string;
+      } = {
+        imageUrl: req.body.imageUrl ? req.body.imageUrl.trim() : undefined,
+        title: req.body.title ? req.body.title.trim() : "",
+        category: req.body.category ? req.body.category.trim() : "",
+        userId: new Types.ObjectId(userId),
+        price: req.body.price ? parseFloat(req.body.price) : 0,
+        teamLeader: req.body.teamLeader ? req.body.teamLeader.trim() : "",
         teamLeaderNumber: req.body.teamLeaderNumber
           ? parseInt(req.body.teamLeaderNumber, 10)
-          : null, 
-        description: req.body.description ? req.body.description.trim() : null,
+          : 0,
+        description: req.body.description ? req.body.description.trim() : "",
       };
 
       if (
@@ -68,8 +78,8 @@ export class performerEventController {
           message: EventMessages.DESCRIPTION_ERROR,
         });
       }
-
-      // Upload event details
+ console.log('fya',event)
+     
       const uploadedEvent = await this._useCase.uploadedEvents(event);
       if (uploadedEvent === "Event already exists") {
         return res.status(ResponseStatus.Conflict).json({
@@ -93,7 +103,7 @@ export class performerEventController {
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<any> => {
+  ) => {
     try {
       const {id}=req.params;
       const events = await this._useCase.getPerformerEvents(id);
@@ -127,15 +137,15 @@ export class performerEventController {
       }
     } catch (error) {
       console.error("Error deleting event:", error);
-      res.status(ResponseStatus.InternalSeverError).json({ message: MessageConstants.INTERANAL_SERVER_ERROR });
-      return;
+    next(error)
     }
   };
+
   editEvents = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response<any> | void> => {
+  ) => {
     try {
       const userId = req.params.id;
       const eventId = req.params.eid;
@@ -163,9 +173,6 @@ export class performerEventController {
           : 0,
         description: req.body.description ? req.body.description.trim() : "",
       };
-
- 
-
       if (
         !event.title ||
         !event.category ||
@@ -176,10 +183,7 @@ export class performerEventController {
       ) {
         return res.status(ResponseStatus.BadRequest).json({ message: ErrorMessages.ALL_FIELD_REQUIRED});
       }
-
       const updatedEvent = await this._useCase.editEvents(eventId, event);
-   
-      
       if (updatedEvent === "Event already exists" || updatedEvent === ErrorMessages.NO_EVENT_FOUND) {
         const status = updatedEvent === "Event already exists" ? ResponseStatus.Conflict : ResponseStatus.NotFound;
         const message = updatedEvent === "Event already exists" 
@@ -226,7 +230,7 @@ export class performerEventController {
       });
     } catch (error) {
       console.error("Error toggling block status:", error);
-      res.status(ResponseStatus.InternalSeverError).json({ message:MessageConstants.INTERANAL_SERVER_ERROR });
+      next(error);
     }
   };
   upcomingEvents = async (req: Request, res: Response, next: NextFunction) => {
@@ -250,7 +254,7 @@ export class performerEventController {
       next(error);
     }
   };
-  cancelEventByUser = async (
+  cancelEventByPerformer = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -301,13 +305,21 @@ export class performerEventController {
     }
   };
 
-  changeEventStatus = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    return await this._useCase.changeEventStatus();
+  changeEventStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const updatedEvent = await this._useCase.changeEventStatus();
+  
+      if (updatedEvent) {
+        return res.status(200).json({ success: true, data: updatedEvent });
+      } else {
+        return res.status(404).json({ success: false, message: "No event status updated" });
+      }
+    } catch (error) {
+      console.error("Error changing event status:", error);
+      next(error);
+    }
   };
+  
   getUpcomingEvents = async (
     req: Request,
     res: Response,
@@ -362,10 +374,7 @@ export class performerEventController {
         });
       }
     } catch (error) {
-      res.status(ResponseStatus.InternalSeverError).json({
-        success: false,
-        message: "Internal server error",
-      });
+      next(error);
     }
   };
 }

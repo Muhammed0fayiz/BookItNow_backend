@@ -1,14 +1,14 @@
 import { IChatRepository } from "../../../application/interfaces/chat/IchatRepositary";
 
-import { UserDocuments, UserModel } from "../../models/userModel";
+import { UserModel } from "../../models/userModel";
 
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 import { PerformerModel } from "../../models/performerModel";
 
-import { FavoriteDocument, FavoriteModel } from "../../models/FavoriteScema";
+
 import { ChatRoomDocument, ChatRoomModel } from "../../models/chatRoomModel";
-import { MessageDocument, MessageModel } from "../../models/messageModel";
+import { MessageModel } from "../../models/messageModel";
 import { ChatRoom } from "../../../domain/entities/chatRoom";
 
 import { MessageNotification } from "../../../domain/entities/messageNotification";
@@ -107,7 +107,7 @@ export class chatRepository implements IChatRepository {
     pId: mongoose.Types.ObjectId
   ): Promise<any> => {
     try {
-      const updatedRooms = await ChatRoomModel.updateMany(
+     await ChatRoomModel.updateMany(
         { participants: uId },
         { $pull: { online: uId } },
         { new: true }

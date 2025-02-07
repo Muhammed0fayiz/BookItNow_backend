@@ -23,7 +23,7 @@ export interface UpcomingEventDocument extends Document {
   place: string;
   date: Date;
   bookingStatus: string;
-  isRated: { type: Boolean, default: false }, 
+  isRated: { type: boolean, default: false }, 
   // Timestamps
   createdAt: Date;
   updatedAt: Date;

@@ -1,26 +1,14 @@
-import { FavoriteDocument } from "../../../infrastructure/models/FavoriteScema";
-import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-import { BookingDocument } from "../../../infrastructure/models/bookingEvents";
-import { getNameOfJSDocTypedef } from "typescript";
-import { OtpUser } from "../../../domain/entities/otpUser";
-import { User, UserDocument } from "../../../domain/entities/user";
-import { checkOtp } from "../../../domain/entities/checkOtp";
-import {
-  TempPerformer,
-  TempPerformerDocument,
-} from "../../..//domain/entities/tempPerformer";
-import { UserDocuments } from "../../../infrastructure/models/userModel";
+
+
 import mongoose from "mongoose";
-import { EventDocument } from "../../../infrastructure/models/eventsModel";
-import { Performer } from "../../../domain/entities/performer";
-import { WalletDocument } from "../../../infrastructure/models/walletHistory";
+
 import { ChatRoomDocument } from "../../../infrastructure/models/chatRoomModel";
 import { MessageDocument } from "../../../infrastructure/models/messageModel";
 import { ChatRoom } from "../../../domain/entities/chatRoom";
 import { MessageNotification } from "../../../domain/entities/messageNotification";
-import {  eventRating } from "../../../domain/entities/eventRating";
+
 export interface IChatUseCase {
-  // getAllUser(): Promise<UserDocument[]>;
+
 
  
   sendMessage(

@@ -21,7 +21,7 @@ export interface IperformerRepository {
     mobileNumber: string,
     description: string,
     user_id: mongoose.Types.ObjectId,
-    s3Location: any
+    s3Location: string
   ): Promise<TempPerformerDocument | null>;
   getAllUsers(id: mongoose.Types.ObjectId): Promise<UserDocuments[] | null>;
   getReport(

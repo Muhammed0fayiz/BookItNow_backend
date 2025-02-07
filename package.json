@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.19.0",
     "@types/axios": "^0.14.4",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
@@ -23,7 +24,11 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/socket.io": "^3.0.2",
     "@types/socket.io-client": "^3.0.0",
-    "typescript": "^5.5.4"
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.4",
+    "globals": "^15.14.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.22.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.674.0",

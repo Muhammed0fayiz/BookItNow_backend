@@ -16,6 +16,7 @@ router.post("/create-payment-intent", async (req, res) => {
 
     return res.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
+    console.error("Error creating payment intent:", error);
     res
       .status(500)
       .json({ error: "An error occurred while creating the payment intent" });

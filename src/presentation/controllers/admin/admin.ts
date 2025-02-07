@@ -1,93 +1,84 @@
 import { Response, Request, NextFunction } from "express";
-
 import { ResponseStatus } from "../../../constants/responseStatus";
 
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
+
 import { IadminUseCase } from "../../../application/interfaces/admin/IadminUseCase";
 import mongoose from "mongoose";
 import { AdminModel } from "../../../infrastructure/models/adminModel";
-const ExcelJS = require("exceljs");
+import ExcelJS from "exceljs";
 
 import bcrypt from "bcrypt";
 export class adminController {
   private _useCase: IadminUseCase;
-
   constructor(private useCase: IadminUseCase) {
     this._useCase = useCase;
   }
 
-  loginpost = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const hashedPassword = await bcrypt.hash("123", 10);
-      await AdminModel.insertMany([
-        {
-          email: "admin@gmail.com",
-          password: hashedPassword,
-        },
-      ]);
-
-      res.status(201).json({ message: "Admin inserted successfully" });
-    } catch (error) {
-      next(error);
-    }
-  };
+ 
   adminLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Email and Password are required",
-        });
-      }
-      const admin = await AdminModel.findOne({ email });
-      if (!admin) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Invalid credentials" });
-      }
-      const isPasswordCorrect = await bcrypt.compare(password, admin.password);
-      if (!isPasswordCorrect) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Invalid credentials" });
-      }
-      req.session.admin = { email: admin.email };
-      return res.status(200).json({
-        success: true,
-        message: "Login successful",
-        admin: {
-          email: admin.email,
-          walletAmount: admin.walletAmount,
-        },
-      });
-    } catch (error) {
-      console.error("Error during admin login:", error);
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
-  };
-  checkSession = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (req.session?.admin) {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and Password are required",
+            });
+        }
+        const admin = await AdminModel.findOne({ email });
+        if (!admin) {
+            return res
+                .status(401)
+                .json({ success: false, message: "Invalid credentials" });
+        }
+        const isPasswordCorrect = await bcrypt.compare(password, admin.password);
+        if (!isPasswordCorrect) {
+            return res
+                .status(401)
+                .json({ success: false, message: "Invalid credentials" });
+        }
+        req.session.admin = { email: admin.email };
         return res.status(200).json({
-          isAuthenticated: true,
-          message: "Admin is authenticated",
+            success: true,
+            message: "Login successful",
+            admin: {
+                email: admin.email,
+                walletAmount: admin.walletAmount,
+            },
         });
-      } else {
-        return res.status(200).json({
-          isAuthenticated: false,
-          message: "Admin is not authenticated",
-        });
-      }
     } catch (error) {
-      console.error("Error checking session:", error);
-      return res.status(500).json({
-        isAuthenticated: false,
-        message: "Server error while checking session",
-      });
+        console.error("Error during admin login:", error);
+        next(error);
     }
-  };
-  isSessionExist = async (req: Request, res: Response, next: NextFunction) => {
+};
+loginpost = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const hashedPassword = await bcrypt.hash("123", 10);
+    await AdminModel.insertMany([
+      {
+        email: "admin@gmail.com",
+        password: hashedPassword,
+      },
+    ]);
+    res.status(201).json({ message: "Admin inserted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+checkSession = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const isAuthenticated = !!req.session?.admin;
+    return res.status(200).json({
+      isAuthenticated,
+      message: isAuthenticated
+        ? "Admin is authenticated"
+        : "Admin is not authenticated",
+    });
+  } catch (error) {
+    console.error("Error checking session:", error);
+    next(error); 
+  }
+};
+  isSessionExist = async (req: Request, res: Response) => {
     try {
       if (req.session?.admin) {
         return res.status(200).json({
@@ -116,10 +107,8 @@ export class adminController {
         data: response,
       });
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch admin details. Please try again later.",
-      });
+      console.error("Error fetching admin details:", error);
+      next(error); // Forward error to global error handler
     }
   };
   downloadReport = async (req: Request, res: Response, next: NextFunction) => {
@@ -176,14 +165,14 @@ export class adminController {
         "Content-Disposition",
         `attachment; filename=Admin_Report_${startDate}_to_${endDate}.xlsx`
       );
-      // Write workbook to response stream
+ 
       await workbook.xlsx.write(res);
       res.end();
     } catch (error) {
       next(error);
     }
   };
-  adminLogout = async (req: Request, res: Response, next: NextFunction) => {
+  adminLogout = async (req: Request, res: Response) => {
     try {
       if (req.session?.admin) {
         req.session.destroy((err) => {
@@ -206,7 +195,6 @@ export class adminController {
       return res.status(500).json({ success: false, message: "Server error" });
     }
   };
-
   allTempPerformers = async (
     req: Request,
     res: Response,
@@ -227,7 +215,9 @@ export class adminController {
     next: NextFunction
   ) => {
     try {
-      const {id}=req.params
+      const {userId}=req.params
+      console.log(userId,'sfdal;fjlas')
+        const id = new mongoose.Types.ObjectId(userId);
       if (!id) {
         return res
           .status(400)
@@ -282,7 +272,6 @@ export class adminController {
       next(error);
     }
   };
-
   getAllPerformers = async (
     req: Request,
     res: Response,
@@ -294,21 +283,17 @@ export class adminController {
       if (!performers || performers.length === 0) {
         return res.status(404).json({ message: "No performers found." });
       }
-      // Respond with the fetched performers
       res.status(200).json({ success: true, data: performers });
     } catch (error) {
       console.error("Error fetching performers:", error);
-      next(error); // Pass the error to the error handling middleware
+      next(error);
     }
   };
   blockunblockperformer = async (
     req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+    res: Response  ) => {
     try {
       const userId: string = req.params.id;
-
       if (!userId) {
         return res
           .status(400)
@@ -338,7 +323,6 @@ export class adminController {
       }
     }
   };
-
   allUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await this._useCase.getAllUser();
@@ -365,13 +349,11 @@ export class adminController {
         id,
         isblocked
       );
-
       res.status(200).json({ success: true, user: userStatusChange });
     } catch (error) {
       next(error);
     }
   };
-
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const allEvents = await this._useCase.getAllEvents();
@@ -386,9 +368,7 @@ export class adminController {
   };
   toggleBlockStatus = async (
     req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+    res: Response  ) => {
     try {
       const { id } = req.params;
       const { reason, duration, action } = req.body;
@@ -432,8 +412,6 @@ export class adminController {
       res.status(500).json({ message: "Internal server error" });
     }
   };
-  
-
   getRevenue = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { page } = req.query;
@@ -458,5 +436,4 @@ export class adminController {
       next(error);
     }
   };
-
 }

@@ -1,27 +1,38 @@
+import { Performer } from './../../../domain/entities/performer';
 import { TempPerformerDocument } from "../../models/tempPerformer";
-
 import { IadminRepository } from "../../../application/interfaces/admin/IadminRepository";
-import { User, UserDocument } from "../../../domain/entities/user";
-import { OtpUser } from "../../../domain/entities/otpUser";
-
-import { UserDocuments, UserModel } from "../../models/userModel";
-
-import bcrypt from "bcrypt";
-
+import {  UserDocument } from "../../../domain/entities/user";
+import { UserModel } from "../../models/userModel";
 import { TempPerformerModel } from "../../models/tempPerformer";
 import { TempPerformer } from "../../../domain/entities/tempPerformer";
-import { generateOTP } from "../../../shared/utils/generateOtp";
-import { tempUserModel } from "../../models/tempUser";
-import { Types } from "mongoose";
-import { Performer } from "../../../domain/entities/performer";
+
+import mongoose from "mongoose";
+
 import { PerformerModel } from "../../models/performerModel";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { AdminDocument, AdminModel } from "../../models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
 import { AdminRevenue } from "../../../domain/entities/adminRevenue";
-import { BookingModel } from "../../models/bookingEvents";
+import { BookingDocument, BookingModel } from "../../models/bookingEvents";
+// Interface for populated booking
+interface PopulatedBooking extends Omit<BookingDocument, 'eventId'> {
+  eventId: EventDocument;
+}
+  interface PopulatedPerformer extends Omit<Performer, 'userId'> {
+    userId: {
+      createdAt: Date;
+     
+    };
+  }
+  
+
+
+
 export class adminRepository implements IadminRepository {
 
+
+
+  
   getRevenue = async (
     offset: number,
     pageSize: number
@@ -30,30 +41,29 @@ export class adminRepository implements IadminRepository {
       const bookings = await BookingModel.find()
         .skip(offset)
         .limit(pageSize)
-        .sort({ _id: -1 }) 
-        .populate('eventId');
-  
+        .sort({ _id: -1 })
+        .populate<{ eventId: EventDocument }>('eventId');
+
       const totalCount = await BookingModel.countDocuments();
-  
+
       const adminRevinue: AdminRevenue[] = [];
-  
-      for (const booking of bookings) {
+
+      for (const booking of bookings as PopulatedBooking[]) {
         const performer = await PerformerModel.findById(booking.performerId);
-      
         const user = await UserModel.findById(booking.userId);
-  
+
         if (user && performer && booking.eventId) {
           adminRevinue.push({
             userName: user.username,
-            performerName: performer.bandName, // performer username
-            eventName: (booking.eventId as any).title,
+            performerName: performer.bandName,
+            eventName: booking.eventId.title,
             status: booking.bookingStatus,
             place: booking.place,
             date: booking.createdAt.toISOString(),
           });
         }
       }
-  
+
       return {
         totalCount,
         adminRevinue,
@@ -63,52 +73,49 @@ export class adminRepository implements IadminRepository {
     }
   };
   
-  
-
-
-
   getAdminDetails = async (): Promise<AdminDetails> => {
     try {
       const admin = await AdminModel.findOne();
-
+  
       let walletAmount = 0;
       let walletTransactionHistory: Record<string, number> = {};
-
+  
       if (admin) {
         walletAmount = admin.walletAmount;
         walletTransactionHistory = admin.transactions;
       }
-
-      const performers = await PerformerModel.find().populate(
-        "userId",
-        "createdAt"
-      );
+  
+      const performers = await PerformerModel.find()
+        .populate<{ userId: { createdAt: Date } }>(
+          'userId',
+          'createdAt'
+        );
       const users = await UserModel.find();
-
+  
       const performerRegistrationHistory: Record<string, number> = {};
-      performers.forEach((performer) => {
-        if (performer.userId && (performer.userId as any).createdAt) {
-          const createdAt = (performer.userId as any).createdAt;
-
+      (performers as PopulatedPerformer[]).forEach((performer) => {
+        if (performer.userId?.createdAt) {
+          const createdAt = performer.userId.createdAt;
+  
           const day = `${createdAt.getFullYear()}-${String(
             createdAt.getMonth() + 1
-          ).padStart(2, "0")}-${String(createdAt.getDate()).padStart(2, "0")}`;
+          ).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
           performerRegistrationHistory[day] =
             (performerRegistrationHistory[day] || 0) + 1;
         }
       });
-
+  
       const userRegistrationHistory: Record<string, number> = {};
       users.forEach(({ createdAt }) => {
         if (createdAt) {
           const day = `${createdAt.getFullYear()}-${String(
             createdAt.getMonth() + 1
-          ).padStart(2, "0")}-${String(createdAt.getDate()).padStart(2, "0")}`;
+          ).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
           userRegistrationHistory[day] =
             (userRegistrationHistory[day] || 0) + 1;
         }
       });
-
+  
       return {
         walletAmount: walletAmount,
         walletTransactionHistory: walletTransactionHistory,
@@ -207,7 +214,7 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-  grantedPermission = async (id: string): Promise<any> => {
+  grantedPermission = async (id: mongoose.Types.ObjectId): Promise<Performer> => {
     try {
       const tempPerform = await TempPerformerModel.findById(id);
 

@@ -1,27 +1,18 @@
-import { UpcomingEvent } from "../../../domain/entities/performerupcomingevent";
 
-import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
 import { TempPerformerDocument } from "../../models/tempPerformer";
-
 import { IuserRepository } from "../../../application/interfaces/user/repositary/user";
 import { User, UserDocument } from "../../../domain/entities/user";
 import { OtpUser } from "../../../domain/entities/otpUser";
-
 import { UserDocuments, UserModel } from "../../models/userModel";
 import bcrypt from "bcrypt";
-
 import { TempPerformerModel } from "../../models/tempPerformer";
-
 import { tempUserModel } from "../../models/tempUser";
-import mongoose, { Types } from "mongoose";
-
 import { PerformerModel } from "../../models/performerModel";
 import { Performer } from "../../../domain/entities/performer";
-import { BookingDocument, BookingModel } from "../../models/bookingEvents";
-
+import {  BookingModel } from "../../models/bookingEvents";
 import { WalletDocument, WalletModel } from "../../models/walletHistory";
 import { SlotModel } from "../../models/slotModel";
-
+import mongoose from "mongoose";
 export class userRepository implements IuserRepository {
   getUserDetails = async (id: any): Promise<UserDocuments | null> => {
     try {
@@ -67,15 +58,10 @@ export class userRepository implements IuserRepository {
     }
   };
   resendOtp = async (email: string, otp: string): Promise<User | null> => {
-    let b = await tempUserModel.find();
-
     try {
-      console.log("otp", otp);
-      console.log("email", email);
-      const otpUser = await tempUserModel.findOne({ email });
-
+       await tempUserModel.findOne({ email });
       // Making the email case-insensitive
-      let m = await tempUserModel.findOne({
+      const m = await tempUserModel.findOne({
         email: { $regex: new RegExp(`^${email}$`, "i") },
       });
 

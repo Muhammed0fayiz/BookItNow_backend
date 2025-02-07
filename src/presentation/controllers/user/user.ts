@@ -9,7 +9,7 @@ import { isValidFullName } from "../../../shared/utils/validName";
 
 
 
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 import {
   UserDocuments,
@@ -68,6 +68,7 @@ export class UserController {
       }
     } catch (error) {
       console.log(error);
+      next(error)
     }
   };
   userSignup = async (req: Request, res: Response, next: NextFunction) => {
@@ -156,26 +157,28 @@ export class UserController {
     } catch (error) {
       console.error(error);
       res.status(ResponseStatus.InternalSeverError).json({ message: MessageConstants.INTERANAL_SERVER_ERROR });
+      next(error)
     }
   };
   resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log('hell')
       const email = req.params.email;
       if (email) {
         const otp = generateOTP();
-        const otpUser = await this._useCase.resendOtp(email, otp);
+       await this._useCase.resendOtp(email, otp);
         res.status(ResponseStatus.OK).json({ message: "resend otp successfull" });
       }
     } catch (error) {
       res.status(ResponseStatus.InternalSeverError).json({ message: "internal server error" });
+      next(error)
     }
   };
   async googleCallback(req: Request, res: Response, next: NextFunction) {
     try {
       if (req.user) {
-        let user = req.user;
+       const user = req.user;
         const token = await this._useCase.jwt(user as User);
-        const userData = encodeURIComponent(JSON.stringify(req.user));
         const tokenData = encodeURIComponent(JSON.stringify(token));
 
         res.cookie("userToken", tokenData, {
@@ -185,13 +188,14 @@ export class UserController {
           maxAge: 24 * 60 * 60 * 1000,
         });
 
-        res.redirect(`http://localhost:3000/auth`);
+        res.redirect(`http://localhost:3000`);
       } else {
-        res.redirect("http://localhost:3000/auth");
+        res.redirect("http://localhost:3000");
       }
     } catch (error) {
       console.error("Error during Google callback:", error);
       res.redirect("http://localhost:3000/error");
+      next(error)
     }
   }
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
@@ -249,7 +253,7 @@ export class UserController {
       }
     } catch (error) {
       console.error("Error updating user profile:", error);
-
+        next(error)
       if (error instanceof Error) {
         res
           .status(ResponseStatus.InternalSeverError)
@@ -271,7 +275,6 @@ export class UserController {
         currentPassword,
         newPassword
       );
-      // Send the success response
       return res.status(ResponseStatus.OK).json({ success: true, user: changedPassword });
     } catch (error) {
       if (error instanceof Error) {
@@ -283,6 +286,7 @@ export class UserController {
           .json({ message: MessageConstants.ERROR_OCCURRED, error: error.message });
       }
       return res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR });
+      next(error)
     }
   };
   walletHistory = async (req: Request, res: Response, next: NextFunction) => {
@@ -296,4 +300,5 @@ export class UserController {
       next(error);
     }
   };
+
 }

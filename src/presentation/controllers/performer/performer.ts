@@ -4,16 +4,16 @@ import { isValidEmail } from "../../../shared/utils/validEmail";
 import { ResponseStatus } from "../../../constants/responseStatus";
 import { IperformerUseCase } from "../../../application/interfaces/performer/useCase/performer";
 import { asPerformer } from "../../../domain/entities/asPerformer";
-import mongoose, { Types } from "mongoose";
-import { MessageConstants, OTPMessages, UserMessages,ErrorMessages, PerformerMessages} from "../../../shared/utils/constant";
+import mongoose from "mongoose";
+import { MessageConstants,UserMessages,ErrorMessages, PerformerMessages} from "../../../shared/utils/constant";
 import {
-  PerformerDocuments,
+
   PerformerModel,
 } from "../../../infrastructure/models/performerModel";
+import { EventReport } from "../../../domain/entities/reportPerformer";
 const ExcelJS = require("exceljs");
 export class performerController {
   private _useCase: IperformerUseCase;
-
   constructor(private useCase: IperformerUseCase) {
     this._useCase = useCase;
   }
@@ -112,6 +112,7 @@ const {id}=req.params
       }
     } catch (error) {
       console.log(error);
+      next(error)
     }
   };
   getPerformerDetails = async (
@@ -139,7 +140,7 @@ const {id}=req.params
           .json({ message: UserMessages.USER_DETAILS_FAILED });
       }
     } catch (error) {
-      next(error); // Pass the error to the next middleware
+      next(error); 
     }
   };
   updatePerformerProfile = async (
@@ -178,7 +179,7 @@ const {id}=req.params
       }
     } catch (error) {
       console.error("Error updating user profile:", error);
-
+      next(error)
       if (error instanceof Error) {
         res
           .status(ResponseStatus.InternalSeverError)
@@ -193,7 +194,7 @@ const {id}=req.params
       const { startDate, endDate } = req.query;
       const {id}=req.params;
       const performerId = new mongoose.Types.ObjectId(id);
-      // Validate and parse startDate and endDate
+
       const start = startDate ? new Date(startDate as string) : null;
       const end = endDate ? new Date(endDate as string) : null;
       if (!(start instanceof Date) || isNaN(start.getTime())) {
@@ -203,20 +204,19 @@ const {id}=req.params
         return res.status(ResponseStatus.BadRequest).json({ error: "Invalid endDate" });
       }
 
-      // Fetch report data
+
       const report = await this._useCase.getReport(performerId, start, end);
 
       if (!report) {
         return res.status(ResponseStatus.NotFound).json({ error: "Report not found" });
       }
 
-      // Initialize Excel Workbook and Worksheet
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Performer Report", {
         pageSetup: { paperSize: 9, orientation: "landscape" },
       });
 
-      // Set column widths
+
       worksheet.columns = [
         { width: 30 },
         { width: 15 },
@@ -261,7 +261,7 @@ const {id}=req.params
 
       worksheet.addRow([]);
       const statsRow = worksheet.addRow([
-        "Total Programs",
+        "Total Events",
         `  ${report.totalPrograms}`,
       ]);
       statsRow.getCell(1).font = {
@@ -270,14 +270,14 @@ const {id}=req.params
         color: { argb: colors.sectionTitleText },
       };
 
-      // Function to create table for events
-      const createEventTable = (events: any[], title: string) => {
-        // Check if events exist
+  
+      const createEventTable = (events: EventReport[], title: string) => {
+
         if (!events || events.length === 0) {
           return;
         }
 
-        // Section Title
+
         worksheet.addRow([]);
         const sectionTitleRow = worksheet.addRow([title]);
         sectionTitleRow.getCell(1).font = {
@@ -378,16 +378,14 @@ const {id}=req.params
             }
           );
 
-          // Merge Date and Number columns
+     
           worksheet.mergeCells(`B${dataRow.number}:C${dataRow.number}`);
           worksheet.mergeCells(`H${dataRow.number}:I${dataRow.number}`);
         });
       };
 
-      // Conditionally render Upcoming Events
       createEventTable(report.upcomingEvent, "Upcoming Events");
 
-      // Conditionally render Event History
       createEventTable(report.eventHistory, "Event History");
 
       // Finalize and Send the Report
@@ -454,7 +452,7 @@ const {id}=req.params
       });
     } catch (error) {
       console.error(`[getslotDetails]: Error - ${error}`);
-
+      next(error);
       if (error instanceof mongoose.Error.CastError) {
         return res.status(ResponseStatus.BadRequest).json({
           success: false,

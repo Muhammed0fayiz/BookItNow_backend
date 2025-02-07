@@ -1,16 +1,15 @@
 import { IperformerEventRepository } from './../../../application/interfaces/performer/repositary/event';
 
-import { PerformerDocuments, PerformerModel } from "../../models/performerModel";
+import { PerformerModel } from "../../models/performerModel";
 
 import mongoose from "mongoose";
 
 
 
-import { UserDocuments, UserModel } from "../../models/userModel";
+import { UserModel } from "../../models/userModel";
 
 
 import { Types } from "mongoose";
-import { performerDocument } from "../../../domain/entities/performer";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
 import { BookingDocument, BookingModel } from "../../models/bookingEvents";
@@ -45,7 +44,7 @@ export class performerEventRepository implements IperformerEventRepository {
     userId: Types.ObjectId;
     price: number;
     teamLeader: string;
-    teamLeaderNumber: string;
+    teamLeaderNumber: number;
     description: string;
   }): Promise<EventDocument | null | string> => {
     try {
@@ -58,9 +57,14 @@ export class performerEventRepository implements IperformerEventRepository {
         return "Event already exists";
       }
   
-      const events = await EventModel.insertMany([event]);
-  
-      return events.length > 0 ? events[0] : null;
+      const newEvent = await EventModel.create(event);
+        
+      // Fetch the newly created event
+      const createdEvent = await EventModel.findById(newEvent._id);
+      
+      return createdEvent;
+
+      
     } catch (error) {
       console.error("Error inserting event:", error);
       throw error;

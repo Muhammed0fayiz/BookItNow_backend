@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from "express";
 
 import { IChatUseCase } from "../../../application/interfaces/chat/IchatUseCase";
 import { ResponseStatus } from "../../../constants/responseStatus";
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { MessageConstants } from "../../../shared/utils/constant";
 
 export class ChatController {
@@ -91,6 +91,13 @@ export class ChatController {
   onlineUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId, anotherId } = req.params;
+      if (!userId || !anotherId) {
+        return res.status(400).json({ message: "Both userId and anotherId are required." });
+      }
+  
+      if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(anotherId)) {
+        return res.status(400).json({ message: "Invalid userId or anotherId format." });
+      }
       const uId = new mongoose.Types.ObjectId(userId);
       const pId = new mongoose.Types.ObjectId(anotherId);
       const result = await this._useCase.onlineUser(uId, pId);
@@ -102,7 +109,8 @@ export class ChatController {
         return res.status(ResponseStatus.NotFound).json({ message: "User not found." });
       }
     } catch (error) {
-      throw error;
+      console.error("Error in onlineUser:", error);
+      next(error);
     }
   };
   offlineUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -118,7 +126,8 @@ export class ChatController {
         return res.status(ResponseStatus.NotFound).json({ message: "User not found." });
       }
     } catch (error) {
-      throw error;
+      console.error("Error in offline:", error);
+      next(error);
     }
   };
   getMessgeNotification = async (
@@ -154,7 +163,7 @@ export class ChatController {
       return res.status(ResponseStatus.OK).json({ onlineUser });
     } catch (error) {
       console.error("Error in checkOnlineUser:", error);
-      return res.status(500).json({ message: MessageConstants.ERROR_OCCURRED });
+      next(error);
     }
   };
 }

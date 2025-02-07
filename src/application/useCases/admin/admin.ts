@@ -1,23 +1,15 @@
 import { User, UserDocument } from "../../../domain/entities/user";
-
-import {
-  TempPerformerDocument,
-  TempPerformer,
-} from "../../../domain/entities/tempPerformer";
-
+import { TempPerformer,TempPerformerDocument} from "../../../domain/entities/tempPerformer";
 import { IadminUseCase } from "../../interfaces/admin/IadminUseCase";
 import { IadminRepository } from "../../interfaces/admin/IadminRepository";
-import { Types } from "mongoose";
+import mongoose from "mongoose";
 import { Performer } from "../../../domain/entities/performer";
 import nodemailer from "nodemailer";
 import { UserModel } from "../../../infrastructure/models/userModel";
 import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { AdminDocument } from "../../../infrastructure/models/adminModel";
-import bcrypt from "bcrypt";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
 import { AdminRevenue } from "../../../domain/entities/adminRevenue";
-const ExcelJS = require("exceljs");
-const path = require("path");
 export class adminUseCase implements IadminUseCase {
   private _repository: IadminRepository;
 
@@ -32,14 +24,6 @@ export class adminUseCase implements IadminUseCase {
     throw error
    }
   }
-
-
-
-
-
-
-
-
   getAdminDetails = async (): Promise<AdminDetails> => {
     try {
       const adminDetail = await this._repository.getAdminDetails();
@@ -61,28 +45,22 @@ export class adminUseCase implements IadminUseCase {
     const adminWallet = await this._repository.adminWallet();
     return adminWallet;
   };
-
-
-
-  getTempPerformer = async (): Promise<any[] | null> => {
+  getTempPerformer = async (): Promise<TempPerformerDocument[] | null> => {
     try {
       return await this._repository.getTempPerformer();
     } catch (error) {
       throw error;
     }
   };
-  grantedPermission = async (id: string): Promise<Performer> => {
- 
-
+  grantedPermission = async (id: mongoose.Types.ObjectId): Promise<Performer> => {
     const performer = await this._repository.grantedPermission(id);
-
     if (performer) {
-      const user = await UserModel.findById(performer.userId); // Declare user here
+      const user = await UserModel.findById(performer.userId); 
 
       if (user) {
       
         try {
-          const successMessage = await this.sendCongratulatoryEmail(user.email);
+          await this.sendCongratulatoryEmail(user.email);
         } catch (error) {
           console.error("Error sending congratulatory email:", error);
         }
@@ -140,16 +118,14 @@ export class adminUseCase implements IadminUseCase {
     rejectReason: string
   ): Promise<TempPerformer> => {
     try {
-      // Fetch rejected performer data
       const tempPerformer = await this._repository.rejectedPermission(id);
 
       if (tempPerformer) {
         const user = await UserModel.findById(tempPerformer.user_id);
 
         if (user) {
-          // Send rejection email
           try {
-            const rejectionMessage = await this.sendRejectionEmail(
+     await this.sendRejectionEmail(
               user.email,
               rejectReason
             );
@@ -215,10 +191,6 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
-
-
-
-  
   getAllPerformer = async (): Promise<Performer[] | null> => {
     try {
       return await this._repository.getAllPerformer();
@@ -241,10 +213,6 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
-
-
-
-  
   getAllUser = async (): Promise<UserDocument[]> => {
     try {
       return await this._repository.getAllUser();
@@ -259,10 +227,6 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
-
-
-
-
   getAllEvents = async (): Promise<EventDocument[] | null> => {
     try {
       return this._repository.getAllEvents();
@@ -299,6 +263,4 @@ export class adminUseCase implements IadminUseCase {
       throw error;
     }
   };
- 
-
 }

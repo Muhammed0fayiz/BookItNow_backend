@@ -1,37 +1,18 @@
 import { IperformerEventRepository } from './../../interfaces/performer/repositary/event';
 import { IperformerEventUseCase } from './../../interfaces/performer/useCase/event';
-import { OtpUser } from "../../../domain/entities/otpUser";
+
 // import { OtpModel } from "../../infrastructure/models/otpSession";
 import nodemailer from "nodemailer";
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
-import { checkOtp } from "../../../domain/entities/checkOtp";
-import {
-  TempPerformerDocument,
-  TempPerformer,
-} from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
 
-import { IperformerUseCase } from "../../interfaces/performer/useCase/performer";
-import { IperformerRepository } from "../../interfaces/performer/repositary/performer";
-import { asPerformer } from "../../../domain/entities/asPerformer";
-import jwt from "jsonwebtoken";
-import { uploadS3Video } from "../../../infrastructure/s3/S3Video";
+
+
 import mongoose, { Types } from "mongoose";
 import {
   EventDocument,
-  EventModel,
 } from "../../../infrastructure/models/eventsModel";
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
 import { BookingDocument } from "../../../infrastructure/models/bookingEvents";
-import { SlotDocuments } from "../../../infrastructure/models/slotModel";
-import { SlotMangement } from "../../../domain/entities/slot";
-import { performerAllDetails } from "../../../domain/entities/performerAllDetails";
-import { User } from "../../../domain/entities/user";
-import { PerformerReport } from "../../../domain/entities/performerReport";
-import { performerDocument } from '../../../domain/entities/performer';
+
 export class performerEventUseCase implements IperformerEventUseCase {
   private _repository: IperformerEventRepository;
 
@@ -40,29 +21,16 @@ export class performerEventUseCase implements IperformerEventUseCase {
   }
   uploadedEvents = async (event: {
     imageUrl: string;
-    title: string;
-    category: string;
-    userId: Types.ObjectId;
-    price: number;
-    teamLeader: string;
-    teamLeaderNumber: string;
-    description: string;
+      title: string;
+      category: string;
+      userId: Types.ObjectId;
+      price: number;
+      teamLeader: string;
+      teamLeaderNumber: number;
+      description: string;
   }): Promise<EventDocument | null | string> => {
     try {
-      const existingEvent = await EventModel.findOne({
-        title: event.title,
-        userId: event.userId,
-        category: event.category,
-        price: event.price,
-      });
-  
-      if (existingEvent) {
-        return "Event already exists";
-      }
-  
-      const events = await EventModel.insertMany([event]);
-  
-      return events.length > 0 ? events[0] : null;
+     return this._repository.uploadedEvents(event)
     } catch (error) {
       console.error("Error inserting event:", error);
       throw error;

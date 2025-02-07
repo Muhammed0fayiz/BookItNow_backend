@@ -1,28 +1,53 @@
 
 
+
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
 
 
 import { IuserEventRepository } from "../../../application/interfaces/user/repositary/event";
 
 
-import { UserDocuments, UserModel } from "../../models/userModel";
+import {UserModel } from "../../models/userModel";
 
 
 
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { PerformerModel } from "../../models/performerModel";
 import { Performer } from "../../../domain/entities/performer";
 import { BookingDocument, BookingModel } from "../../models/bookingEvents";
 import { AdminModel } from "../../models/adminModel";
-import { WalletDocument, WalletModel } from "../../models/walletHistory";
+import {WalletModel } from "../../models/walletHistory";
 import { SlotModel } from "../../models/slotModel";
 import { FavoriteDocument, FavoriteModel } from "../../models/FavoriteScema";
 import { RatingModel } from "../../models/ratingModel";
 import { eventRating } from "../../../domain/entities/eventRating";
 
 export class userEventRepository implements IuserEventRepository {
+  getEvent=async(eventId: mongoose.Types.ObjectId): Promise<EventDocument | null>=> {
+   try {
+     return EventModel.findById(eventId)
+   } catch (error) {
+    throw error
+   }
+  }
+  getPerformerEvents = async (id: mongoose.Types.ObjectId): Promise<EventDocument[] | null> => {
+    try {
+      const events = await EventModel.find({
+        userId: id,
+        isperformerblockedevents: false,
+        isblocked: false
+      });
+      return events;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+ getPerformer = async (id: mongoose.Types.ObjectId): Promise<Performer| null> => {
+    return await PerformerModel.findOne({ userId: id });
+  };
+  
   getTopRatedEvent = async (userId:mongoose.Types.ObjectId): Promise<EventDocument[] | null> => {
     try {
       const allEvents = await EventModel.find({
@@ -102,7 +127,13 @@ export class userEventRepository implements IuserEventRepository {
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
           const event = booking.eventId as any;
+         
 
+
+
+
+
+          
           return {
             _id: booking._id,
             eventId: booking.eventId,
@@ -226,7 +257,7 @@ export class userEventRepository implements IuserEventRepository {
         return null;
       }
 
-      let slotDocument = await SlotModel.findOne({
+    const slotDocument = await SlotModel.findOne({
         performerId: performer._id,
       });
 
@@ -311,6 +342,7 @@ export class userEventRepository implements IuserEventRepository {
     userId: string
   ): Promise<BookingDocument | null> => {
     try {
+
       const event = await EventModel.findById(eventId);
       const performer = await PerformerModel.findOne({ userId: performerId });
 
@@ -330,7 +362,7 @@ export class userEventRepository implements IuserEventRepository {
       if (performerBookingDate.length > 0) {
         return null;
       }
-      let slotDocument = await SlotModel.findOne({
+      const slotDocument = await SlotModel.findOne({
         performerId: performer._id,
       });
 
@@ -346,8 +378,7 @@ export class userEventRepository implements IuserEventRepository {
 
         if (isDateExist) {
           return null;
-        } else {
-        }
+        } 
       } else {
         console.log(
           "SlotDocument not found or does not have a valid dates array"
@@ -372,7 +403,7 @@ export class userEventRepository implements IuserEventRepository {
 
       const currentDate = new Date().toISOString().split("T")[0];
 
-      const appcharge = await AdminModel.updateOne(
+     await AdminModel.updateOne(
         {},
         {
           $inc: { [`transactions.${currentDate}`]: 1, walletAmount: 10 },

@@ -4,7 +4,7 @@ import { adminUseCase } from "../../application/useCases/admin/admin";
 import { adminRepository } from "../../infrastructure/repositories/admin/admin";
 import { adminAuth } from "../../shared/middlewares/adminauth";
 
-const session = require("express-session");
+import session from "express-session";
 const router = Router();
 
 // Session handling
@@ -35,30 +35,17 @@ router.get("/downloadReport", controller.downloadReport.bind(controller));
 router.get("/getRevenue", controller.getRevenue.bind(controller));
 
 router.get("/getTempPerformers", controller.allTempPerformers.bind(controller));
-router.post(
-  "/grant-performer-permission/:id",
-  controller.grandedPermission.bind(controller)
-);
-router.post(
-  "/reject-performer-permission/:id",
-  controller.rejectedPermission.bind(controller)
-);
+router.post("/grant-performer-permission/:userId",controller.grandedPermission.bind(controller));
+router.post("/reject-performer-permission/:id",controller.rejectedPermission.bind(controller));
 
 router.get("/performers", controller.getAllPerformers.bind(controller));
-router.post(
-  "/updatePerformerStatus/:id",
-  controller.blockunblockperformer.bind(controller)
-);
+router.post("/updatePerformerStatus/:id",controller.blockunblockperformer.bind(controller));
 router.get("/getUsers", controller.allUsers.bind(controller));
-router.post(
-  "/updateUserStatus/:id",
-  controller.blockunblockuser.bind(controller)
+router.post("/updateUserStatus/:id",controller.blockunblockuser.bind(controller)
 );
 
 router.get("/getAllEvents", controller.getAllEvents.bind(controller));
-router.post(
-  "/blockUnblockEvents/:id",
-  controller.toggleBlockStatus.bind(controller)
+router.post("/blockUnblockEvents/:id",controller.toggleBlockStatus.bind(controller)
 );
 
 

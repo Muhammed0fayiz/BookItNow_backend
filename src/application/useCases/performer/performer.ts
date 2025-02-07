@@ -1,42 +1,23 @@
-import { OtpUser } from "../../../domain/entities/otpUser";
-// import { OtpModel } from "../../infrastructure/models/otpSession";
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
-import { checkOtp } from "../../../domain/entities/checkOtp";
-import {
-  TempPerformerDocument,
-  TempPerformer,
-} from "../../../domain/entities/tempPerformer";
-import { TempPerformerModel } from "../../../infrastructure/models/tempPerformer";
+import {UserDocuments,} from "../../../infrastructure/models/userModel";
+import {TempPerformerDocument,} from "../../../domain/entities/tempPerformer";
 
 import { IperformerUseCase } from "../../interfaces/performer/useCase/performer";
 import { IperformerRepository } from "../../interfaces/performer/repositary/performer";
 import { asPerformer } from "../../../domain/entities/asPerformer";
 import jwt from "jsonwebtoken";
 import { uploadS3Video } from "../../../infrastructure/s3/S3Video";
-import mongoose, { Types } from "mongoose";
-import {
-  EventDocument,
-  EventModel,
-} from "../../../infrastructure/models/eventsModel";
-import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-import { BookingDocument } from "../../../infrastructure/models/bookingEvents";
+import mongoose from "mongoose";
 import { SlotDocuments } from "../../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../../domain/entities/slot";
 import { performerAllDetails } from "../../../domain/entities/performerAllDetails";
-import { User } from "../../../domain/entities/user";
 import { PerformerReport } from "../../../domain/entities/performerReport";
+import { S3Response } from "../../../domain/entities/s3response";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
   }
-
-
-
 
   getReport = async (
     performerId: mongoose.Types.ObjectId,
@@ -53,7 +34,7 @@ export class performerUseCase implements IperformerUseCase {
       return report;
     } catch (error) {
       console.error("Error fetching performer report:", error);
-      return null; // Return null in case of error
+      return null; 
     }
   };
   getAllUsers = async (
@@ -113,6 +94,7 @@ export class performerUseCase implements IperformerUseCase {
 
       return response ? response : null;
     } catch (error) {
+      console.log(error)
       console.error("error occurred");
 
       return null;
@@ -123,18 +105,19 @@ export class performerUseCase implements IperformerUseCase {
     mobileNumber: string,
     description: string,
     user_id: mongoose.Types.ObjectId,
-    video: any
+    video: Express.Multer.File
   ): Promise<TempPerformerDocument | null> => {
     try {
-      const s3Response: any = await uploadS3Video(video);
-
-      if (s3Response?.error) {
+   
+      const s3Response: S3Response = await uploadS3Video(video);
+  
+      if (s3Response.error) {
         console.error("Error uploading video to S3:", s3Response.error);
         throw new Error("Failed to upload video to S3");
       }
-
-      const s3Location = s3Response.Location;
-
+  
+      const s3Location = s3Response.Location ?? "";
+  
       const response = await this._repository.videoUploadDB(
         bandName,
         mobileNumber,
@@ -142,7 +125,7 @@ export class performerUseCase implements IperformerUseCase {
         user_id,
         s3Location
       );
-
+  
       return response ? response : null;
     } catch (error) {
       console.error("Error occurred during video upload:", error);

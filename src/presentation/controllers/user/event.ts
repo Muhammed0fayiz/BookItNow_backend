@@ -2,10 +2,15 @@ import { Response, Request, NextFunction } from "express";
 
 import { IuserEventUseCase } from "../../../application/interfaces/user/useCase/event";
 
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { ResponseStatus } from "../../../constants/responseStatus";
 import { BookingModel } from "../../../infrastructure/models/bookingEvents";
-import { EventMessages, MessageConstants, PerformerMessages, UserMessages } from "../../../shared/utils/constant";
+import {
+  EventMessages,
+  MessageConstants,
+  PerformerMessages,
+  UserMessages,
+} from "../../../shared/utils/constant";
 
 export class UserEventController {
   private _useCase: IuserEventUseCase;
@@ -16,31 +21,39 @@ export class UserEventController {
 
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = new mongoose.Types.ObjectId(req.params.id);
-      const allEvents = await this._useCase.getAllEvents(id);
+const id = new mongoose.Types.ObjectId(req.params.id);
+    const allEvents = await this._useCase.getAllEvents(id);
       if (!allEvents || allEvents.length === 0) {
         return res.status(ResponseStatus.NoContent).json(null);
       }
       res.status(ResponseStatus.OK).json(allEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
-      next(error); 
+      next(error);
     }
   };
   bookEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { formData, eventId, performerId, userId } = req.body;
       if (!formData || typeof formData !== "object") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid form data" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid form data" });
       }
       if (!eventId || typeof eventId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid event ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid event ID" });
       }
       if (!performerId || typeof performerId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid performer ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid performer ID" });
       }
       if (!userId || typeof userId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid user ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid user ID" });
       }
       const bookingResult = await this._useCase.userBookEvent(
         formData,
@@ -50,7 +63,10 @@ export class UserEventController {
       );
       res
         .status(ResponseStatus.OK)
-        .json({ message: EventMessages.EVENT_BOOKED_SUCCESS, data: bookingResult });
+        .json({
+          message: EventMessages.EVENT_BOOKED_SUCCESS,
+          data: bookingResult,
+        });
     } catch (error) {
       console.error("Error booking event:", error);
       next(error);
@@ -80,7 +96,7 @@ export class UserEventController {
 
       return res
         .status(ResponseStatus.NotFound)
-        .json({ success: false, EventMessages});
+        .json({ success: false, EventMessages });
     } catch (error) {
       next(error);
     }
@@ -91,7 +107,7 @@ export class UserEventController {
     next: NextFunction
   ) => {
     try {
-    const {id}=req.params;
+      const { id } = req.params;
       const eventObjectId = new mongoose.Types.ObjectId(id);
       if (!eventObjectId) {
         return res.status(ResponseStatus.BadRequest).json({
@@ -122,7 +138,7 @@ export class UserEventController {
     next: NextFunction
   ) => {
     try {
-     const {id}=req.params
+      const { id } = req.params;
       const userId = new mongoose.Types.ObjectId(id);
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const upcomingEvents = await this._useCase.getUpcomingEvents(
@@ -136,7 +152,7 @@ export class UserEventController {
   };
   eventHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-     const {id}=req.params
+      const { id } = req.params;
       const userObjectId = new mongoose.Types.ObjectId(id);
       const eventHistory = await this._useCase.getAllEventHistory(userObjectId);
       if (eventHistory?.pastEventHistory?.length > 0) {
@@ -148,7 +164,7 @@ export class UserEventController {
       }
       return res
         .status(ResponseStatus.NotFound)
-        .json({ success: false, message:EventMessages.NO_UPCOMING_EVENTS });
+        .json({ success: false, message: EventMessages.NO_UPCOMING_EVENTS });
     } catch (error) {
       next(error);
     }
@@ -174,6 +190,7 @@ export class UserEventController {
       const id = new mongoose.Types.ObjectId(userId);
 
       const favoriteEvent = await this._useCase.favaroiteEvents(id);
+      console.log("favoriteEv", favoriteEvent);
 
       return res.status(ResponseStatus.OK).json({
         success: true,
@@ -191,18 +208,17 @@ export class UserEventController {
   ) => {
     try {
       const { userId } = req.params;
-
       const id = new mongoose.Types.ObjectId(userId);
+
       const { category, order, page, search } = req.query;
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = 6;
 
-      const filterOptions: any = {};
+      const filterOptions: Record<string, unknown> = {};
       if (category) filterOptions.category = category;
       if (search) filterOptions.title = { $regex: search, $options: "i" };
 
       const skip = (pageNumber - 1) * pageSize;
-
       const sortOrder = order === "desc" ? -1 : 1;
       const sortField = "price";
 
@@ -213,8 +229,11 @@ export class UserEventController {
         skip,
         pageSize
       );
+
       if (!result || result.events.length === 0) {
-        return res.status(ResponseStatus.NoContent).json({ message: EventMessages.NO_EVENTS_FOUND});
+        return res
+          .status(ResponseStatus.NoContent)
+          .json({ message: EventMessages.NO_EVENTS_FOUND });
       }
 
       res.status(ResponseStatus.OK).json({
@@ -227,12 +246,15 @@ export class UserEventController {
       next(error);
     }
   };
+
   addRating = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid event ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid event ID" });
       }
 
       const eventId = new mongoose.Types.ObjectId(id);
@@ -271,7 +293,10 @@ export class UserEventController {
 
       res
         .status(ResponseStatus.OK)
-        .json({ message: EventMessages.RATING_ADDED_SUCCESS, data: eventRated });
+        .json({
+          message: EventMessages.RATING_ADDED_SUCCESS,
+          data: eventRated,
+        });
     } catch (error) {
       next(error);
     }
@@ -280,7 +305,9 @@ export class UserEventController {
     try {
       const { id } = req.params;
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid event ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid event ID" });
       }
       const eventId = new mongoose.Types.ObjectId(id);
       const eventRatings = await this._useCase.getEventRating(eventId);
@@ -292,6 +319,7 @@ export class UserEventController {
       return res.status(ResponseStatus.OK).json({ ratings: eventRatings });
     } catch (error) {
       console.error("Error fetching event ratings:", error);
+      next(error)
       return res
         .status(500)
         .json({ error: "An error occurred while fetching event ratings." });
@@ -304,12 +332,14 @@ export class UserEventController {
     next: NextFunction
   ) => {
     try {
-const {userId,eventId}=req.params
+      const { userId, eventId } = req.params;
       if (
         !mongoose.Types.ObjectId.isValid(userId) ||
         !mongoose.Types.ObjectId.isValid(eventId)
       ) {
-        return res.status(ResponseStatus.BadRequest).json({ message: EventMessages.INVALID_USER_OR_EVENT_ID });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: EventMessages.INVALID_USER_OR_EVENT_ID });
       }
       const uid = new mongoose.Types.ObjectId(userId);
       const eid = new mongoose.Types.ObjectId(eventId);
@@ -327,7 +357,7 @@ const {userId,eventId}=req.params
     next: NextFunction
   ) => {
     try {
-    const {id}=req.params
+      const { id } = req.params;
       const newDate = new Date("2024-12-01");
       const newStatus = "completed";
 
@@ -338,32 +368,45 @@ const {userId,eventId}=req.params
       );
 
       if (!updatedBooking) {
-        return res.status(ResponseStatus.NotFound).json({ message: EventMessages.NO_EVENTS_FOUND });
+        return res
+          .status(ResponseStatus.NotFound)
+          .json({ message: EventMessages.NO_EVENTS_FOUND });
       }
 
       res.status(ResponseStatus.OK).json({
-        message:  EventMessages.BOOKING_STATUS_CHANGE_SUCCESS,
+        message: EventMessages.BOOKING_STATUS_CHANGE_SUCCESS,
         booking: updatedBooking,
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: MessageConstants.INTERANAL_SERVER_ERROR });
+      next(error);
+      res
+        .status(500)
+        .json({ message: MessageConstants.INTERANAL_SERVER_ERROR });
     }
   };
   walletPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { formData, eventId, performerId, userId } = req.body;
       if (!formData || typeof formData !== "object") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid form data" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid form data" });
       }
       if (!eventId || typeof eventId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid event ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid event ID" });
       }
       if (!performerId || typeof performerId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid performer ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid performer ID" });
       }
       if (!userId || typeof userId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid user ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid user ID" });
       }
       const userWalletBookEvent = await this._useCase.userWalletBookEvent(
         formData,
@@ -390,7 +433,9 @@ const {userId,eventId}=req.params
       const performers = await this._useCase.getAllPerformer(id);
 
       if (!performers || performers.length === 0) {
-        return res.status(ResponseStatus.NotFound).json({ message:PerformerMessages.NO_PERFORMER_DATA });
+        return res
+          .status(ResponseStatus.NotFound)
+          .json({ message: PerformerMessages.NO_PERFORMER_DATA });
       }
 
       res.status(ResponseStatus.OK).json({ success: true, data: performers });
@@ -403,13 +448,19 @@ const {userId,eventId}=req.params
     try {
       const { formData, eventId, performerId } = req.body;
       if (!formData || typeof formData !== "object") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid form data" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid form data" });
       }
       if (!eventId || typeof eventId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid event ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid event ID" });
       }
       if (!performerId || typeof performerId !== "string") {
-        return res.status(ResponseStatus.BadRequest).json({ error: "Invalid performer ID" });
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ error: "Invalid performer ID" });
       }
 
       const availableDates = await this._useCase.availableDate(
@@ -419,7 +470,7 @@ const {userId,eventId}=req.params
       );
 
       res.status(ResponseStatus.OK).json({
-        message:EventMessages.SUCCESS,
+        message: EventMessages.SUCCESS,
         data: availableDates,
       });
     } catch (error) {
@@ -433,20 +484,18 @@ const {userId,eventId}=req.params
     next: NextFunction
   ) => {
     try {
-
-
       const { userId } = req.params;
       const id = new mongoose.Types.ObjectId(userId);
-
+  
       const { order, page, search } = req.query;
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = 6;
       const skip = (pageNumber - 1) * pageSize;
       const sortOrder = order === "desc" ? -1 : 1;
       const sortField = "rating";
-
+  
       const searchValue = typeof search === "string" ? search : "";
-      const filterOptions: any = searchValue
+      const filterOptions: Record<string, unknown> = searchValue
         ? {
             $or: [
               { bandName: { $regex: searchValue, $options: "i" } },
@@ -454,7 +503,7 @@ const {userId,eventId}=req.params
             ],
           }
         : {};
-
+  
       const result = await this._useCase.getFilteredPerformers(
         id,
         filterOptions,
@@ -462,11 +511,14 @@ const {userId,eventId}=req.params
         skip,
         pageSize
       );
+  
       if (!result || result.performers.length === 0) {
         console.log(PerformerMessages.NO_PERFORMER_DATA);
-        return res.status(ResponseStatus.NoContent).json({ message: PerformerMessages.NO_PERFORMER_DATA });
+        return res
+          .status(ResponseStatus.NoContent)
+          .json({ message: PerformerMessages.NO_PERFORMER_DATA });
       }
-
+  
       res.status(ResponseStatus.OK).json({
         performers: result.performers,
         totalCount: result.totalCount,
@@ -478,7 +530,6 @@ const {userId,eventId}=req.params
       next(error);
     }
   };
-
   getTopRatedEvent = async (
     req: Request,
     res: Response,
@@ -504,11 +555,76 @@ const {userId,eventId}=req.params
       }
     } catch (error) {
       console.error("Error fetching top-rated events:", error);
+      next(error)
       return res.status(500).json({
         success: false,
         message: EventMessages.NO_EVENTS_FOUND,
         error: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  };
+  getPerformer = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { performerId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(performerId)) {
+        return res.status(400).json({ message: "Invalid performer ID" });
+      }
+
+      const id = new mongoose.Types.ObjectId(performerId);
+      const performer = await this._useCase.getPerformer(id);
+
+      if (!performer) {
+        return res.status(404).json({ message: "Performer not found" });
+      }
+
+      res.status(200).json({ performer });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getPerformerEvents = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { performerId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(performerId)) {
+        return res.status(400).json({ message: "Invalid performer ID" });
+      }
+
+      const id = new mongoose.Types.ObjectId(performerId);
+      const performerEvents = await this._useCase.getPerformerEvents(id);
+
+      if (!performerEvents) {
+        return res
+          .status(404)
+          .json({ message: "No events found for this performer" });
+      }
+
+      return res.status(200).json({ success: true, data: performerEvents });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { eventId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(eventId)) {
+        return res.status(400).json({ message: "Invalid event ID" });
+      }
+      const event = await this._useCase.getEvent(
+        new mongoose.Types.ObjectId(eventId)
+      );
+      console.log("e;ldsfa", event);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      return res.status(200).json({ success: true, data: event });
+    } catch (error) {
+      next(error);
     }
   };
 }
