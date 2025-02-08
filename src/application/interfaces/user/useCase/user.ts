@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 import { WalletDocument } from "../../../../infrastructure/models/walletHistory";
 
 export interface IuserUseCase {
-  // getAllUser(): Promise<UserDocument[]>;
 
   loginUser(email: string, password: string): Promise<User | null | string>;
   tempUserExist(email: string): Promise<OtpUser | null>;

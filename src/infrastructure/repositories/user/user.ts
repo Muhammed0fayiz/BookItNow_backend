@@ -9,19 +9,17 @@ import { TempPerformerModel } from "../../models/tempPerformer";
 import { tempUserModel } from "../../models/tempUser";
 import { PerformerModel } from "../../models/performerModel";
 import { Performer } from "../../../domain/entities/performer";
-import {  BookingModel } from "../../models/bookingEvents";
 import { WalletDocument, WalletModel } from "../../models/walletHistory";
-import { SlotModel } from "../../models/slotModel";
 import mongoose from "mongoose";
 export class userRepository implements IuserRepository {
-  getUserDetails = async (id: any): Promise<UserDocuments | null> => {
+  getUserDetails = async (id: mongoose.Types.ObjectId): Promise<UserDocuments | null> => {
     try {
       const user = await UserModel.findById(id).lean().exec();
 
       if (!user) throw new Error("User not found");
       return user ? user : null;
     } catch (error) {
-      console.error("error occured");
+      console.error("error occured",error);
       return null;
     }
   };
@@ -249,127 +247,6 @@ export class userRepository implements IuserRepository {
         user._id?.toString()
       );
     } catch (error) {
-      throw error;
-    }
-  };
-
-  getFilteredPerformers = async (
-    id: mongoose.Types.ObjectId,
-    searchValue: any,
-    sortOptions: any = { rating: -1 },
-    skip: number,
-    limit: number
-  ): Promise<{ performers: Performer[]; totalCount: number } | null> => {
-    try {
-      const userId =
-        typeof id === "string" ? new mongoose.Types.ObjectId(id) : id;
-      const blockedUsers = await UserModel.find(
-        { isPerformerBlocked: true },
-        { _id: 1 }
-      );
-      const blockedUserIds = blockedUsers.map((user) => user._id);
-
-      const combinedFilter: any = {
-        userId: {
-          $ne: userId,
-          $nin: blockedUserIds,
-        },
-      };
-
-      if (searchValue) {
-        if (typeof searchValue === "string") {
-          const searchStr = searchValue.trim();
-          if (searchStr) {
-            combinedFilter.$or = [
-              { bandName: { $regex: searchStr, $options: "i" } },
-              { place: { $regex: searchStr, $options: "i" } },
-            ];
-          }
-        } else if (typeof searchValue === "object") {
-          // Handle object search value
-          if (searchValue.search) {
-            const searchStr = searchValue.search.trim();
-            combinedFilter.$or = [
-              { bandName: { $regex: searchStr, $options: "i" } },
-              { place: { $regex: searchStr, $options: "i" } },
-            ];
-          } else if (searchValue.$or) {
-            combinedFilter.$or = searchValue.$or;
-          }
-        }
-      }
-
-      console.log(
-        "Final Combined Filter:",
-        JSON.stringify(combinedFilter, null, 2)
-      );
-
-      console.log("Executing count query...");
-      const totalCount = await PerformerModel.countDocuments(combinedFilter);
-      console.log("Total Count:", totalCount);
-
-      console.log("Executing find query...");
-      const performers = await PerformerModel.find(combinedFilter)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .select("userId bandName description profileImage place rating");
-
-      console.log("Found Performers Count:", performers.length);
-      if (performers.length > 0) {
-        console.log("Sample Found Performer:", performers[0]);
-      }
-
-      if (!performers.length) {
-        return null;
-      }
-
-      return { performers, totalCount };
-    } catch (error) {
-      console.error("Error in getFilteredPerformers:", error);
-      throw error;
-    }
-  };
-  availableDate = async (
-    formData: Record<string, any>,
-    eventId: string,
-    performerId: string
-  ): Promise<boolean> => {
-    try {
-      const performer = await PerformerModel.findOne({ userId: performerId });
-      if (!performer) {
-        throw new Error("Performer not found");
-      }
-
-      const existingBooking = await BookingModel.findOne({
-        performerId: performer._id,
-        date: formData.date,
-      });
-
-      if (existingBooking) {
-        return false;
-      }
-
-      const slotDocument = await SlotModel.findOne({
-        performerId: performer._id,
-      });
-
-      if (slotDocument && Array.isArray(slotDocument.dates)) {
-        const inputDate = new Date(formData.date).setHours(0, 0, 0, 0);
-
-        const isDateExist = slotDocument.dates.some((date) => {
-          const slotDate = new Date(date).setHours(0, 0, 0, 0);
-          return slotDate === inputDate;
-        });
-
-        if (isDateExist) {
-          return false;
-        }
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error checking availability:", error);
       throw error;
     }
   };

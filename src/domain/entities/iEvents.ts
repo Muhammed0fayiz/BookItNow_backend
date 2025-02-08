@@ -1,4 +1,4 @@
-// Define the IEvent interface
+
 export interface IEvent {
     imageUrl: string | null;         
     title: string | null;           

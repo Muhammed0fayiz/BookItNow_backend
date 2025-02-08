@@ -27,7 +27,6 @@ export class adminUseCase implements IadminUseCase {
   getAdminDetails = async (): Promise<AdminDetails> => {
     try {
       const adminDetail = await this._repository.getAdminDetails();
-
       return adminDetail;
     } catch (error) {
       throw error;
@@ -56,9 +55,7 @@ export class adminUseCase implements IadminUseCase {
     const performer = await this._repository.grantedPermission(id);
     if (performer) {
       const user = await UserModel.findById(performer.userId); 
-
       if (user) {
-      
         try {
           await this.sendCongratulatoryEmail(user.email);
         } catch (error) {
@@ -66,7 +63,6 @@ export class adminUseCase implements IadminUseCase {
         }
       }
     }
-
     return performer as unknown as Performer;
   };
   sendCongratulatoryEmail = async (email: string): Promise<string> => {

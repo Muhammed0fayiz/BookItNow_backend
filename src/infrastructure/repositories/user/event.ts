@@ -485,10 +485,10 @@ export class userEventRepository implements IuserEventRepository {
   };
   getFilteredEvents = async (
     id: mongoose.Types.ObjectId,
-    filterOptions: any,
-    sortOptions: any,
-    skip: number,
-    limit: number
+       filterOptions: Partial<{ category: string; title: { $regex: string; $options: string } }>,
+       sortOptions: Record<string, 1 | -1>,
+       skip: number,
+       limit: number
   ): Promise<{ events: EventDocument[]; totalCount: number } | null> => {
     try {
 

@@ -13,18 +13,10 @@ import { EventDocument, EventModel } from "../../models/eventsModel";
 import { AdminDocument, AdminModel } from "../../models/adminModel";
 import { AdminDetails } from "../../../domain/entities/adminDetails";
 import { AdminRevenue } from "../../../domain/entities/adminRevenue";
-import { BookingDocument, BookingModel } from "../../models/bookingEvents";
+import { BookingModel } from "../../models/bookingEvents";
+import { PopulatedBooking, PopulatedPerformer } from '../../../domain/entities/Omit';
 // Interface for populated booking
-interface PopulatedBooking extends Omit<BookingDocument, 'eventId'> {
-  eventId: EventDocument;
-}
-  interface PopulatedPerformer extends Omit<Performer, 'userId'> {
-    userId: {
-      createdAt: Date;
-     
-    };
-  }
-  
+
 
 
 
@@ -72,7 +64,6 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-  
   getAdminDetails = async (): Promise<AdminDetails> => {
     try {
       const admin = await AdminModel.findOne();
@@ -197,12 +188,9 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-
   adminWallet(): Promise<AdminDocument[] | null> {
     throw new Error("Method not implemented.");
   }
-
-
   getTempPerformer = async (): Promise<TempPerformerDocument[] | null> => {
     try {
       const tmp = await TempPerformerModel.find().sort({ _id: -1 });
@@ -217,11 +205,9 @@ export class adminRepository implements IadminRepository {
   grantedPermission = async (id: mongoose.Types.ObjectId): Promise<Performer> => {
     try {
       const tempPerform = await TempPerformerModel.findById(id);
-
       if (!tempPerform) {
         throw new Error("Temporary performer not found");
       }
-
       const user = await UserModel.findByIdAndUpdate(
         tempPerform.user_id,
         { isVerified: true, waitingPermission: false },
@@ -267,12 +253,9 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-
-
   getAllPerformer = async (): Promise<Performer[] | null> => {
     try {
       const performers = await PerformerModel.find().sort({ _id: -1 });;
-
       return performers;
     } catch (error) {
       throw error;
@@ -281,7 +264,6 @@ export class adminRepository implements IadminRepository {
   performerStatusChange = async (id: string): Promise<UserDocument> => {
     try {
       const performer = await UserModel.findById(id).lean().exec();
-
       if (!performer) {
         throw new Error("User not found");
       }
@@ -306,8 +288,6 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-
-
   getAllUser = async (): Promise<UserDocument[]> => {
     try {
       const users = await UserModel.find().sort({ _id: -1 }).lean();
@@ -327,11 +307,9 @@ export class adminRepository implements IadminRepository {
       const user = (await UserModel.findById(
         id
       ).exec()) as unknown as UserDocument;
-
       if (!user) {
         throw new Error("User not found");
       }
-
       user.isblocked = !user.isblocked;
 
       const updatedUser = await UserModel.findByIdAndUpdate(
@@ -351,11 +329,6 @@ export class adminRepository implements IadminRepository {
       throw error;
     }
   };
-
-
- 
-
-
   getAllEvents = async (): Promise<EventDocument[] | null> => {
     try {
       const allEvents = await EventModel.find().sort({ _id: -1 });
@@ -365,7 +338,6 @@ export class adminRepository implements IadminRepository {
       return null;
     }
   };
-
   toggleBlockStatus = async (
     id: string,
     blockingDetails?: { reason: string; duration: string }

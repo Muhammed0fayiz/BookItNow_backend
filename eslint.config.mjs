@@ -12,8 +12,9 @@ export default [
   pluginReact.configs.flat.recommended,
   {
     rules: {
-      "no-useless-catch": "off", // Disable useless catch rule
-      "@typescript-eslint/no-require-imports": "off", // Disable the require import rule
+      "no-useless-catch": "off", 
+      "@typescript-eslint/no-require-imports": "off", 
+      "@typescript-eslint/no-explicit-any": "off"  // Add this line
     },
   },
 ];

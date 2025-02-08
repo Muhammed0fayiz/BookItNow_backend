@@ -177,11 +177,11 @@ export class userEventUseCase implements IuserEventUseCase {
     }
   };
   getFilteredEvents = async (
-    id: mongoose.Types.ObjectId,
-    filterOptions: any,
-    sortOptions: any,
-    skip: number,
-    limit: number
+     id: mongoose.Types.ObjectId,
+        filterOptions: Partial<{ category: string; title: { $regex: string; $options: string } }>,
+        sortOptions: Record<string, 1 | -1>,
+        skip: number,
+        limit: number
   ): Promise<{ events: EventDocument[]; totalCount: number } | null> => {
     try {
       const filteredEvents = await this._repository.getFilteredEvents(

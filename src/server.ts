@@ -17,7 +17,7 @@ import userEvent from "./presentation/routes/userEvent"
 
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
-import { userEventRepository } from "./infrastructure/repositories/user/event";
+
 import { unblockExpiredEvents } from "./shared/utils/eventunblock";
 
 
@@ -97,11 +97,11 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
-interface Notication {
-  senderId: string;
-  receiverId: string;
-  count: number;
-}
+// interface Notication {
+//   senderId: string;
+//   receiverId: string;
+//   count: number;
+// }
 const userSocketMap: UserSocketMap = {};
 
 io.on("connection", (socket: Socket) => {

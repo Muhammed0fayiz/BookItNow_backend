@@ -1,7 +1,5 @@
 import { Response, Request, NextFunction } from "express";
-
 import { IuserEventUseCase } from "../../../application/interfaces/user/useCase/event";
-
 import mongoose from "mongoose";
 import { ResponseStatus } from "../../../constants/responseStatus";
 import { BookingModel } from "../../../infrastructure/models/bookingEvents";
@@ -11,14 +9,11 @@ import {
   PerformerMessages,
   UserMessages,
 } from "../../../shared/utils/constant";
-
 export class UserEventController {
   private _useCase: IuserEventUseCase;
-
   constructor(private useCase: IuserEventUseCase) {
     this._useCase = useCase;
   }
-
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
 const id = new mongoose.Types.ObjectId(req.params.id);
@@ -209,33 +204,36 @@ const id = new mongoose.Types.ObjectId(req.params.id);
     try {
       const { userId } = req.params;
       const id = new mongoose.Types.ObjectId(userId);
-
+  
       const { category, order, page, search } = req.query;
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = 6;
-
-      const filterOptions: Record<string, unknown> = {};
-      if (category) filterOptions.category = category;
-      if (search) filterOptions.title = { $regex: search, $options: "i" };
-
+  
+      // Define type-safe filter options
+      const filterOptions: Partial<{ category: string; title: { $regex: string; $options: string } }> = {};
+      if (category) filterOptions.category = category as string;
+      if (search) filterOptions.title = { $regex: search as string, $options: "i" };
+  
       const skip = (pageNumber - 1) * pageSize;
       const sortOrder = order === "desc" ? -1 : 1;
       const sortField = "price";
-
+  
+      console.log("fui", filterOptions, "dsfas");
+  
       const result = await this._useCase.getFilteredEvents(
         id,
         filterOptions,
-        { [sortField]: sortOrder },
+        { [sortField]: sortOrder } as Record<string, 1 | -1>,
         skip,
         pageSize
       );
-
+  
       if (!result || result.events.length === 0) {
         return res
           .status(ResponseStatus.NoContent)
           .json({ message: EventMessages.NO_EVENTS_FOUND });
       }
-
+  
       res.status(ResponseStatus.OK).json({
         events: result.events,
         totalCount: result.totalCount,
@@ -246,7 +244,7 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       next(error);
     }
   };
-
+  
   addRating = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
@@ -325,7 +323,6 @@ const id = new mongoose.Types.ObjectId(req.params.id);
         .json({ error: "An error occurred while fetching event ratings." });
     }
   };
-
   toggleFavoriteEvent = async (
     req: Request,
     res: Response,
@@ -608,7 +605,6 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       next(error);
     }
   };
-
   getEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { eventId } = req.params;

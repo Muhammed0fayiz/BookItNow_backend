@@ -1,8 +1,8 @@
 
 
-import mongoose, { Document } from 'mongoose'; // Import mongoose and Document
+import{ Document } from 'mongoose'; 
 
-// Define the User class
+
 export class asPerformer{
     constructor(
         public readonly username: string,

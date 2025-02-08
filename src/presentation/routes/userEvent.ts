@@ -28,7 +28,7 @@ router.get("/userEventHistory/:id",authMiddleware,controller.getEventHistory.bin
 router.get("/getFilteredEvents/:userId",authMiddleware, controller.getFilteredEvents.bind(controller));
 router.post("/add-rating/:id",authMiddleware,controller.addRating.bind(controller));
 router.get("/eventrating/:id",authMiddleware,controller.getEventRating.bind(controller));
-router.get("/top-rated-event/:id",controller.getTopRatedEvent.bind(controller));
+router.get("/top-rated-event/:id",authMiddleware,controller.getTopRatedEvent.bind(controller));
 router.get("/favorites/:id",authMiddleware,controller.getFavoriteEvents.bind(controller));
 router.post("/toggleFavoriteEvent/:userId/:eventId",authMiddleware,controller.toggleFavoriteEvent.bind(controller));
 router.post("/walletPayment",authMiddleware,controller.walletPayment.bind(controller));

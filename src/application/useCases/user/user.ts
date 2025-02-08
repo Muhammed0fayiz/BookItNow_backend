@@ -40,7 +40,6 @@ export class userUseCase implements IuserUseCase {
   verifyOtp = async (email: string, otp: string): Promise<boolean> => {
     try {
       const otpUser = await tempUserModel.findOne({ email, otp });
-
       if (otpUser) {
         return true;
       }
@@ -193,7 +192,6 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-
   walletHistory = async (
     objectId: mongoose.Types.ObjectId
   ): Promise<WalletDocument[] | null> => {
@@ -234,7 +232,7 @@ export class userUseCase implements IuserUseCase {
       throw error;
     }
   };
-  getUserDetails = async (id: any) => {
+  getUserDetails = async (id: mongoose.Types.ObjectId) => {
     try {
       const response = await this._repository.getUserDetails(id);
 

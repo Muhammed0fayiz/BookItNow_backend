@@ -174,30 +174,31 @@ export class UserController {
       next(error)
     }
   };
-  async googleCallback(req: Request, res: Response, next: NextFunction) {
-    try {
-      if (req.user) {
-       const user = req.user;
-        const token = await this._useCase.jwt(user as User);
-        const tokenData = encodeURIComponent(JSON.stringify(token));
+// Google Callback function
+async googleCallback(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (req.user) {
+      const user = req.user;
+      const token = await this._useCase.jwt(user as User);
+      
+      // Don't encode the token since it's already a JWT string
+      res.cookie("userToken", token, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "none",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
 
-        res.cookie("userToken", tokenData, {
-          httpOnly: false,
-          secure: true,
-          sameSite: "none",
-          maxAge: 24 * 60 * 60 * 1000,
-        });
-
-        res.redirect(`http://localhost:3000`);
-      } else {
-        res.redirect("http://localhost:3000");
-      }
-    } catch (error) {
-      console.error("Error during Google callback:", error);
-      res.redirect("http://localhost:3000/error");
-      next(error)
+      res.redirect(`http://localhost:3000`);
+    } else {
+      res.redirect("http://localhost:3000");
     }
+  } catch (error) {
+    console.error("Error during Google callback:", error);
+    res.redirect("http://localhost:3000/error");
+    next(error);
   }
+}
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
     const {id}=req.params
