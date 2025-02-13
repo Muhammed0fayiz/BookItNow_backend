@@ -17,11 +17,20 @@ export class performerEventController {
     next: NextFunction
   ) => {
     try {
+      console.log("Function uploadEvents called");
+  
       const userId = req.params.id;
+      console.log("Extracted userId:", userId);
+  
       if (!req.body) {
-        return res.status(ResponseStatus.BadRequest).json({ message: ErrorMessages.NO_EVENT_FOUND });
+        console.log("Request body is missing");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: ErrorMessages.NO_EVENT_FOUND });
       }
-      
+  
+      console.log("Processing event data from request body");
+  
       const event: {
         imageUrl: string;
         title: string;
@@ -43,7 +52,9 @@ export class performerEventController {
           : 0,
         description: req.body.description ? req.body.description.trim() : "",
       };
-
+  
+      console.log("Event object constructed:", event);
+  
       if (
         !event.imageUrl ||
         !event.title ||
@@ -54,51 +65,69 @@ export class performerEventController {
         !event.teamLeaderNumber ||
         !event.description
       ) {
-        return res.status(ResponseStatus.BadRequest).json({ message: ErrorMessages.ALL_FIELD_REQUIRED});
-       
+        console.log("Validation failed: Missing required fields");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: ErrorMessages.ALL_FIELD_REQUIRED });
       }
-
+  
       if (event.title.length < 2) {
+        console.log("Validation failed: Title is too short");
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: EventMessages.EVENT_TITLE_ERROR });
       }
+  
       if (isNaN(event.price)) {
+        console.log("Validation failed: Price is not a number");
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: EventMessages.EVENT_PRICE_ERROR });
       }
+  
       if (!/^\d{10}$/.test(event.teamLeaderNumber.toString())) {
-        return res.status(ResponseStatus.BadRequest).json({
-          message: EventMessages.PHONE_NUMBER_ERROR
-        });
+        console.log("Validation failed: Invalid phone number format");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: EventMessages.PHONE_NUMBER_ERROR });
       }
+  
       if (event.description.length < 10) {
-        return res.status(ResponseStatus.BadRequest).json({
-          message: EventMessages.DESCRIPTION_ERROR,
-        });
+        console.log("Validation failed: Description is too short");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: EventMessages.DESCRIPTION_ERROR });
       }
-
-     
+  
+      console.log("All validations passed, proceeding to upload event");
+  
       const uploadedEvent = await this._useCase.uploadedEvents(event);
+      console.log("Upload result:", uploadedEvent);
+  
       if (uploadedEvent === "Event already exists") {
-        return res.status(ResponseStatus.Conflict).json({
-          message: EventMessages.EXISTING_EVENT_ERROR,
-        });
+        console.log("Conflict: Event already exists");
+        return res
+          .status(ResponseStatus.Conflict)
+          .json({ message: EventMessages.EXISTING_EVENT_ERROR });
       }
-      
+  
       if (uploadedEvent) {
-        return res.status(ResponseStatus.Created).json({
-          message:EventMessages.SUCCESS,
-          event: uploadedEvent,
-        });
+        console.log("Event uploaded successfully:", uploadedEvent);
+        return res
+          .status(ResponseStatus.Created)
+          .json({ message: EventMessages.SUCCESS, event: uploadedEvent });
       } else {
-        return res.status(ResponseStatus.BadRequest).json({ message:EventMessages.FAILED_UPLOAD_EVENT });
+        console.log("Event upload failed");
+        return res
+          .status(ResponseStatus.BadRequest)
+          .json({ message: EventMessages.FAILED_UPLOAD_EVENT });
       }
     } catch (error) {
+      console.log("Error occurred:", error);
       next(error);
     }
   };
+  
   getPerformerEvents = async (
     req: Request,
     res: Response,
