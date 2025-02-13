@@ -78,7 +78,7 @@ export class performerEventController {
           message: EventMessages.DESCRIPTION_ERROR,
         });
       }
- console.log('fya',event)
+
      
       const uploadedEvent = await this._useCase.uploadedEvents(event);
       if (uploadedEvent === "Event already exists") {

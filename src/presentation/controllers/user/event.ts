@@ -56,6 +56,16 @@ const id = new mongoose.Types.ObjectId(req.params.id);
         performerId,
         userId
       );
+
+
+      console.log('123455',bookingResult);
+      
+      if (!bookingResult) {
+        return res.status(ResponseStatus.OK).json({
+          error: "Booking failed. No result returned.",
+          data: bookingResult,
+        });
+      }
       res
         .status(ResponseStatus.OK)
         .json({

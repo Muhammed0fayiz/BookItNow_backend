@@ -15,10 +15,14 @@ import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
 import userEvent from "./presentation/routes/userEvent"
 
+
+const morgan = require("morgan");
+
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
 
 import { unblockExpiredEvents } from "./shared/utils/eventunblock";
+import logger from "./shared/utils/logger";
 
 
 
@@ -44,7 +48,11 @@ const io = new Server(httpServer, {
 });
 
 // Middleware setup
-
+app.use(
+  morgan("tiny", {
+    stream: { write: (message: string) => logger.info(message.trim()) },
+  })
+);
 app.use(cookieParser());
 app.use(
   session({

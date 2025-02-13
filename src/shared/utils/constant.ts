@@ -40,6 +40,7 @@ export const UserMessages = {
     NO_UPCOMING_EVENTS: "No upcoming events found.",
     INVALID_USER_OR_EVENT_ID:"Invalid user or event ID",
     SUCCESS:'success',
+    FAILED:'failed',
     FAILED_UPLOAD_EVENT:"Failed to upload event.",
     EVENT_TITLE_ERROR:"Title must be at least 2 characters long.",
     EVENT_PRICE_ERROR:"Price must be a valid number.",
