@@ -95,9 +95,9 @@ export class performerRepository implements IperformerRepository {
         upcomingEvent,
         eventHistory,
       };
-    } catch (error: any) {
-      console.error("Error fetching performer details:", error.message);
-      throw new Error(`Error fetching performer details: ${error.message}`);
+    } catch (error:unknown) {
+      console.error("Error fetching performer details:",error);
+      throw new Error(`Error fetching performer details:`);
     }
   };
   loginPerformer = async (
@@ -194,7 +194,7 @@ export class performerRepository implements IperformerRepository {
       const performerDetails = await PerformerModel.findOne({ userId: id });
       if (!performerDetails) throw new Error("Performer details not found");
 
-      const total = await BookingModel.find({ userId: performerDetails?._id });
+      await BookingModel.find({ userId: performerDetails?._id });
 
       const totalEvents = await BookingModel.find({
         performerId: performerDetails._id,
@@ -280,10 +280,10 @@ export class performerRepository implements IperformerRepository {
         upcomingEvents,
         totalReviews: performerDetails.totalReviews || 0,
       };
-    } catch (error: any) {
-      console.error("Error fetching performer details:", error.message);
+    } catch (error: unknown) {
+      console.error("Error fetching performer details:", error);
 
-      throw new Error(`Error fetching performer details: ${error.message}`);
+      throw new Error(`Error fetching performer details:}`);
     }
   };
 

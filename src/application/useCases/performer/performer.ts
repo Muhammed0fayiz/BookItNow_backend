@@ -12,11 +12,24 @@ import { SlotMangement } from "../../../domain/entities/slot";
 import { performerAllDetails } from "../../../domain/entities/performerAllDetails";
 import { PerformerReport } from "../../../domain/entities/performerReport";
 import { S3Response } from "../../../domain/entities/s3response";
+import { performerDocument } from "../../../domain/entities/performer";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
+  }
+  getPerformerDetails=async(id: mongoose.Types.ObjectId): Promise<performerDocument | null> =>{
+    try {
+      const response = await this._repository.getPerformerDetails(id);
+
+      return response ? response : null;
+    } catch (error) {
+      console.log(error)
+      console.error("error occurred");
+
+      return null;
+    }
   }
 
   getReport = async (
@@ -88,18 +101,18 @@ export class performerUseCase implements IperformerUseCase {
       throw error;
     }
   };
-  getPerformerDetails = async (id: any) => {
-    try {
-      const response = await this._repository.getPerformerDetails(id);
+  // getPerformerDetails = async (id: any) => {
+  //   try {
+  //     const response = await this._repository.getPerformerDetails(id);
 
-      return response ? response : null;
-    } catch (error) {
-      console.log(error)
-      console.error("error occurred");
+  //     return response ? response : null;
+  //   } catch (error) {
+  //     console.log(error)
+  //     console.error("error occurred");
 
-      return null;
-    }
-  };
+  //     return null;
+  //   }
+  // };
   videoUpload = async (
     bandName: string,
     mobileNumber: string,

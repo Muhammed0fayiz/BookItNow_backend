@@ -6,6 +6,7 @@ import { BookingDocument } from "../../../../infrastructure/models/bookingEvents
 import { FavoriteDocument } from "../../../../infrastructure/models/FavoriteScema";
 
 import { eventRating } from "../../../../domain/entities/eventRating";
+import { BookingForm, FilterOptions, SortOptions } from "../../../../domain/entities/bookingForm";
 
 
 export interface IuserEventRepository {
@@ -17,7 +18,7 @@ export interface IuserEventRepository {
  
   getAllEvents(id: mongoose.Types.ObjectId): Promise<EventDocument[] | null>;
   userBookEvent(
-    formData: Record<string, any>,
+  formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -52,7 +53,7 @@ export interface IuserEventRepository {
   ): Promise<EventDocument | null>;
     getEventRating(eventId:mongoose.Types.ObjectId):Promise<eventRating[]|null>
   userWalletBookEvent(
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -63,8 +64,8 @@ export interface IuserEventRepository {
   ): Promise<FavoriteDocument | null>;
   getFilteredPerformers(
  id:mongoose.Types.ObjectId,
-    filterOptions: any,
-    sortOptions: any,
+  filterOptions: FilterOptions,
+    sortOptions: SortOptions,
     skip: number,
     limit: number
   ): Promise<{ performers: Performer[]; totalCount: number } | null>;
@@ -78,7 +79,7 @@ getUpcomingEvents(
 
   getAllPerformer(id: mongoose.Types.ObjectId): Promise<Performer[] | null>;
   availableDate(
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string
   ): Promise<boolean>;

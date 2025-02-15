@@ -1,19 +1,13 @@
 import { IuserEventRepository } from './../../interfaces/user/repositary/event';
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-
-
-
 import { IuserEventUseCase } from "../../interfaces/user/useCase/event";
-
-
-
-
 import mongoose from "mongoose";
 import { EventDocument } from "../../../infrastructure/models/eventsModel";
 import { Performer } from "../../../domain/entities/performer";
 import { BookingDocument } from "../../../infrastructure/models/bookingEvents";
 import { FavoriteDocument } from "../../../infrastructure/models/FavoriteScema";
 import { eventRating } from "../../../domain/entities/eventRating";
+import { BookingForm, FilterOptions, SortOptions } from '../../../domain/entities/bookingForm';
 export class userEventUseCase implements IuserEventUseCase {
   private _repository:  IuserEventRepository;
 
@@ -93,7 +87,7 @@ export class userEventUseCase implements IuserEventUseCase {
     }
    }
   userBookEvent = async (
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -111,7 +105,7 @@ export class userEventUseCase implements IuserEventUseCase {
     }
   };
   userWalletBookEvent = async (
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -230,8 +224,8 @@ export class userEventUseCase implements IuserEventUseCase {
 
   getFilteredPerformers = async (
     id: mongoose.Types.ObjectId,
-    filterOptions: any,
-    sortOptions: any,
+   filterOptions: FilterOptions,
+     sortOptions: SortOptions,
     skip: number,
     limit: number
   ): Promise<{ performers: Performer[]; totalCount: number } | null> => {
@@ -249,7 +243,7 @@ export class userEventUseCase implements IuserEventUseCase {
     }
   };
   availableDate(
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string
   ): Promise<boolean> {

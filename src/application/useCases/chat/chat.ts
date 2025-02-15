@@ -4,7 +4,7 @@ import { IChatRepository } from './../../interfaces/chat/IchatRepositary';
 
 import { ChatRoomDocument } from "../../../infrastructure/models/chatRoomModel";
 
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 import { MessageDocument } from "../../../infrastructure/models/messageModel";
 import { ChatRoom } from "../../../domain/entities/chatRoom";
@@ -26,10 +26,13 @@ export class chatUseCase implements IChatUseCase {
     oId: mongoose.Types.ObjectId
   ): Promise<boolean> => {
     try {
-      return this._repository.CheckOnline(id, oId);
-    } catch (error) {}
-    throw new Error("Method not implemented.");
+      return await this._repository.CheckOnline(id, oId);
+    } catch (error) {
+      console.error("Error in CheckOnline:", error);
+      return false;
+    }
   };
+  
   offlineUser = async (
     userId: mongoose.Types.ObjectId
   ): Promise<ChatRoom[] | null> => {
@@ -42,7 +45,7 @@ export class chatUseCase implements IChatUseCase {
   onlineUser = async (
     uId: mongoose.Types.ObjectId,
     pId: mongoose.Types.ObjectId
-  ): Promise<ChatRoom | null> => {
+  ): Promise<ChatRoomDocument| null> => {
     try {
       return await this._repository.onlineUser(uId, pId);
     } catch (error) {
@@ -88,7 +91,6 @@ export class chatUseCase implements IChatUseCase {
         myIdObject,
         anotherIdObject
       );
-
       return chatwith;
     } catch (error) {
       throw error;

@@ -2,15 +2,8 @@
 
 
 import { UpcomingEventDocument } from "../../../domain/entities/upcomingevent";
-
-
 import { IuserEventRepository } from "../../../application/interfaces/user/repositary/event";
-
-
 import {UserModel } from "../../models/userModel";
-
-
-
 import mongoose from "mongoose";
 import { EventDocument, EventModel } from "../../models/eventsModel";
 import { PerformerModel } from "../../models/performerModel";
@@ -22,6 +15,31 @@ import { SlotModel } from "../../models/slotModel";
 import { FavoriteDocument, FavoriteModel } from "../../models/FavoriteScema";
 import { RatingModel } from "../../models/ratingModel";
 import { eventRating } from "../../../domain/entities/eventRating";
+import { BookingForm, FilterOptions, SortOptions } from "../../../domain/entities/bookingForm";
+
+
+
+
+
+interface PerformerDocument extends mongoose.Document {
+  userId: mongoose.Types.ObjectId;
+  bandName: string;
+  description: string;
+  profileImage: string;
+  place: string;
+  rating: number;
+}
+
+// Define the combined filter type using Mongoose's FilterQuery
+type CombinedFilter = mongoose.FilterQuery<PerformerDocument> & {
+  userId: {
+    $ne: mongoose.Types.ObjectId;
+    $nin: mongoose.Types.ObjectId[];
+  };
+  $or?: {
+    [key in 'bandName' | 'place']?: { $regex: string; $options: string };
+  }[];
+};
 
 export class userEventRepository implements IuserEventRepository {
   getEvent=async(eventId: mongoose.Types.ObjectId): Promise<EventDocument | null>=> {
@@ -127,12 +145,6 @@ export class userEventRepository implements IuserEventRepository {
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
           const event = booking.eventId as any;
-         
-
-
-
-
-
           
           return {
             _id: booking._id,
@@ -230,7 +242,7 @@ export class userEventRepository implements IuserEventRepository {
     }
   };
   userWalletBookEvent = async (
-    formData: Record<string, any>,
+   formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -336,7 +348,7 @@ export class userEventRepository implements IuserEventRepository {
     }
   };
   userBookEvent = async (
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string,
     userId: string
@@ -669,6 +681,8 @@ export class userEventRepository implements IuserEventRepository {
 
       const upcomingEvents: UpcomingEventDocument[] = bookings.map(
         (booking) => {
+          console.log('bddfasdfafdsdas',booking);
+          
           const event = booking.eventId as any;
 
           return {
@@ -811,85 +825,76 @@ export class userEventRepository implements IuserEventRepository {
   
   
 
-  getFilteredPerformers = async (
-    id: mongoose.Types.ObjectId,
-    searchValue: any,
-    sortOptions: any = { rating: -1 },
-    skip: number,
-    limit: number
-  ): Promise<{ performers: Performer[]; totalCount: number } | null> => {
-    try {
-      const userId =
-        typeof id === "string" ? new mongoose.Types.ObjectId(id) : id;
-      const blockedUsers = await UserModel.find(
-        { isPerformerBlocked: true },
-        { _id: 1 }
-      );
-      const blockedUserIds = blockedUsers.map((user) => user._id);
+getFilteredPerformers = async (
+  id: mongoose.Types.ObjectId,
+  filterOptions: FilterOptions,
+  sortOptions: SortOptions = { rating: -1 },
+  skip: number,
+  limit: number
+): Promise<{ performers: Performer[]; totalCount: number } | null> => {
+  try {
+    const userId = typeof id === "string" ? new mongoose.Types.ObjectId(id) : id;
 
-      const combinedFilter: any = {
-        userId: {
-          $ne: userId,
-          $nin: blockedUserIds,
-        },
-      };
+    console.log('repo', filterOptions, sortOptions);
 
-      if (searchValue) {
-        if (typeof searchValue === "string") {
-          const searchStr = searchValue.trim();
-          if (searchStr) {
-            combinedFilter.$or = [
-              { bandName: { $regex: searchStr, $options: "i" } },
-              { place: { $regex: searchStr, $options: "i" } },
-            ];
-          }
-        } else if (typeof searchValue === "object") {
-          // Handle object search value
-          if (searchValue.search) {
-            const searchStr = searchValue.search.trim();
-            combinedFilter.$or = [
-              { bandName: { $regex: searchStr, $options: "i" } },
-              { place: { $regex: searchStr, $options: "i" } },
-            ];
-          } else if (searchValue.$or) {
-            combinedFilter.$or = searchValue.$or;
-          }
-        }
+    const blockedUsers = await UserModel.find(
+      { isPerformerBlocked: true },
+      { _id: 1 }
+    );
+    const blockedUserIds = blockedUsers.map((user) => user._id);
+
+    const combinedFilter: CombinedFilter = {
+      userId: {
+        $ne: userId,
+        $nin: blockedUserIds as mongoose.Types.ObjectId[],
+      },
+    };
+
+    if (filterOptions) {
+      if (filterOptions.search) {
+        const searchStr = filterOptions.search.trim();
+        combinedFilter.$or = [
+          { bandName: { $regex: searchStr, $options: "i" } },
+          { place: { $regex: searchStr, $options: "i" } },
+        ];
+      } else if (filterOptions.$or) {
+        combinedFilter.$or = filterOptions.$or;
       }
-
-      console.log(
-        "Final Combined Filter:",
-        JSON.stringify(combinedFilter, null, 2)
-      );
-
-      console.log("Executing count query...");
-      const totalCount = await PerformerModel.countDocuments(combinedFilter);
-      console.log("Total Count:", totalCount);
-
-      console.log("Executing find query...");
-      const performers = await PerformerModel.find(combinedFilter)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .select("userId bandName description profileImage place rating");
-
-      console.log("Found Performers Count:", performers.length);
-      if (performers.length > 0) {
-        console.log("Sample Found Performer:", performers[0]);
-      }
-
-      if (!performers.length) {
-        return null;
-      }
-
-      return { performers, totalCount };
-    } catch (error) {
-      console.error("Error in getFilteredPerformers:", error);
-      throw error;
     }
-  };
+
+    console.log(
+      "Final Combined Filter:",
+      JSON.stringify(combinedFilter, null, 2)
+    );
+
+    console.log("Executing count query...");
+    const totalCount = await PerformerModel.countDocuments(combinedFilter);
+    console.log("Total Count:", totalCount);
+
+    console.log("Executing find query...");
+    const performers = await PerformerModel.find(combinedFilter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .select("userId bandName description profileImage place rating");
+
+    console.log("Found Performers Count:", performers.length);
+    if (performers.length > 0) {
+      console.log("Sample Found Performer:", performers[0]);
+    }
+
+    if (!performers.length) {
+      return null;
+    }
+
+    return { performers, totalCount };
+  } catch (error) {
+    console.error("Error in getFilteredPerformers:", error);
+    throw error;
+  }
+};
   availableDate = async (
-    formData: Record<string, any>,
+    formData: BookingForm,
     eventId: string,
     performerId: string
   ): Promise<boolean> => {
@@ -945,288 +950,4 @@ export class userEventRepository implements IuserEventRepository {
 
 
 
-  // chatWithPerformer = async (
-  //   userId: mongoose.Types.ObjectId,
-  //   performerId: mongoose.Types.ObjectId
-  // ): Promise<ChatRoomDocument | null> => {
-  //   try {
-  //     // Check if a chat room exists
-  //     let chatRoom = await ChatRoomModel.findOne({
-  //       participants: { $all: [userId, performerId] },
-  //     });
-
-  //     // If no chat room exists, create one
-  //     if (!chatRoom) {
-  //       chatRoom = new ChatRoomModel({
-  //         participants: [userId, performerId],
-  //       });
-  //       await chatRoom.save();
-  //     }
-
-  //     const userMessage = new MessageModel({
-  //       roomId: chatRoom._id,
-  //       senderId: userId,
-  //       receiverId: performerId,
-  //       message: "Hi",
-  //     });
-  //     await userMessage.save();
-
-  //     const user = await UserModel.findById(userId);
-
-  //     if (!user) {
-  //       throw new Error("User not found");
-  //     }
-
-  //     const performerReply = new MessageModel({
-  //       roomId: chatRoom._id,
-  //       senderId: performerId,
-  //       receiverId: userId,
-  //       message: `Hi ${user.username}, how can I help you?`,
-  //     });
-  //     await performerReply.save();
-
-  //     const populatedChatRoom = await ChatRoomModel.findById(
-  //       chatRoom._id
-  //     ).populate("participants");
-
-  //     return populatedChatRoom;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
-  // CheckOnline = async (
-  //   id: mongoose.Types.ObjectId,
-  //   oId: mongoose.Types.ObjectId
-  // ): Promise<boolean> => {
-  //   try {
-  //     const chatRoom = await ChatRoomModel.findOne({
-  //       participants: { $all: [id, oId] },
-  //     });
-
-  //     if (!chatRoom) {
-  //       return false;
-  //     }
-
-  //     return chatRoom.online.includes(oId);
-  //   } catch (error) {
-  //     console.error("Error in CheckOnline:", error);
-  //     throw new Error("Unable to check online status.");
-  //   }
-  // };
-  // offlineUser = async (
-  //   userId: mongoose.Types.ObjectId
-  // ): Promise<ChatRoom[] | null> => {
-  //   try {
-  //     const updatedRooms = await ChatRoomModel.updateMany(
-  //       { participants: userId },
-  //       { $pull: { online: userId } },
-  //       { new: true }
-  //     );
-  //     console.log("up", updatedRooms);
-
-  //     if (updatedRooms.modifiedCount > 0) {
-  //       return await ChatRoomModel.find({ participants: userId });
-  //     }
-
-  //     return null;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
-  // onlineUser = async (
-  //   uId: mongoose.Types.ObjectId,
-  //   pId: mongoose.Types.ObjectId
-  // ): Promise<any> => {
-  //   try {
-  //     const updatedRooms = await ChatRoomModel.updateMany(
-  //       { participants: uId },
-  //       { $pull: { online: uId } },
-  //       { new: true }
-  //     );
-
-  //     const userRoom = await ChatRoomModel.findOne({
-  //       participants: { $all: [uId, pId] },
-  //     });
-
-  //     if (!userRoom) {
-  //       return null;
-  //     }
-
-  //     if (userRoom.online.includes(uId)) {
-  //       return userRoom;
-  //     }
-
-  //     userRoom.online.push(uId);
-  //     await userRoom.save();
-
-  //     return userRoom;
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // };
-  // getMessageNotification = async (
-  //   userId: mongoose.Types.ObjectId
-  // ): Promise<MessageNotification | null> => {
-  //   try {
-  //     const unreadMessages = await MessageModel.aggregate([
-  //       {
-  //         $match: {
-  //           receiverId: userId,
-  //           read: false,
-  //         },
-  //       },
-  //       {
-  //         $group: {
-  //           _id: "$senderId",
-  //           numberOfMessages: { $sum: 1 },
-  //         },
-  //       },
-  //     ]);
-
-  //     if (unreadMessages.length === 0) {
-  //       return null;
-  //     }
-
-  //     const totalCount = unreadMessages.reduce(
-  //       (sum, msg) => sum + msg.numberOfMessages,
-  //       0
-  //     );
-
-  //     const notifications = unreadMessages.map((msg) => ({
-  //       userId: msg._id.toString(),
-  //       numberOfMessages: msg.numberOfMessages,
-  //     }));
-
-  //     return {
-  //       totalCount,
-  //       notifications,
-  //     };
-  //   } catch (error) {
-  //     console.error("Error fetching message notifications:", error);
-  //     throw error;
-  //   }
-  // };
-  // getAllChatRooms = async (
-  //   userId: mongoose.Types.ObjectId
-  // ): Promise<ChatRoom[] | null> => {
-  //   try {
-  //     const chatRooms = await ChatRoomModel.find({ participants: userId });
-
-  //     const chatRoomsWithMessages = await Promise.all(
-  //       chatRooms.map(async (chatRoom) => {
-  //         const lastMessage = await MessageModel.findOne({
-  //           roomId: chatRoom._id,
-  //         }).sort({ timestamp: -1 });
-
-  //         const otherParticipantId = chatRoom.participants.find(
-  //           (id) => id.toString() !== userId.toString()
-  //         );
-  //         const otherParticipant = await UserModel.findById(otherParticipantId);
-
-  //         const performer = await PerformerModel.findOne({
-  //           userId: otherParticipantId,
-  //         });
-
-  //         return {
-  //           chatRoom,
-  //           lastMessageTimestamp: lastMessage
-  //             ? lastMessage.timestamp
-  //             : new Date(0), // Use epoch if no messages
-  //           profileImage: otherParticipant?.profileImage || null, // Use user's profile image
-  //           userName: otherParticipant ? otherParticipant.username : null,
-  //           performerName: performer ? performer.bandName : null,
-  //           otherId: otherParticipantId ? otherParticipantId.toString() : null, // Convert to string
-  //         };
-  //       })
-  //     );
-
-  //     // Sort chat rooms by the timestamp of their latest message (most recent first)
-  //     const sortedChatRooms = chatRoomsWithMessages
-  //       .sort(
-  //         (a, b) =>
-  //           b.lastMessageTimestamp.getTime() - a.lastMessageTimestamp.getTime()
-  //       )
-  //       .map((room) => ({
-  //         profileImage: room.profileImage,
-  //         userName: room.userName,
-  //         performerName: room.performerName,
-  //         otherId: room.otherId,
-  //         myId: userId ? userId.toString() : null,
-  //       }));
-
-  //     return sortedChatRooms;
-  //   } catch (error) {
-  //     console.error("Error fetching chat rooms:", error);
-  //     return null;
-  //   }
-  // };
-  // ChatWith = async (
-  //   myIdObject: mongoose.Types.ObjectId,
-  //   anotherIdObject: mongoose.Types.ObjectId
-  // ): Promise<any[] | null> => {
-  //   try {
-  //     await MessageModel.updateMany(
-  //       { receiverId: myIdObject, senderId: anotherIdObject, read: false },
-  //       { $set: { read: true } }
-  //     );
-
-  //     const chatMessages = await MessageModel.find({
-  //       $or: [
-  //         { senderId: myIdObject, receiverId: anotherIdObject },
-  //         { senderId: anotherIdObject, receiverId: myIdObject },
-  //       ],
-  //     }).sort({ timestamp: 1 });
-
-  //     const messagesWithRole = chatMessages.map((message) => {
-  //       if (message.senderId.toString() === myIdObject.toString()) {
-  //         return { ...message.toObject(), role: "sender" };
-  //       } else {
-  //         return { ...message.toObject(), role: "receiver" };
-  //       }
-  //     });
-
-  //     return messagesWithRole;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
-  // sendMessage = async (
-  //   senderId: mongoose.Types.ObjectId,
-  //   receiverId: mongoose.Types.ObjectId,
-  //   message: string
-  // ): Promise<ChatRoomDocument | null> => {
-  //   try {
-  //     let chatRoom = await ChatRoomModel.findOne({
-  //       participants: { $all: [senderId, receiverId] },
-  //     });
-
-  //     if (!chatRoom) {
-  //       chatRoom = new ChatRoomModel({
-  //         participants: [senderId, receiverId],
-  //       });
-  //       await chatRoom.save();
-  //     }
-
-  //     const isReceiverOnline = chatRoom.online.includes(receiverId);
-
-  //     const newMessage = new MessageModel({
-  //       roomId: chatRoom._id,
-  //       senderId,
-  //       receiverId,
-  //       message,
-  //       read: isReceiverOnline,
-  //     });
-
-  //     await newMessage.save();
-
-  //     const populatedChatRoom = await ChatRoomModel.findById(
-  //       chatRoom._id
-  //     ).populate("participants");
-
-  //     return populatedChatRoom;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
 }

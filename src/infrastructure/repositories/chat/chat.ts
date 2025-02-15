@@ -13,6 +13,7 @@ import { ChatRoom } from "../../../domain/entities/chatRoom";
 
 import { MessageNotification } from "../../../domain/entities/messageNotification";
 
+
 export class chatRepository implements IChatRepository {
   chatWithPerformer = async (
     userId: mongoose.Types.ObjectId,
@@ -105,17 +106,22 @@ export class chatRepository implements IChatRepository {
   onlineUser = async (
     uId: mongoose.Types.ObjectId,
     pId: mongoose.Types.ObjectId
-  ): Promise<any> => {
+  ): Promise<ChatRoomDocument|null> => {
     try {
-     await ChatRoomModel.updateMany(
+    await ChatRoomModel.updateMany(
         { participants: uId },
         { $pull: { online: uId } },
         { new: true }
       );
 
+
+  
+      
       const userRoom = await ChatRoomModel.findOne({
         participants: { $all: [uId, pId] },
       });
+      console.log('usrroom',userRoom);
+      
 
       if (!userRoom) {
         return null;
@@ -254,7 +260,7 @@ export class chatRepository implements IChatRepository {
           return { ...message.toObject(), role: "receiver" };
         }
       });
-
+console.log('s3dfsfdasfdasfdsfdsfds',messagesWithRole)
       return messagesWithRole;
     } catch (error) {
       throw error;

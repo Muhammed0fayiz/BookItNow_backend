@@ -35,6 +35,6 @@ export interface IChatUseCase {
   onlineUser(
     uId: mongoose.Types.ObjectId,
     pId: mongoose.Types.ObjectId
-  ): Promise<ChatRoom | null>;
+  ): Promise<ChatRoomDocument| null>;
   offlineUser(userId: mongoose.Types.ObjectId): Promise<ChatRoom[] | null>;
 }

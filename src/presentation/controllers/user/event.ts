@@ -50,6 +50,9 @@ const id = new mongoose.Types.ObjectId(req.params.id);
           .status(ResponseStatus.BadRequest)
           .json({ error: "Invalid user ID" });
       }
+
+
+
       const bookingResult = await this._useCase.userBookEvent(
         formData,
         eventId,
@@ -58,7 +61,7 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       );
 
 
-      console.log('123455',bookingResult);
+  
       
       if (!bookingResult) {
         return res.status(ResponseStatus.OK).json({
@@ -195,7 +198,7 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       const id = new mongoose.Types.ObjectId(userId);
 
       const favoriteEvent = await this._useCase.favaroiteEvents(id);
-      console.log("favoriteEv", favoriteEvent);
+
 
       return res.status(ResponseStatus.OK).json({
         success: true,
@@ -228,7 +231,7 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       const sortOrder = order === "desc" ? -1 : 1;
       const sortField = "price";
   
-      console.log("fui", filterOptions, "dsfas");
+
   
       const result = await this._useCase.getFilteredEvents(
         id,
@@ -491,6 +494,8 @@ const id = new mongoose.Types.ObjectId(req.params.id);
     next: NextFunction
   ) => {
     try {
+      console.log('helelejlralsddslaf;jd');
+      
       const { userId } = req.params;
       const id = new mongoose.Types.ObjectId(userId);
   
@@ -502,6 +507,9 @@ const id = new mongoose.Types.ObjectId(req.params.id);
       const sortField = "rating";
   
       const searchValue = typeof search === "string" ? search : "";
+
+      console.log('e',searchValue);
+      
       const filterOptions: Record<string, unknown> = searchValue
         ? {
             $or: [
@@ -510,6 +518,8 @@ const id = new mongoose.Types.ObjectId(req.params.id);
             ],
           }
         : {};
+
+        console.log('okokokoksssserqreqerok',filterOptions,'22',sortField,'3ddddddddd3',sortOrder)
   
       const result = await this._useCase.getFilteredPerformers(
         id,
@@ -518,6 +528,9 @@ const id = new mongoose.Types.ObjectId(req.params.id);
         skip,
         pageSize
       );
+
+      console.log('resuleeeeeeeeeeeet',result);
+      
   
       if (!result || result.performers.length === 0) {
         console.log(PerformerMessages.NO_PERFORMER_DATA);
@@ -533,6 +546,8 @@ const id = new mongoose.Types.ObjectId(req.params.id);
         totalPages: Math.ceil(result.totalCount / pageSize),
       });
     } catch (error) {
+      console.log('hello world');
+      
       console.error("Error occurred:", error);
       next(error);
     }

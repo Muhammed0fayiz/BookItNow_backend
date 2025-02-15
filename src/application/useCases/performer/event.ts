@@ -1,7 +1,5 @@
 import { IperformerEventRepository } from './../../interfaces/performer/repositary/event';
 import { IperformerEventUseCase } from './../../interfaces/performer/useCase/event';
-
-// import { OtpModel } from "../../infrastructure/models/otpSession";
 import nodemailer from "nodemailer";
 
 
