@@ -438,6 +438,7 @@ checkSession = async (req: Request, res: Response, next: NextFunction) => {
   };
   b=async (req: Request, res: Response, next: NextFunction) => {
     try {
+      res.send('hello bhai')
     console.log('heleoeoeoodafs');
     
     } catch (error) {
