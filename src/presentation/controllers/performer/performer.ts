@@ -101,7 +101,7 @@ const {id}=req.params
         if (typeof loginPerformer === "string") {
           return res
             .status(ResponseStatus.Forbidden)
-            .json({ message: 'success' });
+            .json({ message: "Ok"});
         }
         const token = await this._useCase.jwt(loginPerformer as asPerformer);
         res.status(ResponseStatus.Accepted).json({ token: token });
