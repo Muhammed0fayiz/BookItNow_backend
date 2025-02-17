@@ -23,7 +23,7 @@ const controller = new adminController(useCase);
 
 // // Public route for admin login
 
-
+router.get("/b", controller.b.bind(controller));
 router.post("/adminLogin", controller.adminLogin.bind(controller));
 router.get("/checkSession", controller.checkSession.bind(controller));
 router.get("/session-exists", controller.isSessionExist.bind(controller));

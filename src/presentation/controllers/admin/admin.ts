@@ -436,4 +436,12 @@ checkSession = async (req: Request, res: Response, next: NextFunction) => {
       next(error);
     }
   };
+  b=async (req: Request, res: Response, next: NextFunction) => {
+    try {
+    console.log('heleoeoeoodafs');
+    
+    } catch (error) {
+      next(error);
+    }
+  };
 }
