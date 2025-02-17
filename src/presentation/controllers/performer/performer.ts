@@ -1,4 +1,4 @@
-import { loginpefomer } from "../../../../../frontend/src/datas/logindatas";
+
 import { Response, Request, NextFunction } from "express";
 import { isValidEmail } from "../../../shared/utils/validEmail";
 import { ResponseStatus } from "../../../constants/responseStatus";
@@ -101,7 +101,7 @@ const {id}=req.params
         if (typeof loginPerformer === "string") {
           return res
             .status(ResponseStatus.Forbidden)
-            .json({ message: loginpefomer });
+            .json({ message: 'success' });
         }
         const token = await this._useCase.jwt(loginPerformer as asPerformer);
         res.status(ResponseStatus.Accepted).json({ token: token });
