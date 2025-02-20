@@ -68,17 +68,24 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.bookitnow.shop",
+  "https://bookitnow.shop",
+];
+
 const corsOptions = {
   origin: allowedOrigins,
-  optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Ensure OPTIONS is included
   credentials: true,
 };
 app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Passport configuration
 passportConfig();
+app.options("*", cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -160,3 +167,14 @@ connectDatabase()
   });
 
 export { app, io, httpServer };
+
+
+
+
+
+
+
+
+
+
+
