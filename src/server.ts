@@ -27,11 +27,17 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.bookitnow.shop",
+  "https://bookitnow.shop",
+  "https://api.bookitnow.shop", // Add this line
+];
 
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins, // Use the same allowedOrigins array
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -60,19 +66,10 @@ cron.schedule("13 18 * * *", () => {
 });
 
 // CORS configuration
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://www.bookitnow.shop",
-  "https://bookitnow.shop",
-];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g., mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-
-    // Check if the origin is in the allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -85,8 +82,17 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Handle preflight requests
 
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
+app.options("/login", cors(corsOptions)); // Handle preflight for /login
 app.use(express.json());
-
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", allowedOrigins.join(", "));
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 // Passport configuration
 passportConfig();
 app.use(passport.initialize());
@@ -99,6 +105,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
+
+
 app.use("/chat", chatRoutes);
 app.use("/", userRoutes);
 app.use("/performer", performerRoutes);
