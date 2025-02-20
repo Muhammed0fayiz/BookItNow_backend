@@ -68,44 +68,17 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://www.bookitnow.shop",
-  "https://bookitnow.shop",
-];
-
+const allowedOrigins = ["http://localhost:3000"];
 const corsOptions = {
   origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Ensure OPTIONS is included
+  optionsSuccessStatus: 200,
   credentials: true,
 };
-app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const origin = req.headers.origin as string;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
 // Passport configuration
 passportConfig();
-app.options("*", cors(corsOptions));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -114,7 +87,6 @@ app.use((req, res, next) => {
   next();
 });
 // Routes
-
 app.use('/chat',chatRoutes)
 app.use("/", userRoutes);
 app.use("/performer", performerRoutes);
@@ -188,14 +160,3 @@ connectDatabase()
   });
 
 export { app, io, httpServer };
-
-
-
-
-
-
-
-
-
-
-
