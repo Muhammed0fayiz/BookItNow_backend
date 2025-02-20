@@ -68,7 +68,17 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-const allowedOrigins = ["http://localhost:3000"];
+// const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://www.bookitnow.shop", 
+  "https://bookitnow.shop",
+  "https://api.bookitnow.shop"
+];
+
+
+
+
 const corsOptions = {
   origin: allowedOrigins,
   optionsSuccessStatus: 200,
