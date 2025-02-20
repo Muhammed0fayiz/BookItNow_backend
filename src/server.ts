@@ -10,38 +10,37 @@ import dotenv from "dotenv";
 import userRoutes from "./presentation/routes/userRoutes";
 import adminRoutes from "./presentation/routes/adminRoutes";
 import performerRoutes from "./presentation/routes/performerRoutes";
-import performerEventRoutes from "./presentation/routes/performerEvent"
+import performerEventRoutes from "./presentation/routes/performerEvent";
 import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
-import userEvent from "./presentation/routes/userEvent"
-
+import userEvent from "./presentation/routes/userEvent";
 
 const morgan = require("morgan");
 
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
-
 import { unblockExpiredEvents } from "./shared/utils/eventunblock";
 import logger from "./shared/utils/logger";
-
-
-
-
-
-
 
 const cron = require("node-cron");
 
 dotenv.config();
 
-
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO setup
+// Updated allowed origins to include production domains
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.bookitnow.shop",
+  "https://bookitnow.shop",
+  "https://api.bookitnow.shop"
+];
+
+// Socket.IO setup with updated CORS configuration
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -62,18 +61,27 @@ app.use(
     cookie: { secure: false },
   })
 );
+
 cron.schedule("13 18 * * *", () => {
   sendReminder();
-  unblockExpiredEvents()
+  unblockExpiredEvents();
 });
 
-
-const allowedOrigins = ["http://localhost:3000"];
-const corsOptions = {
-  origin: allowedOrigins,
+// Updated CORS configuration with flexible origin handling
+const corsOptions: cors.CorsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   optionsSuccessStatus: 200,
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -82,18 +90,19 @@ passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
+app.use((req: any, res, next) => {
   req.io = io;
   next();
 });
+
 // Routes
-app.use('/chat',chatRoutes)
+app.use('/chat', chatRoutes);
 app.use("/", userRoutes);
 app.use("/performer", performerRoutes);
 app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
-app.use("/userEvent",userEvent)
-app.use("/performerEvent",performerEventRoutes)
+app.use("/userEvent", userEvent);
+app.use("/performerEvent", performerEventRoutes);
 
 // Socket.IO logic
 interface UserSocketMap {
@@ -105,11 +114,7 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
-// interface Notication {
-//   senderId: string;
-//   receiverId: string;
-//   count: number;
-// }
+
 const userSocketMap: UserSocketMap = {};
 
 io.on("connection", (socket: Socket) => {
@@ -158,5 +163,8 @@ connectDatabase()
     console.error("Failed to connect to database:", err);
     process.exit(1);
   });
+
+// Optional: Add preflight handling for complex requests
+app.options('*', cors(corsOptions));
 
 export { app, io, httpServer };
