@@ -37,25 +37,11 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = [
-  "http://localhost:3000", 
-  "https://www.bookitnow.shop", 
-  "https://bookitnow.shop",
-  "https://api.bookitnow.shop"
-];
 
-// Socket.IO setup
-// const io = new Server(httpServer, {
-//   cors: {
-//     origin: "http://localhost:3000",
-//     methods: ["GET", "POST"],
-//     credentials: true,
-//   },
-// });
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,  // <-- Use the same allowedOrigins array
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -82,11 +68,7 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-// const allowedOrigins = ["http://localhost:3000"];
-
-
-
-
+const allowedOrigins = ["http://localhost:3000"];
 const corsOptions = {
   origin: allowedOrigins,
   optionsSuccessStatus: 200,
