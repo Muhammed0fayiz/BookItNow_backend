@@ -14,7 +14,7 @@ import performerEventRoutes from "./presentation/routes/performerEvent"
 import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
 import userEvent from "./presentation/routes/userEvent"
-import { CorsOptions } from "cors";  
+
 
 const morgan = require("morgan");
 
@@ -30,7 +30,6 @@ import logger from "./shared/utils/logger";
 
 
 
-
 const cron = require("node-cron");
 
 dotenv.config();
@@ -38,20 +37,16 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://www.bookitnow.shop",
-  "https://bookitnow.shop",
-  "https://api.bookitnow.shop"
-];
+
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
+
 // Middleware setup
 app.use(
   morgan("tiny", {
@@ -73,23 +68,16 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-
-// Define CORS options with TypeScript types
-const corsOptions: CorsOptions = {
-  origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  credentials: true
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "https://www.bookitnow.shop"
+// ];
+const corsOptions = {
+  origin: "https://www.bookitnow.shop",
+  // optionsSuccessStatus: 200,
+  credentials: true,
 };
-
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // Passport configuration
