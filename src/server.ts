@@ -14,7 +14,7 @@ import performerEventRoutes from "./presentation/routes/performerEvent"
 import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
 import userEvent from "./presentation/routes/userEvent"
-
+import { CorsOptions } from "cors";  
 
 const morgan = require("morgan");
 
@@ -40,7 +40,9 @@ const app = express();
 const httpServer = createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://www.bookitnow.shop","https://bookitnow.shop",
+  "https://www.bookitnow.shop",
+  "https://bookitnow.shop",
+  "https://api.bookitnow.shop"
 ];
 // Socket.IO setup
 const io = new Server(httpServer, {
@@ -71,32 +73,21 @@ cron.schedule("13 18 * * *", () => {
 });
 
 
-const corsOptions = {
-  origin: allowedOrigins,
+
+// Define CORS options with TypeScript types
+const corsOptions: CorsOptions = {
+  origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"], // Add commonly used headers
-  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true
 };
 
-// Replace your current CORS setup with this
-app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const origin = req.headers.origin as string;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
-
-// Remove your custom middleware and just use this
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
