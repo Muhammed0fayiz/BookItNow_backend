@@ -39,13 +39,6 @@ const app = express();
 const httpServer = createServer(app);
 
 // Socket.IO setup
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 
 // Middleware setup
 app.use(
@@ -54,14 +47,15 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(
-  session({
-    secret: "your-secret-key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false },
-  })
-);
+app.use(express.json());
+// app.use(
+//   session({
+//     secret: "your-secret-key",
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: { secure: false },
+//   })
+// );
 cron.schedule("13 18 * * *", () => {
   sendReminder();
   unblockExpiredEvents()
@@ -72,13 +66,35 @@ cron.schedule("13 18 * * *", () => {
 //   "http://localhost:3000",
 //   "https://www.bookitnow.shop"
 // ];
-const corsOptions = {
-  origin: "https://www.bookitnow.shop",
-  // optionsSuccessStatus: 200,
-  credentials: true,
-};
-app.use(cors(corsOptions));
-app.use(express.json());
+// const corsOptions = {
+//   origin: "https://www.bookitnow.shop",
+//   // optionsSuccessStatus: 200,
+//   credentials: true,
+// };
+
+app.use(
+  cors({
+    origin: `https://www.bookitnow.shop`,
+    credentials: true,
+    exposedHeaders: ["set-cookie"],
+  })
+)
+app.use(
+  session({
+    secret: "your_session_secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+)
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+
 
 // Passport configuration
 passportConfig();
