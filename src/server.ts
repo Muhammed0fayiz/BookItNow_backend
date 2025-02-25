@@ -14,7 +14,7 @@ import performerEventRoutes from "./presentation/routes/performerEvent"
 import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
 import userEvent from "./presentation/routes/userEvent"
-
+import { CorsOptions} from 'cors';
 
 const morgan = require("morgan");
 
@@ -38,7 +38,7 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-// Socket.IO setup
+
 
 // Middleware setup
 app.use(
@@ -47,64 +47,61 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
-// app.use(
-//   session({
-//     secret: "your-secret-key",
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: { secure: false },
-//   })
-// );
+app.use(
+  session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
 cron.schedule("13 18 * * *", () => {
   sendReminder();
   unblockExpiredEvents()
 });
 
 
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "https://www.bookitnow.shop"
-// ];
-// const corsOptions = {
-//   origin: "https://www.bookitnow.shop",
-//   // optionsSuccessStatus: 200,
-//   credentials: true,
-// };
 
-app.use(
-  cors({
-    origin: `https://www.bookitnow.shop`,
-    credentials: true,
-    exposedHeaders: ["set-cookie"],
-  })
-)
-app.use(
-  session({
-    secret: "your_session_secret",
-    resave: false,
-    saveUninitialized: false,
-  })
-)
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
+const allowedOrigins: string[] = [
+  "http://localhost:3000",
+  "https://www.bookitnow.shop",
+  "https://bookitnow.shop"  
+];
+
+const corsOptions: CorsOptions = {
+  origin: function (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) {
+    console.log("🔍 CORS Check - Incoming Origin:", origin);
+    if (!origin) {
+      console.log("✅ No origin (e.g., mobile app or curl) - Allowed");
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      console.log("✅ Origin Allowed:", origin);
+      callback(null, true);
+    } else {
+      console.log("❌ Origin Not Allowed:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
   },
-});
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
 
 
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // Passport configuration
 passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
+// Socket.IO setup
+app.options('*', cors(corsOptions));
 // Routes
 app.use('/chat',chatRoutes)
 app.use("/", userRoutes);
@@ -124,11 +121,17 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
-// interface Notication {
-//   senderId: string;
-//   receiverId: string;
-//   count: number;
-// }
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 const userSocketMap: UserSocketMap = {};
 
 io.on("connection", (socket: Socket) => {
@@ -165,7 +168,7 @@ io.on("connection", (socket: Socket) => {
 });
 
 // Connect to database and start server
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 5000;
 
 connectDatabase()
   .then(() => {
@@ -178,4 +181,4 @@ connectDatabase()
     process.exit(1);
   });
 
-export { app, io, httpServer };
+
