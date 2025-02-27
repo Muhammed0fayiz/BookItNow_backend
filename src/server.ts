@@ -149,7 +149,7 @@ io.on("connection", (socket: Socket) => {
 });
 
 // Connect to database and start server
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 5000;
 
 connectDatabase()
   .then(() => {
