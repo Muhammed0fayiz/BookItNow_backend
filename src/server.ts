@@ -69,10 +69,12 @@ const allowedOrigins = [
 ];
 const corsOptions = {
   origin: allowedOrigins,
-  optionsSuccessStatus: 200,
+  methods: 'GET,PUT,PATCH,POST,DELETE',
   credentials: true,
 };
+
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Passport configuration
