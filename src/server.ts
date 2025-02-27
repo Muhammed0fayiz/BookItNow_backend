@@ -102,7 +102,7 @@ interface MessageData {
 }
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins, 
     methods: ["GET", "POST"],
     credentials: true,
   },
