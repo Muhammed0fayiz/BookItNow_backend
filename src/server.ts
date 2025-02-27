@@ -10,37 +10,27 @@ import dotenv from "dotenv";
 import userRoutes from "./presentation/routes/userRoutes";
 import adminRoutes from "./presentation/routes/adminRoutes";
 import performerRoutes from "./presentation/routes/performerRoutes";
-import performerEventRoutes from "./presentation/routes/performerEvent"
+import performerEventRoutes from "./presentation/routes/performerEvent";
 import paymentRoutes from "./presentation/routes/paymentRoutes";
 import chatRoutes from "./presentation/routes/chatRoutes";
-import userEvent from "./presentation/routes/userEvent"
-import { CorsOptions} from 'cors';
-
-const morgan = require("morgan");
-
+import userEvent from "./presentation/routes/userEvent";
+import { CorsOptions } from "cors";
 import { connectDatabase } from "./infrastructure/db/dbConnection";
 import { sendReminder } from "./shared/utils/reminder";
-
 import { unblockExpiredEvents } from "./shared/utils/eventunblock";
 import logger from "./shared/utils/logger";
 
-
-
-
-
-
-
+const morgan = require("morgan");
 const cron = require("node-cron");
 
 dotenv.config();
 
-
 const app = express();
 const httpServer = createServer(app);
 
-
-
 // Middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(
   morgan("tiny", {
     stream: { write: (message: string) => logger.info(message.trim()) },
@@ -55,30 +45,24 @@ app.use(
     cookie: { secure: false },
   })
 );
+
+// Cron jobs
 cron.schedule("13 18 * * *", () => {
   sendReminder();
-  unblockExpiredEvents()
+  unblockExpiredEvents();
 });
 
-
-
+// CORS Configuration
 const allowedOrigins: string[] = [
   "http://localhost:3000",
   "https://www.bookitnow.shop",
-  "https://bookitnow.shop"  
+  "https://bookitnow.shop",
 ];
 
 const corsOptions: CorsOptions = {
-  origin: function (
-    origin: string | undefined,
-    callback: (err: Error | null, allow?: boolean) => void
-  ) {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     console.log("🔍 CORS Check - Incoming Origin:", origin);
-    if (!origin) {
-      console.log("✅ No origin (e.g., mobile app or curl) - Allowed");
-      return callback(null, true);
-    }
-    if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       console.log("✅ Origin Allowed:", origin);
       callback(null, true);
     } else {
@@ -92,26 +76,25 @@ const corsOptions: CorsOptions = {
   optionsSuccessStatus: 204,
 };
 
-
+// Apply CORS middleware
 app.use(cors(corsOptions));
-app.use(express.json());
+app.options("*", cors(corsOptions)); // Handle preflight requests for all routes
 
 // Passport configuration
 passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
-// Socket.IO setup
-app.options('*', cors(corsOptions));
+
 // Routes
-app.use('/chat',chatRoutes)
+app.use("/chat", chatRoutes);
 app.use("/", userRoutes);
 app.use("/performer", performerRoutes);
 app.use("/admin", adminRoutes);
 app.use("/payment", paymentRoutes);
-app.use("/userEvent",userEvent)
-app.use("/performerEvent",performerEventRoutes)
+app.use("/userEvent", userEvent);
+app.use("/performerEvent", performerEventRoutes);
 
-// Socket.IO logic
+// Socket.IO setup
 interface UserSocketMap {
   [userId: string]: string;
 }
@@ -121,6 +104,7 @@ interface MessageData {
   receiverId: string;
   message: string;
 }
+
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:3000",
@@ -128,10 +112,12 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
+
 const userSocketMap: UserSocketMap = {};
 
 io.on("connection", (socket: Socket) => {
@@ -180,5 +166,3 @@ connectDatabase()
     console.error("Failed to connect to database:", err);
     process.exit(1);
   });
-
-
