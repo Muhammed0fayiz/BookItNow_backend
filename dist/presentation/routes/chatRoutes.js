@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const chat_1 = require("../controllers/chat/chat");
+const chat_2 = require("../../infrastructure/repositories/chat/chat");
+const chat_3 = require("../../application/useCases/chat/chat");
+const authMiddleware_1 = __importDefault(require("../../shared/middlewares/authMiddleware"));
+const router = (0, express_1.Router)();
+const repository = new chat_2.chatRepository();
+const useCase = new chat_3.chatUseCase(repository);
+const controller = new chat_1.ChatController(useCase);
+router.post("/handleSendMessage/:sender/:receiver", authMiddleware_1.default, controller.sendMessage.bind(controller));
+router.post("/chatWithPerformer/:userid/:performerid", controller.chatWithPerformer.bind(controller));
+router.get("/chat-with/:myId/:anotherId", authMiddleware_1.default, controller.chatWith.bind(controller));
+router.get("/chatrooms/:id", authMiddleware_1.default, controller.getAllChatRooms.bind(controller));
+router.post("/onlineUser/:userId/:anotherId", authMiddleware_1.default, controller.onlineUser.bind(controller));
+router.post("/offlineUser/:id", authMiddleware_1.default, controller.offlineUser.bind(controller));
+router.get("/messageNotification/:id", controller.getMessgeNotification.bind(controller));
+router.get("/checkOnline/:userId/:otherId", authMiddleware_1.default, controller.checkOnlineUser.bind(controller));
+exports.default = router;

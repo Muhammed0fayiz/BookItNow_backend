@@ -1,0 +1,37 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const event_1 = require("../controllers/user/event");
+const event_2 = require("../../application/useCases/user/event");
+const authMiddleware_1 = __importDefault(require("../../shared/middlewares/authMiddleware"));
+const event_3 = require("../../infrastructure/repositories/user/event");
+const router = (0, express_1.Router)();
+const repository = new event_3.userEventRepository();
+const useCase = new event_2.userEventUseCase(repository);
+const controller = new event_1.UserEventController(useCase);
+router.get("/getAllEvents/:id", authMiddleware_1.default, controller.getAllEvents.bind(controller));
+router.post("/events/book", authMiddleware_1.default, controller.bookEvent.bind(controller));
+router.get("/upcomingevents/:id", authMiddleware_1.default, controller.upcomingEvents.bind(controller));
+router.post("/cancelevent/:id", authMiddleware_1.default, controller.cancelEventByUser.bind(controller));
+router.get("/userUpcomingEvents/:id", authMiddleware_1.default, controller.getUpcomingEvents.bind(controller));
+router.get("/eventhistory/:id", authMiddleware_1.default, controller.eventHistory.bind(controller));
+router.get("/userEventHistory/:id", authMiddleware_1.default, controller.getEventHistory.bind(controller));
+router.get("/getFilteredEvents/:userId", authMiddleware_1.default, controller.getFilteredEvents.bind(controller));
+router.post("/add-rating/:id", authMiddleware_1.default, controller.addRating.bind(controller));
+router.get("/eventrating/:id", authMiddleware_1.default, controller.getEventRating.bind(controller));
+router.get("/top-rated-event/:id", authMiddleware_1.default, controller.getTopRatedEvent.bind(controller));
+router.get("/favorites/:id", authMiddleware_1.default, controller.getFavoriteEvents.bind(controller));
+router.post("/toggleFavoriteEvent/:userId/:eventId", authMiddleware_1.default, controller.toggleFavoriteEvent.bind(controller));
+router.post("/walletPayment", authMiddleware_1.default, controller.walletPayment.bind(controller));
+//debug
+router.post("/ed/:id", controller.updateBookingDate.bind(controller));
+router.get("/getperformers/:id", authMiddleware_1.default, controller.getAllPerformers.bind(controller));
+router.post("/checkavailable", authMiddleware_1.default, controller.availableDate.bind(controller));
+router.get("/getFilteredPerformers/:userId", authMiddleware_1.default, controller.getFilteredPerformers.bind(controller));
+router.get('/getPerformer/:performerId', authMiddleware_1.default, controller.getPerformer.bind(controller));
+router.get('/getPerformerEvents/:performerId', authMiddleware_1.default, controller.getPerformerEvents.bind(controller));
+router.get('/getEvent/:eventId', authMiddleware_1.default, controller.getEvent.bind(controller));
+exports.default = router;

@@ -26,29 +26,8 @@ import express from "express";
   
   const app = express();
   const httpServer = createServer(app);
-  
-  // Middleware setup
-  app.use(
-    morgan("tiny", {
-      stream: { write: (message: string) => logger.info(message.trim()) },
-    })
-  );
-  app.use(cookieParser());
-  app.use(
-    session({
-      secret: "your-secret-key",
-      resave: false,
-      saveUninitialized: true,
-      cookie: { secure: true },
-    })
-  );
-  
-  // Cron job for reminders and unblocking events
-  cron.schedule("13 18 * * *", () => {
-    sendReminder();
-    unblockExpiredEvents();
-  });
-  
+
+ 
   // CORS configuration
   const allowedOrigins = [
     "http://localhost:3000",
@@ -64,12 +43,31 @@ import express from "express";
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: "GET,PUT,PATCH,POST,DELETE",
+    methods: "GET,PUT,PATCH,POST,DELETE,OPTIONS",
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'] // Add this line to explicitly allow these headers
   };
   
   app.use(cors(corsOptions));
   app.options("*", cors(corsOptions)); // Enable preflight requests for all routes
+   // Middleware setup
+   app.use(
+    morgan("tiny", {
+      stream: { write: (message: string) => logger.info(message.trim()) },
+    })
+  );
+  app.use(cookieParser());
+  app.use(
+    session({
+      secret: "your-secret-key",
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: true },
+    })
+  );
+  
+
+  
   app.use(express.json());
   
   // Passport configuration
@@ -82,7 +80,18 @@ import express from "express";
     console.log(`Incoming request: ${req.method} ${req.url}`);
     next();
   });
-  
+    // Cron job for reminders and unblocking events
+  cron.schedule("13 18 * * *", () => {
+    sendReminder();
+    unblockExpiredEvents();
+  });
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      console.log('OPTIONS request headers:', req.headers);
+      console.log('OPTIONS request path:', req.path);
+    }
+    next();
+  });
   app.use("/chat", chatRoutes);
   app.use("/", userRoutes);
   app.use("/performer", performerRoutes);

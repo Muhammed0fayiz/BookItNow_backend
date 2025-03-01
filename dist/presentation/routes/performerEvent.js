@@ -1,0 +1,27 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const event_1 = require("../../infrastructure/repositories/performer/event");
+const event_2 = require("../../application/useCases/performer/event");
+const authMiddleware_1 = __importDefault(require("../../shared/middlewares/authMiddleware"));
+const event_3 = require("../controllers/performer/event");
+const router = (0, express_1.Router)();
+const repository = new event_1.performerEventRepository();
+const useCase = new event_2.performerEventUseCase(repository);
+const controller = new event_3.performerEventController(useCase);
+router.post("/uploadEvents/:id", authMiddleware_1.default, controller.uploadEvents.bind(controller));
+router.put("/editEvent/:id/:eid", authMiddleware_1.default, controller.editEvents.bind(controller));
+router.get("/getPerformerEvents/:id", authMiddleware_1.default, controller.getPerformerEvents.bind(controller));
+router.delete("/deleteEvent/:id", authMiddleware_1.default, controller.deleteEvent.bind(controller));
+router.put("/blockUnblockEvents/:id", authMiddleware_1.default, controller.toggleBlockStatus.bind(controller));
+router.get("/upcomingevents/:id", authMiddleware_1.default, controller.upcomingEvents.bind(controller));
+router.post("/cancelEvent/:id", authMiddleware_1.default, controller.cancelEventByPerformer.bind(controller));
+router.get("/eventhistory/:id", authMiddleware_1.default, controller.eventHistory.bind(controller));
+router.put("/changeEventStatus", authMiddleware_1.default, controller.changeEventStatus.bind(controller));
+router.get("/performerUpcomingEvents/:id", authMiddleware_1.default, controller.getUpcomingEvents.bind(controller));
+router.get("/getEvent/:id", controller.getEvent.bind(controller));
+router.post("/appealBlockedEvent/:id/:email", controller.appealBlockedEvent.bind(controller));
+exports.default = router;
