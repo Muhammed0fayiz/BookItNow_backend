@@ -27,6 +27,16 @@ export class userUseCase implements IuserUseCase {
   constructor(private repository: IuserRepository) {
     this._repository = repository;
   }
+  updatedprofile=async(userId: mongoose.Types.ObjectId, username: string, profilePicUrl: string | null): Promise<UserDocuments>=> {
+    try {
+      return await this._repository.updatedprofile(
+        userId,
+        username,
+        profilePicUrl || null 
+      );
+    } catch (error) {
+      throw error
+    }  }
   
  
 

@@ -12,6 +12,28 @@ import { Performer } from "../../../domain/entities/performer";
 import { WalletDocument, WalletModel } from "../../models/walletHistory";
 import mongoose from "mongoose";
 export class userRepository implements IuserRepository {
+  updatedprofile=async(userId: mongoose.Types.ObjectId, username: string, profilePicUrl: string | null): Promise<UserDocuments>=> {
+    try {
+      const user = await UserModel.findById(userId);
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      user.username = username;
+  
+      if (profilePicUrl) {
+        user.profileImage = profilePicUrl;
+      }
+  
+      await user.save(); // Save the changes to the database
+      return user;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
+
   getUserDetails = async (id: mongoose.Types.ObjectId): Promise<UserDocuments | null> => {
     try {
       const user = await UserModel.findById(id).lean().exec();

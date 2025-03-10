@@ -1,16 +1,11 @@
-
 import { OtpUser } from "../../../../domain/entities/otpUser";
-import { User} from "../../../../domain/entities/user";
+import { User } from "../../../../domain/entities/user";
 import { checkOtp } from "../../../../domain/entities/checkOtp";
 import { UserDocuments } from "../../../../infrastructure/models/userModel";
 import mongoose from "mongoose";
 import { WalletDocument } from "../../../../infrastructure/models/walletHistory";
 
-
-
 export interface IuserRepository {
-
-
   loginUser(email: string, password: string): Promise<User | null | string>;
   tempUserExist(email: string): Promise<OtpUser | null>;
   checkOtp(user: checkOtp): Promise<User | null>;
@@ -28,11 +23,6 @@ export interface IuserRepository {
     username: string
   ): Promise<User | null>;
 
-
-
-
- 
-
   getUserDetails(id: mongoose.Types.ObjectId): Promise<UserDocuments | null>;
   updateUserPassword(
     id: mongoose.Types.ObjectId,
@@ -42,6 +32,9 @@ export interface IuserRepository {
     objectId: mongoose.Types.ObjectId
   ): Promise<WalletDocument[] | null>;
 
-
-
+  updatedprofile(
+    userId: mongoose.Types.ObjectId,
+    username: string,
+    profilePicUrl: string | null
+  ): Promise<UserDocuments>;
 }

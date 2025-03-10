@@ -35,7 +35,7 @@ export interface IuserUseCase {
   walletHistory(
     objectId: mongoose.Types.ObjectId
   ): Promise<WalletDocument[] | null>;
-
+  updatedprofile(userId:mongoose.Types.ObjectId,username:string,profilePicUrl:string|null):Promise<UserDocuments>
 
 
 

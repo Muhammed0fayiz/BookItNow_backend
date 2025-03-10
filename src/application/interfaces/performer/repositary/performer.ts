@@ -7,6 +7,7 @@ import { SlotDocuments } from "../../../../infrastructure/models/slotModel";
 import { SlotMangement } from "../../../../domain/entities/slot";
 import { performerAllDetails } from "../../../../domain/entities/performerAllDetails";
 import { PerformerReport } from "../../../../domain/entities/performerReport";
+import { PerformerDocuments } from "../../../../infrastructure/models/performerModel";
 
 export interface IperformerRepository {
   loginPerformer(
@@ -33,7 +34,10 @@ export interface IperformerRepository {
     id: mongoose.Types.ObjectId
   ): Promise<performerAllDetails | null>;
 
-  
+    updatePerformerProfile(
+        objectId: mongoose.Types.ObjectId,
+        updateData: Partial<PerformerDocuments>
+      ): Promise<PerformerDocuments>;
   slotDetails(id: mongoose.Types.ObjectId): Promise<SlotMangement | null>;
   updateslot(
     id: mongoose.Types.ObjectId,

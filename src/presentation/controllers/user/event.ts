@@ -15,8 +15,7 @@ export class UserEventController {
     this._useCase = useCase;
   }
   getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-const id = new mongoose.Types.ObjectId(req.params.id);
+    try {const id = new mongoose.Types.ObjectId(req.params.id);
     const allEvents = await this._useCase.getAllEvents(id);
       if (!allEvents || allEvents.length === 0) {
         return res.status(ResponseStatus.NoContent).json(null);

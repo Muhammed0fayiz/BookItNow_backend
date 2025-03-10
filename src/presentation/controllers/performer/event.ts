@@ -17,19 +17,14 @@ export class performerEventController {
     next: NextFunction
   ) => {
     try {
-      console.log("Function uploadEvents called");
-  
       const userId = req.params.id;
-      console.log("Extracted userId:", userId);
-  
       if (!req.body) {
-        console.log("Request body is missing");
+ 
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: ErrorMessages.NO_EVENT_FOUND });
       }
   
-      console.log("Processing event data from request body");
   
       const event: {
         imageUrl: string;
@@ -53,7 +48,7 @@ export class performerEventController {
         description: req.body.description ? req.body.description.trim() : "",
       };
   
-      console.log("Event object constructed:", event);
+ 
   
       if (
         !event.imageUrl ||
@@ -65,21 +60,21 @@ export class performerEventController {
         !event.teamLeaderNumber ||
         !event.description
       ) {
-        console.log("Validation failed: Missing required fields");
+
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: ErrorMessages.ALL_FIELD_REQUIRED });
       }
   
       if (event.title.length < 2) {
-        console.log("Validation failed: Title is too short");
+
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: EventMessages.EVENT_TITLE_ERROR });
       }
   
       if (isNaN(event.price)) {
-        console.log("Validation failed: Price is not a number");
+     
         return res
           .status(ResponseStatus.BadRequest)
           .json({ message: EventMessages.EVENT_PRICE_ERROR });

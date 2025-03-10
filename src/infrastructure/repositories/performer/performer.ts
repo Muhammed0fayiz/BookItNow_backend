@@ -23,6 +23,40 @@ import { performerAllDetails } from "../../../domain/entities/performerAllDetail
 import { PerformerReport } from "../../../domain/entities/performerReport";
 
 export class performerRepository implements IperformerRepository {
+ updatePerformerProfile = async (
+    objectId: Types.ObjectId,
+    updateData: Partial<PerformerDocuments>
+  ): Promise<PerformerDocuments> => {
+    try {
+
+      console.log('updated',updateData)
+
+      const performer = await PerformerModel.findOne({ userId: objectId });
+  
+      if (!performer) {
+        throw new Error('Performer not found'); 
+      }
+
+
+      if (updateData.profileImage === null) {
+        updateData.profileImage = performer.profileImage;
+      }
+  
+      const updatedPerformer = await PerformerModel.findOneAndUpdate(
+        { userId: objectId },
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+  
+      if (!updatedPerformer) {
+        throw new Error('Failed to update performer');
+      }
+  
+      return updatedPerformer;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   getReport = async (
     performerId: Types.ObjectId,

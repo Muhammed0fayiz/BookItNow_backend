@@ -13,11 +13,19 @@ import { performerAllDetails } from "../../../domain/entities/performerAllDetail
 import { PerformerReport } from "../../../domain/entities/performerReport";
 import { S3Response } from "../../../domain/entities/s3response";
 import { performerDocument } from "../../../domain/entities/performer";
+import { PerformerDocuments } from "../../../infrastructure/models/performerModel";
 export class performerUseCase implements IperformerUseCase {
   private _repository: IperformerRepository;
 
   constructor(private repository: IperformerRepository) {
     this._repository = repository;
+  }
+  updatePerformerProfile(objectId: mongoose.Types.ObjectId, updateData: Partial<PerformerDocuments>): Promise<PerformerDocuments> {
+    try {
+     return this.repository.updatePerformerProfile(objectId, updateData);
+    } catch (error) {
+      throw error
+    }
   }
   getPerformerDetails=async(id: mongoose.Types.ObjectId): Promise<performerDocument | null> =>{
     try {

@@ -11,10 +11,7 @@ import { isValidFullName } from "../../../shared/utils/validName";
 
 import mongoose from "mongoose";
 
-import {
-  UserDocuments,
-  UserModel,
-} from "../../../infrastructure/models/userModel";
+// 
 import { generateOTP } from "../../../shared/utils/generateOtp";
 import { MessageConstants, OTPMessages, UserMessages } from "../../../shared/utils/constant";
 
@@ -222,48 +219,49 @@ async googleCallback(req: Request, res: Response, next: NextFunction) {
       next(error);
     }
   };
-  updateUserProfile = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { username } = req.body;
-      const userId = new mongoose.Types.ObjectId(req.params.id);
-      const image = req.file ? `/uploads/${req.file.filename}` : null;
-      const updateData: { username: string; profileImage?: string | null } = {
-        username,
-      };
+  // updateUserProfile = async (
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ): Promise<void> => {
+  //   try {
+  //     console.log('vj ddmachan',req.body)
+  //     const { username } = req.body;
+  //     const userId = new mongoose.Types.ObjectId(req.params.id);
+  //     const image = req.file ? `/uploads/${req.file.filename}` : null;
+  //     const updateData: { username: string; profileImage?: string | null } = {
+  //       username,
+  //     };
 
-      if (image) {
-        updateData.profileImage = image;
-      }
+  //     if (image) {
+  //       updateData.profileImage = image;
+  //     }
 
-      const updatedUser = (await UserModel.findByIdAndUpdate(
-        userId,
-        updateData,
-        { new: true }
-      )) as UserDocuments;
+  //     const updatedUser = (await UserModel.findByIdAndUpdate(
+  //       userId,
+  //       updateData,
+  //       { new: true }
+  //     )) as UserDocuments;
 
-      if (updatedUser) {
-        res
-          .status(ResponseStatus.OK)
-          .json({ message: UserMessages.PROFILE_UPDATE_SUCCESS, updatedUser });
-      } else {
-        res.status(ResponseStatus.NotFound).json({ message: UserMessages.USER_NOT_FOUND });
-      }
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-        next(error)
-      if (error instanceof Error) {
-        res
-          .status(ResponseStatus.InternalSeverError)
-          .json({ message: UserMessages.ERROR_UPDATING_PROFILE, error: error.message });
-      } else {
-        res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR });
-      }
-    }
-  };
+  //     if (updatedUser) {
+  //       res
+  //         .status(ResponseStatus.OK)
+  //         .json({ message: UserMessages.PROFILE_UPDATE_SUCCESS, updatedUser });
+  //     } else {
+  //       res.status(ResponseStatus.NotFound).json({ message: UserMessages.USER_NOT_FOUND });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating user profile:", error);
+  //       next(error)
+  //     if (error instanceof Error) {
+  //       res
+  //         .status(ResponseStatus.InternalSeverError)
+  //         .json({ message: UserMessages.ERROR_UPDATING_PROFILE, error: error.message });
+  //     } else {
+  //       res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR });
+  //     }
+  //   }
+  // };
   changePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = new mongoose.Types.ObjectId(req.params.id);
@@ -301,5 +299,37 @@ async googleCallback(req: Request, res: Response, next: NextFunction) {
       next(error);
     }
   };
-
+  updateUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log('hello world');
+  
+      const { username, profilePicUrl } = req.body;
+      
+      if (!username || username.length < 2) {
+        return res.status(400).json({ message: 'Username is required and must be at least 2 characters long.' });
+      }
+  
+      const userId = new mongoose.Types.ObjectId(req.params.id);
+  
+      console.log(username, userId, '1', req.body);
+  
+      // 
+      const updatedProfile = await this._useCase.updatedprofile(
+        userId,
+        username,
+        profilePicUrl || null 
+      );
+  
+      if (!updatedProfile) {
+        return res.status(404).json({ message: 'User not found or update failed.' });
+      }
+  
+      return res.status(200).json({ message: 'Profile updated successfully', updatedProfile });
+  
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+  
 }

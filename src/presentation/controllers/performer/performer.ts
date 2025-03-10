@@ -6,10 +6,7 @@ import { IperformerUseCase } from "../../../application/interfaces/performer/use
 import { asPerformer } from "../../../domain/entities/asPerformer";
 import mongoose from "mongoose";
 import { MessageConstants,UserMessages,ErrorMessages, PerformerMessages} from "../../../shared/utils/constant";
-import {
 
-  PerformerModel,
-} from "../../../infrastructure/models/performerModel";
 import { EventReport } from "../../../domain/entities/reportPerformer";
 const ExcelJS = require("exceljs");
 export class performerController {
@@ -149,46 +146,38 @@ const {id}=req.params
     next: NextFunction
   ): Promise<void> => {
     try {
+  
       const id = req.params.id;
-      const { bandName, mobileNumber, place } = req.body;
-      const image = req.file ? `/uploads/${req.file.filename}` : null;
-      const updateData: {
-        bandName?: string;
-        mobileNumber?: string;
-        place?: string;
-        profileImage?: string | null;
-      } = {};
-
-      if (bandName) updateData.bandName = bandName;
-      if (mobileNumber) updateData.mobileNumber = mobileNumber;
-      if (place) updateData.place = place;
-      if (image) updateData.profileImage = image;
-
-      // Perform the update operation
-      const updatedPerformer = await PerformerModel.updateOne(
-        { userId: id },
-        { $set: updateData }
-      );
-
-      if (updatedPerformer.modifiedCount > 0) {
-        res
-          .status(ResponseStatus.OK)
-          .json({ message: UserMessages.PROFILE_UPDATE_SUCCESS, updatedPerformer });
-      } else {
-        res.status(ResponseStatus.NotFound).json({ message: UserMessages.USER_NOT_FOUND_UPDATE });
-      }
+      const objectId = new mongoose.Types.ObjectId(id); 
+      const { bandName, mobileNumber, place, profileImage } = req.body;
+  
+     
+      const updateData = {
+        bandName,
+        mobileNumber,
+        place,
+        profileImage: profileImage || null,
+      };
+  
+    
+      const updatedPerformer = await this._useCase.updatePerformerProfile(objectId, updateData);
+  
+      // Send success response
+      res.status(ResponseStatus.OK).json({
+        message: UserMessages.PROFILE_UPDATE_SUCCESS,
+        updatedPerformer,
+      });
     } catch (error) {
       console.error("Error updating user profile:", error);
-      next(error)
-      if (error instanceof Error) {
-        res
-          .status(ResponseStatus.InternalSeverError)
-          .json({ message: "Error updating profile", error: error.message });
-      } else {
-        res.status(ResponseStatus.InternalSeverError).json({ message: UserMessages.UNKNOWN_ERROR});
-      }
+      next(error);
+      res.status(ResponseStatus.InternalSeverError).json({
+        message: "Error updating profile",
+        error: error instanceof Error ? error.message : UserMessages.UNKNOWN_ERROR,
+      });
     }
   };
+  
+  
   downloadReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { startDate, endDate } = req.query;
